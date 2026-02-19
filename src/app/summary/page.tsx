@@ -109,17 +109,17 @@ export default function SummaryPage() {
   };
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-6xl p-4 md:p-8">
-      <main className="rpb-shell overflow-hidden">
-        <header className="rpb-topbar flex items-center justify-between px-5 py-4 text-white md:px-8">
+    <div className="mx-auto min-h-screen w-full max-w-6xl p-3 md:p-4">
+      <main className="rpb-shell rpb-compact print-a4 overflow-hidden">
+        <header className="rpb-topbar flex items-center justify-between px-4 py-3 text-white md:px-6">
           <h1 className="rpb-h-title text-xl font-semibold md:text-2xl">RPB</h1>
           <span className="text-xs opacity-90 md:text-sm">Summary</span>
         </header>
 
-        <div className="space-y-6 p-4 md:p-8">
-          <section className="rpb-section p-4 md:p-5">
-            <h2 className="rpb-h-title mb-4 text-lg font-semibold">Summary</h2>
-            <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-4 p-4 md:space-y-3 md:p-5">
+          <section className="rpb-section p-4 md:p-4">
+            <h2 className="rpb-h-title mb-3 text-base font-semibold md:text-lg">Summary</h2>
+            <div className="grid gap-3 md:grid-cols-2">
               <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
                 Customer Name
                 <input
@@ -139,8 +139,8 @@ export default function SummaryPage() {
             </div>
           </section>
 
-          <section className="rpb-section p-4 md:p-5">
-            <div className="grid gap-3 md:grid-cols-4">
+          <section className="rpb-section p-4 md:p-4">
+            <div className="grid gap-2 md:grid-cols-4">
               <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
                 Stock Return (%)
                 <input
@@ -200,8 +200,8 @@ export default function SummaryPage() {
             </div>
           </section>
 
-          <section className="rpb-section p-4 md:p-5">
-            <h3 className="rpb-h-title mb-3 text-base font-semibold">Line Items</h3>
+          <section className="rpb-section p-4 md:p-4">
+            <h3 className="rpb-h-title mb-2 text-base font-semibold">Line Items</h3>
             <div className="overflow-x-auto">
               <table className="rpb-table min-w-[960px] w-full text-sm">
                 <thead>
@@ -266,7 +266,7 @@ export default function SummaryPage() {
               </table>
             </div>
 
-            <div className="mt-4 grid gap-3 text-sm md:grid-cols-2">
+            <div className="mt-3 grid gap-2 text-sm md:grid-cols-2">
               <div className="rpb-section p-4">
                 <p className="mb-2 font-semibold">Ringkasan Perhitungan</p>
                 <div className="space-y-1 text-rpb-ink-soft">
@@ -306,7 +306,7 @@ export default function SummaryPage() {
             </div>
           </section>
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="no-print flex flex-wrap items-center justify-between gap-3">
             <Link
               href="/"
               className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"

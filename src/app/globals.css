@@ -135,3 +135,59 @@ body {
 .rpb-table tbody tr:last-child td {
   border-bottom: 0;
 }
+
+@media (min-width: 1024px) {
+  .rpb-compact {
+    line-height: 1.25;
+  }
+
+  .rpb-compact .rpb-input {
+    padding: 8px 11px;
+  }
+
+  .rpb-compact .rpb-section {
+    border-radius: 16px;
+  }
+}
+
+@page {
+  size: A4 portrait;
+  margin: 10mm;
+}
+
+@media print {
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  .page-bg {
+    min-height: auto;
+    background: #fff !important;
+  }
+
+  .print-a4 {
+    width: 190mm;
+    min-height: 277mm;
+    margin: 0 auto;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+
+  .print-a4 .rpb-shell,
+  .print-a4 .rpb-section,
+  .print-a4 .rpb-price-pill {
+    box-shadow: none !important;
+  }
+
+  .print-a4 .rpb-topbar {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}

@@ -120,9 +120,9 @@ export default function HomePage() {
   };
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-6xl p-4 md:p-8">
-      <main className="rpb-shell overflow-hidden">
-        <header className="rpb-topbar flex items-center justify-between px-5 py-4 text-white md:px-8">
+    <div className="mx-auto min-h-screen w-full max-w-6xl p-3 md:p-4">
+      <main className="rpb-shell rpb-compact overflow-hidden">
+        <header className="rpb-topbar flex items-center justify-between px-4 py-3 text-white md:px-6">
           <div className="flex items-center gap-2 text-sm opacity-95">
             <span className="rounded-full border border-white/50 p-1.5">
               <UserRound size={14} />
@@ -133,33 +133,31 @@ export default function HomePage() {
           <span className="text-xs opacity-90">Configurator</span>
         </header>
 
-        <div className="space-y-6 p-4 md:p-8">
-          <section className="rpb-section p-4 md:p-5">
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
-                Customer Name
-                <input
-                  className="rpb-input"
-                  placeholder="Masukkan nama customer"
-                  value={customerName}
-                  onChange={(event) => setCustomerName(event.target.value)}
-                />
-              </label>
-              <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
-                Project Name
-                <input
-                  className="rpb-input"
-                  placeholder="Masukkan nama project"
-                  value={projectName}
-                  onChange={(event) => setProjectName(event.target.value)}
-                />
-              </label>
-            </div>
-          </section>
+        <div className="space-y-4 p-4 md:space-y-3 md:p-5">
+          <div className="grid gap-3 md:grid-cols-2">
+            <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+              Customer Name
+              <input
+                className="rpb-input"
+                placeholder="Masukkan nama customer"
+                value={customerName}
+                onChange={(event) => setCustomerName(event.target.value)}
+              />
+            </label>
+            <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+              Project Name
+              <input
+                className="rpb-input"
+                placeholder="Masukkan nama project"
+                value={projectName}
+                onChange={(event) => setProjectName(event.target.value)}
+              />
+            </label>
+          </div>
 
-          <section className="rpb-section p-4 md:p-5">
-            <h2 className="rpb-h-title mb-3 text-lg font-semibold">Dimension</h2>
-            <div className="grid gap-4 md:grid-cols-3">
+          <div>
+            <h2 className="rpb-h-title mb-2 text-base font-semibold md:text-lg">Dimension</h2>
+            <div className="grid gap-3 md:grid-cols-3">
               <DimensionInput
                 label="Panjang (mm)"
                 value={dimensions.length}
@@ -176,12 +174,12 @@ export default function HomePage() {
                 onChange={(value) => updateDimension("height", value)}
               />
             </div>
-          </section>
+          </div>
 
-          <section className="rpb-section p-4 md:p-5">
-            <h2 className="rpb-h-title mb-3 text-lg font-semibold">Profile</h2>
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft md:w-72">
+          <section className="rpb-section p-4 md:p-4">
+            <h2 className="rpb-h-title mb-2 text-base font-semibold md:text-lg">Profile</h2>
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft md:w-64">
                 Tebal Panel
                 <select
                   className="rpb-input"
@@ -199,31 +197,33 @@ export default function HomePage() {
                 <span className="text-base">{formatRupiah(usdToIdr(profileUsd))}</span>
               </div>
             </div>
-            <p className="mt-2 text-xs text-rpb-ink-soft">
+            <p className="mt-1 text-xs text-rpb-ink-soft">
               Formula mengikuti sheet <span className="font-semibold">profil</span>
               {" "}dengan dimensi aktif dan panel 30/45.
             </p>
           </section>
 
-          <section className="rpb-section p-4 md:p-5">
-            <h2 className="rpb-h-title mb-3 text-lg font-semibold">Konstruksi</h2>
-            <div className="rpb-price-pill inline-flex items-center justify-between gap-4 px-5 py-3 text-sm font-semibold">
-              <span>Total Konstruksi</span>
-              <span className="text-base">
-                {formatRupiah(usdToIdr(konstruksiUsd))}
-              </span>
+          <section className="rpb-section p-4 md:p-4">
+            <h2 className="rpb-h-title mb-2 text-base font-semibold md:text-lg">Konstruksi</h2>
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-end">
+              <div className="rpb-price-pill inline-flex w-full items-center justify-between gap-4 px-5 py-3 text-sm font-semibold md:w-auto md:min-w-72">
+                <span>Total Konstruksi</span>
+                <span className="text-base">
+                  {formatRupiah(usdToIdr(konstruksiUsd))}
+                </span>
+              </div>
             </div>
           </section>
 
-          <section className="rpb-section p-4 md:p-5">
-            <div className="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <h2 className="rpb-h-title text-lg font-semibold">Other</h2>
+          <section className="rpb-section p-4 md:p-4">
+            <div className="mb-2 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <h2 className="rpb-h-title text-base font-semibold md:text-lg">Other</h2>
               <div className="rpb-price-pill inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold">
                 <span>Terpilih</span>
                 <span>{selectedOtherCount} unit</span>
               </div>
             </div>
-            <div className="mb-4 grid gap-3 md:grid-cols-[1fr_220px]">
+            <div className="mb-3 grid gap-2 md:grid-cols-[1fr_220px]">
               <label className="relative">
                 <Search
                   size={17}
@@ -255,42 +255,44 @@ export default function HomePage() {
               </label>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredOtherItems.map((item) => {
-                const currentQty = selectedOther[item.id] ?? 0;
+            <div className="max-h-[320px] overflow-y-auto pr-1 md:max-h-[360px]">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredOtherItems.map((item) => {
+                  const currentQty = selectedOther[item.id] ?? 0;
 
-                return (
-                  <article key={item.id} className="rpb-grid-card p-3">
-                    <div className="mb-2 flex items-start justify-between gap-2">
-                      <div>
-                        <p className="font-semibold">{item.name}</p>
-                        <p className="text-xs text-rpb-ink-soft">{item.category}</p>
+                  return (
+                    <article key={item.id} className="rpb-grid-card p-2.5">
+                      <div className="mb-1.5 flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-semibold">{item.name}</p>
+                          <p className="text-xs text-rpb-ink-soft">{item.category}</p>
+                        </div>
+                        <button
+                          type="button"
+                          className="rpb-btn-primary inline-flex h-8 w-8 items-center justify-center"
+                          onClick={() => openAddModal(item)}
+                          aria-label={`Tambah ${item.name}`}
+                        >
+                          <Plus size={14} />
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        className="rpb-btn-primary inline-flex h-9 w-9 items-center justify-center"
-                        onClick={() => openAddModal(item)}
-                        aria-label={`Tambah ${item.name}`}
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </div>
-                    <p className="line-clamp-1 text-xs text-rpb-ink-soft">
-                      Model: {item.model}
-                    </p>
-                    <div className="mt-3 flex items-center justify-between text-sm">
-                      <span className="font-semibold">
-                        {formatRupiah(usdToIdr(item.priceUsd))}
-                      </span>
-                      {currentQty > 0 ? (
-                        <span className="rpb-chip px-2 py-0.5 text-xs font-semibold text-rpb-primary">
-                          Qty {currentQty}
+                      <p className="line-clamp-1 text-xs text-rpb-ink-soft">
+                        Model: {item.model}
+                      </p>
+                      <div className="mt-2 flex items-center justify-between text-sm">
+                        <span className="font-semibold">
+                          {formatRupiah(usdToIdr(item.priceUsd))}
                         </span>
-                      ) : null}
-                    </div>
-                  </article>
-                );
-              })}
+                        {currentQty > 0 ? (
+                          <span className="rpb-chip px-2 py-0.5 text-xs font-semibold text-rpb-primary">
+                            Qty {currentQty}
+                          </span>
+                        ) : null}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
             </div>
           </section>
 
