@@ -170,26 +170,47 @@ export default function SummaryPage() {
       },
     });
 
-    const lastTable = (doc as jsPDF & { lastAutoTable?: { finalY: number } })
+    const lineItemsTable = (doc as jsPDF & { lastAutoTable?: { finalY: number } })
       .lastAutoTable;
-    let y = (lastTable?.finalY ?? 45) + 8;
-    doc.setFontSize(10);
-    doc.setTextColor(70, 74, 104);
-    doc.text(`Subtotal Items : ${formatRupiah(usdToIdr(subtotalUsd))}`, 14, y);
-    y += 5;
-    doc.text(`Stock Return   : ${formatRupiah(usdToIdr(stockReturnUsd))}`, 14, y);
-    y += 5;
-    doc.text(`Marketing Cost : ${formatRupiah(usdToIdr(marketingCostUsd))}`, 14, y);
-    y += 5;
-    doc.text(`Services       : ${formatRupiah(usdToIdr(servicesUsd))}`, 14, y);
-    y += 5;
-    doc.text(`Profit         : ${formatRupiah(usdToIdr(profitUsd))}`, 14, y);
-    y += 8;
+    const summaryRows = [
+      ["Subtotal Items", formatRupiah(usdToIdr(subtotalUsd))],
+      ["Stock Return", formatRupiah(usdToIdr(stockReturnUsd))],
+      ["Marketing Cost", formatRupiah(usdToIdr(marketingCostUsd))],
+      ["Services", formatRupiah(usdToIdr(servicesUsd))],
+      ["Base After Adjust", formatRupiah(usdToIdr(baseAfterAdjustUsd))],
+      ["Profit", formatRupiah(usdToIdr(profitUsd))],
+      ["Grand Total", formatRupiah(usdToIdr(grandTotalUsd))],
+    ];
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.setTextColor(31, 35, 64);
-    doc.text(`Grand Total : ${formatRupiah(usdToIdr(grandTotalUsd))}`, 14, y);
+    autoTable(doc, {
+      startY: (lineItemsTable?.finalY ?? 45) + 7,
+      head: [["Ringkasan Perhitungan", "Nilai"]],
+      body: summaryRows,
+      theme: "grid",
+      styles: {
+        fontSize: 9,
+        cellPadding: 2.4,
+        lineColor: [217, 219, 239],
+        lineWidth: 0.15,
+      },
+      headStyles: {
+        fillColor: [99, 101, 185],
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+      },
+      columnStyles: {
+        0: { cellWidth: 80 },
+        1: { cellWidth: 55, halign: "right" },
+      },
+      didParseCell: (data) => {
+        const grandTotalRowIndex = summaryRows.length - 1;
+        if (data.section === "body" && data.row.index === grandTotalRowIndex) {
+          data.cell.styles.fontStyle = "bold";
+          data.cell.styles.fillColor = [238, 240, 255];
+          data.cell.styles.textColor = [31, 35, 64];
+        }
+      },
+    });
 
     const safeProjectName = (projectName || "summary")
       .replace(/[^a-z0-9-_]+/gi, "-")
@@ -204,7 +225,7 @@ export default function SummaryPage() {
           <h1 className="rpb-h-title text-xl font-semibold md:text-2xl">RPB</h1>
         </header>
 
-        <div className="space-y-4 p-4 md:space-y-3 md:px-7 md:py-5">
+        <div className="space-y-4 p-5 md:space-y-3 md:px-10 md:py-6 lg:px-12">
           <section className="rpb-section p-4 md:p-4">
             <h2 className="rpb-h-title mb-3 text-base font-semibold md:text-lg">Summary</h2>
             <div className="grid gap-3 md:grid-cols-2">

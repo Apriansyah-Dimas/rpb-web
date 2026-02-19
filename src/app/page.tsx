@@ -126,7 +126,7 @@ export default function HomePage() {
           <h1 className="rpb-h-title text-xl font-semibold md:text-2xl">RPB</h1>
         </header>
 
-        <div className="space-y-4 p-4 md:space-y-3 md:px-7 md:py-5">
+        <div className="space-y-4 p-5 md:space-y-3 md:px-10 md:py-6 lg:px-12">
           <div className="grid gap-3 md:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
               Customer Name
