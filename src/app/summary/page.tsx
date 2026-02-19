@@ -33,8 +33,6 @@ export default function SummaryPage() {
   const panelThickness = useRpbStore((state) => state.panelThickness);
   const selectedOther = useRpbStore((state) => state.selectedOther);
   const adjustments = useRpbStore((state) => state.adjustments);
-  const setCustomerName = useRpbStore((state) => state.setCustomerName);
-  const setProjectName = useRpbStore((state) => state.setProjectName);
   const setOtherQty = useRpbStore((state) => state.setOtherQty);
   const setAdjustment = useRpbStore((state) => state.setAdjustment);
 
@@ -226,28 +224,6 @@ export default function SummaryPage() {
         </header>
 
         <div className="space-y-4 p-5 md:space-y-3 md:px-10 md:py-6 lg:px-12">
-          <section className="rpb-section p-4 md:p-4">
-            <h2 className="rpb-h-title mb-3 text-base font-semibold md:text-lg">Summary</h2>
-            <div className="grid gap-3 md:grid-cols-2">
-              <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
-                Customer Name
-                <input
-                  className="rpb-input"
-                  value={customerName}
-                  onChange={(event) => setCustomerName(event.target.value)}
-                />
-              </label>
-              <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
-                Project Name
-                <input
-                  className="rpb-input"
-                  value={projectName}
-                  onChange={(event) => setProjectName(event.target.value)}
-                />
-              </label>
-            </div>
-          </section>
-
           <section className="rpb-section p-4 md:p-4">
             <div className="grid gap-2 md:grid-cols-4">
               <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
