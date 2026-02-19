@@ -10,7 +10,7 @@ import {
 import { OTHER_ITEMS } from "@/lib/rpb-data";
 import { useRpbStore } from "@/store/rpb-store";
 import type { DimensionKey, OtherItem, StockCategory } from "@/types/rpb";
-import { ArrowRight, Plus, Search, SlidersHorizontal, UserRound } from "lucide-react";
+import { ArrowRight, Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -120,20 +120,13 @@ export default function HomePage() {
   };
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-6xl p-3 md:p-4">
+    <div className="mx-auto min-h-screen w-full max-w-6xl p-4 md:px-10 md:py-5 lg:px-12">
       <main className="rpb-shell rpb-compact overflow-hidden">
-        <header className="rpb-topbar flex items-center justify-between px-4 py-3 text-white md:px-6">
-          <div className="flex items-center gap-2 text-sm opacity-95">
-            <span className="rounded-full border border-white/50 p-1.5">
-              <UserRound size={14} />
-            </span>
-            <span className="hidden md:inline">Estimator</span>
-          </div>
+        <header className="rpb-topbar flex items-center justify-center px-4 py-3 text-white md:px-6">
           <h1 className="rpb-h-title text-xl font-semibold md:text-2xl">RPB</h1>
-          <span className="text-xs opacity-90">Configurator</span>
         </header>
 
-        <div className="space-y-4 p-4 md:space-y-3 md:p-5">
+        <div className="space-y-4 p-4 md:space-y-3 md:px-7 md:py-5">
           <div className="grid gap-3 md:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
               Customer Name
@@ -204,8 +197,8 @@ export default function HomePage() {
           </section>
 
           <section className="rpb-section p-4 md:p-4">
-            <h2 className="rpb-h-title mb-2 text-base font-semibold md:text-lg">Konstruksi</h2>
-            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-end">
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <h2 className="rpb-h-title text-base font-semibold md:text-lg">Konstruksi</h2>
               <div className="rpb-price-pill inline-flex w-full items-center justify-between gap-4 px-5 py-3 text-sm font-semibold md:w-auto md:min-w-72">
                 <span>Total Konstruksi</span>
                 <span className="text-base">
@@ -223,26 +216,22 @@ export default function HomePage() {
                 <span>{selectedOtherCount} unit</span>
               </div>
             </div>
-            <div className="mb-3 grid gap-2 md:grid-cols-[1fr_220px]">
+            <div className="mb-3 grid gap-2 md:grid-cols-[minmax(0,1fr)_220px]">
               <label className="relative">
                 <Search
-                  size={17}
-                  className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-rpb-ink-soft"
+                  size={16}
+                  className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-rpb-ink-soft"
                 />
                 <input
-                  className="rpb-input pl-10"
+                  className="rpb-input pl-12"
                   placeholder="Search item or model"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                 />
               </label>
-              <label className="relative">
-                <SlidersHorizontal
-                  size={16}
-                  className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-rpb-ink-soft"
-                />
+              <label>
                 <select
-                  className="rpb-input pl-10"
+                  className="rpb-input pl-3"
                   value={activeFilter}
                   onChange={(event) => setActiveFilter(event.target.value as OtherFilter)}
                 >

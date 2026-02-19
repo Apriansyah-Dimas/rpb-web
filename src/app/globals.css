@@ -124,12 +124,13 @@ body {
   text-align: left;
 }
 
-.rpb-table th {
+.rpb-table thead th {
+  background: #6365b9;
+  color: #fff;
   font-size: 12px;
-  color: var(--rpb-ink-soft);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
+  border-bottom: 0;
 }
 
 .rpb-table tbody tr:last-child td {

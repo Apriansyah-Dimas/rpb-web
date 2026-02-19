@@ -10,6 +10,8 @@ import { OTHER_ITEMS } from "@/lib/rpb-data";
 import { useRpbStore } from "@/store/rpb-store";
 import type { SummaryLineItem } from "@/types/rpb";
 import { ArrowLeft, Download, Minus, Plus, Save } from "lucide-react";
+import autoTable from "jspdf-autotable";
+import jsPDF from "jspdf";
 import Link from "next/link";
 import { useMemo } from "react";
 
@@ -105,18 +107,104 @@ export default function SummaryPage() {
   };
 
   const downloadPdf = () => {
-    window.print();
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+    const dateText = new Intl.DateTimeFormat("id-ID", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    }).format(new Date());
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("RPB Summary", 14, 16);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Customer Name : ${customerName || "-"}`, 14, 26);
+    doc.text(`Project Name    : ${projectName || "-"}`, 14, 32);
+    doc.text(`Date                 : ${dateText}`, 14, 38);
+
+    const tableHead = [
+      ["No", "Jenis", "Keterangan", "Satuan", "Jenis Spec", "Qty", "Harga", "Total"],
+    ];
+    const tableBody = lineItems.map((item, index) => [
+      String(index + 1),
+      item.jenis,
+      item.keterangan,
+      item.satuan,
+      item.jenisSpec,
+      String(item.qty),
+      formatRupiah(usdToIdr(item.hargaUsd)),
+      formatRupiah(usdToIdr(item.hargaUsd * item.qty)),
+    ]);
+
+    autoTable(doc, {
+      startY: 45,
+      head: tableHead,
+      body: tableBody,
+      theme: "grid",
+      styles: {
+        fontSize: 8.5,
+        cellPadding: 2.2,
+        lineColor: [217, 219, 239],
+        lineWidth: 0.15,
+      },
+      headStyles: {
+        fillColor: [99, 101, 185],
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+      },
+      columnStyles: {
+        0: { cellWidth: 10 },
+        1: { cellWidth: 22 },
+        2: { cellWidth: 48 },
+        3: { cellWidth: 16 },
+        4: { cellWidth: 28 },
+        5: { cellWidth: 12, halign: "right" },
+        6: { cellWidth: 26, halign: "right" },
+        7: { cellWidth: 28, halign: "right" },
+      },
+    });
+
+    const lastTable = (doc as jsPDF & { lastAutoTable?: { finalY: number } })
+      .lastAutoTable;
+    let y = (lastTable?.finalY ?? 45) + 8;
+    doc.setFontSize(10);
+    doc.setTextColor(70, 74, 104);
+    doc.text(`Subtotal Items : ${formatRupiah(usdToIdr(subtotalUsd))}`, 14, y);
+    y += 5;
+    doc.text(`Stock Return   : ${formatRupiah(usdToIdr(stockReturnUsd))}`, 14, y);
+    y += 5;
+    doc.text(`Marketing Cost : ${formatRupiah(usdToIdr(marketingCostUsd))}`, 14, y);
+    y += 5;
+    doc.text(`Services       : ${formatRupiah(usdToIdr(servicesUsd))}`, 14, y);
+    y += 5;
+    doc.text(`Profit         : ${formatRupiah(usdToIdr(profitUsd))}`, 14, y);
+    y += 8;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(31, 35, 64);
+    doc.text(`Grand Total : ${formatRupiah(usdToIdr(grandTotalUsd))}`, 14, y);
+
+    const safeProjectName = (projectName || "summary")
+      .replace(/[^a-z0-9-_]+/gi, "-")
+      .replace(/^-+|-+$/g, "");
+    doc.save(`RPB-${safeProjectName || "summary"}.pdf`);
   };
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-6xl p-3 md:p-4">
-      <main className="rpb-shell rpb-compact print-a4 overflow-hidden">
-        <header className="rpb-topbar flex items-center justify-between px-4 py-3 text-white md:px-6">
+    <div className="mx-auto min-h-screen w-full max-w-6xl p-4 md:px-10 md:py-5 lg:px-12">
+      <main className="rpb-shell rpb-compact overflow-hidden">
+        <header className="rpb-topbar flex items-center justify-center px-4 py-3 text-white md:px-6">
           <h1 className="rpb-h-title text-xl font-semibold md:text-2xl">RPB</h1>
-          <span className="text-xs opacity-90 md:text-sm">Summary</span>
         </header>
 
-        <div className="space-y-4 p-4 md:space-y-3 md:p-5">
+        <div className="space-y-4 p-4 md:space-y-3 md:px-7 md:py-5">
           <section className="rpb-section p-4 md:p-4">
             <h2 className="rpb-h-title mb-3 text-base font-semibold md:text-lg">Summary</h2>
             <div className="grid gap-3 md:grid-cols-2">
@@ -297,11 +385,13 @@ export default function SummaryPage() {
                 </div>
               </div>
 
-              <div className="rpb-price-pill flex flex-col justify-center gap-1 p-5">
-                <span className="text-sm font-semibold">Grand Total</span>
-                <span className="text-2xl font-bold">
-                  {formatRupiah(usdToIdr(grandTotalUsd))}
-                </span>
+              <div className="flex items-start md:justify-end">
+                <div className="rpb-price-pill inline-flex w-fit flex-col gap-0.5 px-5 py-3">
+                  <span className="text-sm font-semibold">Grand Total</span>
+                  <span className="text-xl font-bold">
+                    {formatRupiah(usdToIdr(grandTotalUsd))}
+                  </span>
+                </div>
               </div>
             </div>
           </section>
