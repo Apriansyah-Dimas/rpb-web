@@ -219,7 +219,7 @@ export default function HomePage() {
                   className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-rpb-ink-soft"
                 />
                 <input
-                  className="rpb-input pl-12"
+                  className="rpb-input rpb-input-with-icon"
                   placeholder="Search item or model"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}

@@ -72,6 +72,10 @@ body {
   box-shadow: 0 0 0 4px rgba(100, 101, 185, 0.16);
 }
 
+.rpb-input-with-icon {
+  padding-left: 44px !important;
+}
+
 .rpb-chip {
   border: 1px solid var(--rpb-border);
   border-radius: 999px;
