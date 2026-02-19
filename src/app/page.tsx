@@ -190,10 +190,6 @@ export default function HomePage() {
                 <span className="text-base">{formatRupiah(usdToIdr(profileUsd))}</span>
               </div>
             </div>
-            <p className="mt-1 text-xs text-rpb-ink-soft">
-              Formula mengikuti sheet <span className="font-semibold">profil</span>
-              {" "}dengan dimensi aktif dan panel 30/45.
-            </p>
           </section>
 
           <section className="rpb-section p-4 md:p-4">
