@@ -1,26 +1,137 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f6f7ff;
+  --foreground: #1f2340;
+  --rpb-primary: #6465b9;
+  --rpb-primary-dark: #5556a1;
+  --rpb-primary-soft: #eef0ff;
+  --rpb-border: #d9dbef;
+  --rpb-surface: #ffffff;
+  --rpb-ink-soft: #4e5275;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-rpb-primary: var(--rpb-primary);
+  --color-rpb-primary-dark: var(--rpb-primary-dark);
+  --color-rpb-primary-soft: var(--rpb-primary-soft);
+  --color-rpb-border: var(--rpb-border);
+  --color-rpb-surface: var(--rpb-surface);
+  --color-rpb-ink-soft: var(--rpb-ink-soft);
+  --font-sans: var(--font-manrope);
+  --font-display: var(--font-sora);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-manrope), sans-serif;
+}
+
+.page-bg {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 5% 0%, rgba(100, 101, 185, 0.23), transparent 36%),
+    radial-gradient(circle at 95% 10%, rgba(100, 101, 185, 0.16), transparent 34%),
+    linear-gradient(170deg, #f8f8ff 0%, #eff2ff 100%);
+}
+
+.rpb-shell {
+  border: 1px solid var(--rpb-border);
+  border-radius: 24px;
+  background: linear-gradient(180deg, #ffffff 0%, #f9faff 100%);
+  box-shadow:
+    0 30px 60px rgba(64, 72, 148, 0.12),
+    0 4px 12px rgba(64, 72, 148, 0.06);
+}
+
+.rpb-topbar {
+  background: linear-gradient(90deg, var(--rpb-primary) 0%, #797ac9 100%);
+}
+
+.rpb-h-title {
+  font-family: var(--font-sora), sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.rpb-input {
+  width: 100%;
+  border: 1px solid var(--rpb-border);
+  border-radius: 14px;
+  background: #fff;
+  padding: 10px 12px;
+  color: var(--foreground);
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.rpb-input:focus {
+  border-color: var(--rpb-primary);
+  box-shadow: 0 0 0 4px rgba(100, 101, 185, 0.16);
+}
+
+.rpb-chip {
+  border: 1px solid var(--rpb-border);
+  border-radius: 999px;
+  background: #fff;
+}
+
+.rpb-btn-primary {
+  border-radius: 14px;
+  background: var(--rpb-primary);
+  color: #fff;
+  transition: background-color 120ms ease, transform 120ms ease;
+}
+
+.rpb-btn-primary:hover {
+  background: var(--rpb-primary-dark);
+  transform: translateY(-1px);
+}
+
+.rpb-btn-ghost {
+  border: 1px solid var(--rpb-border);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--foreground);
+}
+
+.rpb-section {
+  border: 1px solid var(--rpb-border);
+  border-radius: 18px;
+  background: var(--rpb-surface);
+  box-shadow: 0 4px 14px rgba(66, 73, 154, 0.06);
+}
+
+.rpb-price-pill {
+  border: 1px solid rgba(100, 101, 185, 0.24);
+  border-radius: 999px;
+  background: var(--rpb-primary-soft);
+  color: var(--rpb-primary-dark);
+}
+
+.rpb-grid-card {
+  border: 1px solid var(--rpb-border);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.rpb-table th,
+.rpb-table td {
+  border-bottom: 1px solid var(--rpb-border);
+  padding: 10px 8px;
+  text-align: left;
+}
+
+.rpb-table th {
+  font-size: 12px;
+  color: var(--rpb-ink-soft);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rpb-table tbody tr:last-child td {
+  border-bottom: 0;
 }

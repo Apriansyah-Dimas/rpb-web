@@ -1,0 +1,341 @@
+"use client";
+
+import {
+  calculateKonstruksiTotalUsd,
+  calculateProfileTotalUsd,
+  formatRupiah,
+  usdToIdr,
+} from "@/lib/rpb-calculator";
+import { OTHER_ITEMS } from "@/lib/rpb-data";
+import { useRpbStore } from "@/store/rpb-store";
+import type { SummaryLineItem } from "@/types/rpb";
+import { ArrowLeft, Download, Minus, Plus, Save } from "lucide-react";
+import Link from "next/link";
+import { useMemo } from "react";
+
+const parsePercentInput = (value: string): number => {
+  const parsed = Number.parseFloat(value);
+  if (!Number.isFinite(parsed)) {
+    return 0;
+  }
+
+  return parsed;
+};
+
+const pctToValue = (subtotal: number, pct: number): number => subtotal * (pct / 100);
+
+export default function SummaryPage() {
+  const customerName = useRpbStore((state) => state.customerName);
+  const projectName = useRpbStore((state) => state.projectName);
+  const dimensions = useRpbStore((state) => state.dimensions);
+  const panelThickness = useRpbStore((state) => state.panelThickness);
+  const selectedOther = useRpbStore((state) => state.selectedOther);
+  const adjustments = useRpbStore((state) => state.adjustments);
+  const setCustomerName = useRpbStore((state) => state.setCustomerName);
+  const setProjectName = useRpbStore((state) => state.setProjectName);
+  const setOtherQty = useRpbStore((state) => state.setOtherQty);
+  const setAdjustment = useRpbStore((state) => state.setAdjustment);
+
+  const profileUsd = useMemo(
+    () => calculateProfileTotalUsd(dimensions, panelThickness),
+    [dimensions, panelThickness],
+  );
+
+  const konstruksiUsd = useMemo(() => calculateKonstruksiTotalUsd(), []);
+
+  const lineItems = useMemo(() => {
+    const baseItems: SummaryLineItem[] = [
+      {
+        id: "profile",
+        jenis: "PROFILE",
+        keterangan: "Profile Aluminium - layer 1",
+        satuan: "Lot",
+        jenisSpec: String(panelThickness),
+        qty: 1,
+        hargaUsd: profileUsd,
+      },
+      {
+        id: "konstruksi",
+        jenis: "KONSTRUKSI",
+        keterangan: "Plat BJS & konstruksi, paint, etc",
+        satuan: "Lot",
+        jenisSpec: "1",
+        qty: 1,
+        hargaUsd: konstruksiUsd,
+      },
+    ];
+
+    const selectedStockItems = OTHER_ITEMS.filter((item) => (selectedOther[item.id] ?? 0) > 0);
+    const stockLines: SummaryLineItem[] = selectedStockItems.map((item) => ({
+      id: `other-${item.id}`,
+      jenis: item.category,
+      keterangan: item.model === "-" ? item.name : item.model,
+      satuan: item.unit,
+      jenisSpec: item.name,
+      qty: selectedOther[item.id] ?? 0,
+      hargaUsd: item.priceUsd,
+    }));
+
+    return [...baseItems, ...stockLines];
+  }, [konstruksiUsd, panelThickness, profileUsd, selectedOther]);
+
+  const subtotalUsd = useMemo(
+    () => lineItems.reduce((sum, item) => sum + item.hargaUsd * item.qty, 0),
+    [lineItems],
+  );
+
+  const stockReturnUsd = pctToValue(subtotalUsd, adjustments.stockReturn);
+  const marketingCostUsd = pctToValue(subtotalUsd, adjustments.marketingCost);
+  const servicesUsd = pctToValue(subtotalUsd, adjustments.services);
+  const baseAfterAdjustUsd = subtotalUsd + stockReturnUsd + marketingCostUsd + servicesUsd;
+  const profitUsd = pctToValue(baseAfterAdjustUsd, adjustments.profit);
+  const grandTotalUsd = baseAfterAdjustUsd + profitUsd;
+
+  const updateQty = (itemId: string, qty: number) => {
+    if (!itemId.startsWith("other-")) {
+      return;
+    }
+
+    const stockId = itemId.replace("other-", "");
+    setOtherQty(stockId, Math.max(0, qty));
+  };
+
+  const saveState = () => {
+    window.alert("Data tersimpan di browser (local storage).");
+  };
+
+  const downloadPdf = () => {
+    window.print();
+  };
+
+  return (
+    <div className="mx-auto min-h-screen w-full max-w-6xl p-4 md:p-8">
+      <main className="rpb-shell overflow-hidden">
+        <header className="rpb-topbar flex items-center justify-between px-5 py-4 text-white md:px-8">
+          <h1 className="rpb-h-title text-xl font-semibold md:text-2xl">RPB</h1>
+          <span className="text-xs opacity-90 md:text-sm">Summary</span>
+        </header>
+
+        <div className="space-y-6 p-4 md:p-8">
+          <section className="rpb-section p-4 md:p-5">
+            <h2 className="rpb-h-title mb-4 text-lg font-semibold">Summary</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+                Customer Name
+                <input
+                  className="rpb-input"
+                  value={customerName}
+                  onChange={(event) => setCustomerName(event.target.value)}
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+                Project Name
+                <input
+                  className="rpb-input"
+                  value={projectName}
+                  onChange={(event) => setProjectName(event.target.value)}
+                />
+              </label>
+            </div>
+          </section>
+
+          <section className="rpb-section p-4 md:p-5">
+            <div className="grid gap-3 md:grid-cols-4">
+              <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+                Stock Return (%)
+                <input
+                  className="rpb-input"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step="any"
+                  value={adjustments.stockReturn}
+                  onChange={(event) =>
+                    setAdjustment("stockReturn", parsePercentInput(event.target.value))
+                  }
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+                Marketing Cost (%)
+                <input
+                  className="rpb-input"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step="any"
+                  value={adjustments.marketingCost}
+                  onChange={(event) =>
+                    setAdjustment("marketingCost", parsePercentInput(event.target.value))
+                  }
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+                Services (%)
+                <input
+                  className="rpb-input"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step="any"
+                  value={adjustments.services}
+                  onChange={(event) =>
+                    setAdjustment("services", parsePercentInput(event.target.value))
+                  }
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+                Profit (%)
+                <input
+                  className="rpb-input"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step="any"
+                  value={adjustments.profit}
+                  onChange={(event) =>
+                    setAdjustment("profit", parsePercentInput(event.target.value))
+                  }
+                />
+              </label>
+            </div>
+          </section>
+
+          <section className="rpb-section p-4 md:p-5">
+            <h3 className="rpb-h-title mb-3 text-base font-semibold">Line Items</h3>
+            <div className="overflow-x-auto">
+              <table className="rpb-table min-w-[960px] w-full text-sm">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>Jenis</th>
+                    <th>Keterangan</th>
+                    <th>Satuan</th>
+                    <th>Jenis Spec</th>
+                    <th>Qty</th>
+                    <th>Harga</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lineItems.map((item, index) => {
+                    const isEditable = item.id.startsWith("other-");
+                    const lineTotalUsd = item.qty * item.hargaUsd;
+
+                    return (
+                      <tr key={item.id}>
+                        <td>{index + 1}</td>
+                        <td className="font-semibold">{item.jenis}</td>
+                        <td>{item.keterangan}</td>
+                        <td>{item.satuan}</td>
+                        <td>{item.jenisSpec}</td>
+                        <td>
+                          {isEditable ? (
+                            <div className="inline-flex items-center gap-2">
+                              <button
+                                type="button"
+                                className="rpb-btn-ghost inline-flex h-8 w-8 items-center justify-center"
+                                onClick={() => updateQty(item.id, item.qty - 1)}
+                                aria-label={`Kurangi qty ${item.jenisSpec}`}
+                              >
+                                <Minus size={14} />
+                              </button>
+                              <span className="min-w-8 text-center font-semibold">
+                                {item.qty}
+                              </span>
+                              <button
+                                type="button"
+                                className="rpb-btn-primary inline-flex h-8 w-8 items-center justify-center"
+                                onClick={() => updateQty(item.id, item.qty + 1)}
+                                aria-label={`Tambah qty ${item.jenisSpec}`}
+                              >
+                                <Plus size={14} />
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="font-semibold">{item.qty}</span>
+                          )}
+                        </td>
+                        <td>{formatRupiah(usdToIdr(item.hargaUsd))}</td>
+                        <td className="font-semibold">
+                          {formatRupiah(usdToIdr(lineTotalUsd))}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-4 grid gap-3 text-sm md:grid-cols-2">
+              <div className="rpb-section p-4">
+                <p className="mb-2 font-semibold">Ringkasan Perhitungan</p>
+                <div className="space-y-1 text-rpb-ink-soft">
+                  <div className="flex items-center justify-between">
+                    <span>Subtotal Items</span>
+                    <span>{formatRupiah(usdToIdr(subtotalUsd))}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Stock Return</span>
+                    <span>{formatRupiah(usdToIdr(stockReturnUsd))}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Marketing Cost</span>
+                    <span>{formatRupiah(usdToIdr(marketingCostUsd))}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Services</span>
+                    <span>{formatRupiah(usdToIdr(servicesUsd))}</span>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-rpb-border pt-2 font-semibold text-foreground">
+                    <span>Base After Adjust</span>
+                    <span>{formatRupiah(usdToIdr(baseAfterAdjustUsd))}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Profit</span>
+                    <span>{formatRupiah(usdToIdr(profitUsd))}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rpb-price-pill flex flex-col justify-center gap-1 p-5">
+                <span className="text-sm font-semibold">Grand Total</span>
+                <span className="text-2xl font-bold">
+                  {formatRupiah(usdToIdr(grandTotalUsd))}
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Link
+              href="/"
+              className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+            >
+              <ArrowLeft size={16} />
+              Back
+            </Link>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+                onClick={saveState}
+              >
+                <Save size={15} />
+                Save
+              </button>
+              <button
+                type="button"
+                className="rpb-btn-primary inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+                onClick={downloadPdf}
+              >
+                <Download size={15} />
+                Download PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
