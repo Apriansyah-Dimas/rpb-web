@@ -12,6 +12,7 @@ import { useRpbStore } from "@/store/rpb-store";
 import type { DimensionKey, OtherItem, StockCategory } from "@/types/rpb";
 import { ArrowRight, Plus, Search } from "lucide-react";
 import Link from "next/link";
+import type { FocusEvent } from "react";
 import { useMemo, useState } from "react";
 
 type OtherFilter = "Semua" | StockCategory;
@@ -25,6 +26,10 @@ const parseNumberInput = (value: string): number => {
   }
 
   return parsed;
+};
+
+const selectInputOnFocus = (event: FocusEvent<HTMLInputElement>) => {
+  event.currentTarget.select();
 };
 
 const DimensionInput = ({
@@ -44,6 +49,7 @@ const DimensionInput = ({
       min={0}
       step="any"
       value={value}
+      onFocus={selectInputOnFocus}
       onChange={(event) => onChange(parseNumberInput(event.target.value))}
     />
   </label>
@@ -335,7 +341,7 @@ export default function HomePage() {
                 })}
                 <button
                   type="button"
-                  className="rpb-grid-card flex min-h-[130px] items-center justify-center border-[#6365b9] bg-[#6365b9] text-white"
+                  className="rpb-grid-card rpb-custom-card flex min-h-[130px] items-center justify-center"
                   onClick={openCustomModal}
                   aria-label="Tambah custom item"
                 >
@@ -394,6 +400,7 @@ export default function HomePage() {
                     min={1}
                     step={1}
                     value={modalQty}
+                    onFocus={selectInputOnFocus}
                     onChange={(event) =>
                       setModalQty(Math.max(1, Math.floor(parseNumberInput(event.target.value))))
                     }
@@ -488,6 +495,7 @@ export default function HomePage() {
                   min={0}
                   step="any"
                   value={customHargaIdr}
+                  onFocus={selectInputOnFocus}
                   onChange={(event) => setCustomHargaIdr(parseNumberInput(event.target.value))}
                 />
               </label>
@@ -508,6 +516,7 @@ export default function HomePage() {
                     min={1}
                     step={1}
                     value={customQty}
+                    onFocus={selectInputOnFocus}
                     onChange={(event) =>
                       setCustomQty(Math.max(1, Math.floor(parseNumberInput(event.target.value))))
                     }

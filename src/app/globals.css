@@ -121,6 +121,16 @@ body {
   background: #fff;
 }
 
+.rpb-custom-card {
+  border-color: #6365b9 !important;
+  background: #6365b9 !important;
+  color: #fff !important;
+}
+
+.rpb-custom-card:hover {
+  background: #5658a7 !important;
+}
+
 .rpb-table th,
 .rpb-table td {
   border-bottom: 1px solid var(--rpb-border);

@@ -13,6 +13,7 @@ import { ArrowLeft, Download, Minus, Plus, Save } from "lucide-react";
 import autoTable from "jspdf-autotable";
 import jsPDF from "jspdf";
 import Link from "next/link";
+import type { FocusEvent } from "react";
 import { useMemo } from "react";
 
 const parsePercentInput = (value: string): number => {
@@ -25,6 +26,10 @@ const parsePercentInput = (value: string): number => {
 };
 
 const pctToValue = (subtotal: number, pct: number): number => subtotal * (pct / 100);
+
+const selectInputOnFocus = (event: FocusEvent<HTMLInputElement>) => {
+  event.currentTarget.select();
+};
 
 export default function SummaryPage() {
   const customerName = useRpbStore((state) => state.customerName);
@@ -251,6 +256,7 @@ export default function SummaryPage() {
                   max={100}
                   step="any"
                   value={adjustments.stockReturn}
+                  onFocus={selectInputOnFocus}
                   onChange={(event) =>
                     setAdjustment("stockReturn", parsePercentInput(event.target.value))
                   }
@@ -265,6 +271,7 @@ export default function SummaryPage() {
                   max={100}
                   step="any"
                   value={adjustments.marketingCost}
+                  onFocus={selectInputOnFocus}
                   onChange={(event) =>
                     setAdjustment("marketingCost", parsePercentInput(event.target.value))
                   }
@@ -279,6 +286,7 @@ export default function SummaryPage() {
                   max={100}
                   step="any"
                   value={adjustments.services}
+                  onFocus={selectInputOnFocus}
                   onChange={(event) =>
                     setAdjustment("services", parsePercentInput(event.target.value))
                   }
@@ -293,6 +301,7 @@ export default function SummaryPage() {
                   max={100}
                   step="any"
                   value={adjustments.profit}
+                  onFocus={selectInputOnFocus}
                   onChange={(event) =>
                     setAdjustment("profit", parsePercentInput(event.target.value))
                   }
