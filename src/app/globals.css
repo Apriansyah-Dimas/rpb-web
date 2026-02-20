@@ -151,6 +151,50 @@ body {
   border-bottom: 0;
 }
 
+.rpb-doc-canvas {
+  min-height: 1122px;
+  max-width: 794px;
+  margin: 0 auto;
+  border: 1px solid var(--rpb-border);
+  border-radius: 12px;
+  background: #fff;
+  padding: 24px;
+  box-shadow: 0 8px 20px rgba(44, 50, 112, 0.08);
+}
+
+.rpb-editor-content .tiptap {
+  min-height: 900px;
+  outline: none;
+  color: var(--foreground);
+  line-height: 1.45;
+}
+
+.rpb-editor-content .tiptap > * + * {
+  margin-top: 0.7em;
+}
+
+.rpb-editor-content .tiptap table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rpb-editor-content .tiptap th,
+.rpb-editor-content .tiptap td {
+  border: 1px solid var(--rpb-border);
+  padding: 8px;
+}
+
+.rpb-editor-content .tiptap th {
+  background: #6365b9;
+  color: #fff;
+}
+
+.rpb-editor-content .tiptap img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
 @media (min-width: 1024px) {
   .rpb-compact {
     line-height: 1.25;

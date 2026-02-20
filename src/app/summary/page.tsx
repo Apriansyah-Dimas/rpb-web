@@ -9,7 +9,7 @@ import {
 import { OTHER_ITEMS } from "@/lib/rpb-data";
 import { useRpbStore } from "@/store/rpb-store";
 import type { SummaryLineItem } from "@/types/rpb";
-import { ArrowLeft, Download, Minus, Plus, Save } from "lucide-react";
+import { ArrowLeft, Download, FileText, Minus, Plus, Save } from "lucide-react";
 import autoTable from "jspdf-autotable";
 import jsPDF from "jspdf";
 import Link from "next/link";
@@ -442,6 +442,13 @@ export default function SummaryPage() {
             </Link>
 
             <div className="flex flex-wrap gap-2">
+              <Link
+                href="/quotation"
+                className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+              >
+                <FileText size={15} />
+                Quotation
+              </Link>
               <button
                 type="button"
                 className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
