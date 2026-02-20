@@ -193,23 +193,6 @@ export default function QuotationPage() {
       return;
     }
 
-    const rows = lineItems
-      .map(
-        (item, index) => `
-          <tr>
-            <td>${index + 1}</td>
-            <td>${escapeHtml(item.jenis)}</td>
-            <td>${escapeHtml(item.keterangan)}</td>
-            <td>${escapeHtml(item.satuan)}</td>
-            <td>${escapeHtml(item.jenisSpec)}</td>
-            <td style="text-align:right">${item.qty}</td>
-            <td style="text-align:right">${escapeHtml(formatRupiah(usdToIdr(item.hargaUsd)))}</td>
-            <td style="text-align:right">${escapeHtml(formatRupiah(usdToIdr(item.hargaUsd * item.qty)))}</td>
-          </tr>
-        `,
-      )
-      .join("");
-
     const summaryRowsData: Array<[string, string, boolean]> = [
       ["Subtotal Items", formatRupiah(usdToIdr(subtotalUsd)), false],
       ["Stock Return", formatRupiah(usdToIdr(stockReturnUsd)), false],
@@ -219,52 +202,96 @@ export default function QuotationPage() {
       ["Grand Total", formatRupiah(usdToIdr(grandTotalUsd)), true],
     ];
 
-    const summaryRows = summaryRowsData
-      .map(
-        ([label, value, highlight]) => `
-          <tr ${highlight ? 'style="background:#eef0ff;"' : ""}>
-            <td>${highlight ? `<strong>${escapeHtml(label)}</strong>` : escapeHtml(label)}</td>
-            <td style="text-align:right">${highlight ? `<strong>${escapeHtml(value)}</strong>` : escapeHtml(value)}</td>
-          </tr>
-        `,
-      )
-      .join("");
+    const textNode = (text: string) => ({
+      type: "text",
+      text,
+    });
 
-    const tableHtml = `
-      <h3>RPB Line Items</h3>
-      <table style="border-collapse:collapse; border-spacing:0; width:100%;">
-        <thead>
-          <tr>
-            <th>No</th>
-            <th>Jenis</th>
-            <th>Keterangan</th>
-            <th>Satuan</th>
-            <th>Jenis Spec</th>
-            <th>Qty</th>
-            <th>Harga</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows}
-        </tbody>
-      </table>
-      <h3>Ringkasan Perhitungan</h3>
-      <table style="border-collapse:collapse; border-spacing:0; width:100%;">
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Nilai</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${summaryRows}
-        </tbody>
-      </table>
-      <p></p>
-    `;
+    const paragraphNode = (text: string) => ({
+      type: "paragraph",
+      content: text ? [textNode(text)] : [],
+    });
 
-    editor.chain().focus().insertContent(tableHtml).run();
+    const headerCell = (text: string) => ({
+      type: "tableHeader",
+      content: [paragraphNode(text)],
+    });
+
+    const bodyCell = (text: string) => ({
+      type: "tableCell",
+      content: [paragraphNode(text)],
+    });
+
+    const lineItemsTableNode = {
+      type: "table",
+      content: [
+        {
+          type: "tableRow",
+          content: [
+            headerCell("No"),
+            headerCell("Jenis"),
+            headerCell("Keterangan"),
+            headerCell("Satuan"),
+            headerCell("Jenis Spec"),
+            headerCell("Qty"),
+            headerCell("Harga"),
+            headerCell("Total"),
+          ],
+        },
+        ...lineItems.map((item, index) => ({
+          type: "tableRow",
+          content: [
+            bodyCell(String(index + 1)),
+            bodyCell(item.jenis),
+            bodyCell(item.keterangan),
+            bodyCell(item.satuan),
+            bodyCell(item.jenisSpec),
+            bodyCell(String(item.qty)),
+            bodyCell(formatRupiah(usdToIdr(item.hargaUsd))),
+            bodyCell(formatRupiah(usdToIdr(item.hargaUsd * item.qty))),
+          ],
+        })),
+      ],
+    };
+
+    const summaryTableNode = {
+      type: "table",
+      content: [
+        {
+          type: "tableRow",
+          content: [headerCell("Item"), headerCell("Nilai")],
+        },
+        ...summaryRowsData.map(([label, value, highlight]) => ({
+          type: "tableRow",
+          content: [
+            bodyCell(highlight ? `* ${label}` : label),
+            bodyCell(highlight ? `* ${value}` : value),
+          ],
+        })),
+      ],
+    };
+
+    editor
+      .chain()
+      .focus()
+      .insertContent([
+        {
+          type: "heading",
+          attrs: { level: 3 },
+          content: [textNode("RPB Line Items")],
+        },
+        lineItemsTableNode,
+        {
+          type: "heading",
+          attrs: { level: 3 },
+          content: [textNode("Ringkasan Perhitungan")],
+        },
+        summaryTableNode,
+        {
+          type: "paragraph",
+        },
+      ])
+      .run();
   };
 
   const handleInsertImageByFile = (file: File) => {
