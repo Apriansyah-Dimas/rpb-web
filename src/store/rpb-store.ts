@@ -1,6 +1,7 @@
 import { DEFAULT_DIMENSIONS, DEFAULT_PANEL_THICKNESS } from "@/lib/rpb-data";
 import type {
   AdjustmentKey,
+  CustomOtherItem,
   DimensionKey,
   PanelThickness,
 } from "@/types/rpb";
@@ -24,6 +25,7 @@ interface RpbStore {
   };
   panelThickness: PanelThickness;
   selectedOther: Record<string, number>;
+  customOtherItems: CustomOtherItem[];
   adjustments: Adjustments;
   setCustomerName: (value: string) => void;
   setProjectName: (value: string) => void;
@@ -31,6 +33,9 @@ interface RpbStore {
   setPanelThickness: (value: PanelThickness) => void;
   addOtherQty: (itemId: string, qty: number) => void;
   setOtherQty: (itemId: string, qty: number) => void;
+  addCustomOtherItem: (item: Omit<CustomOtherItem, "id">) => void;
+  setCustomOtherItemQty: (itemId: string, qty: number) => void;
+  removeCustomOtherItem: (itemId: string) => void;
   removeOther: (itemId: string) => void;
   setAdjustment: (key: AdjustmentKey, value: number) => void;
   resetOtherSelections: () => void;
@@ -60,6 +65,7 @@ export const useRpbStore = create<RpbStore>()(
       dimensions: DEFAULT_DIMENSIONS,
       panelThickness: DEFAULT_PANEL_THICKNESS,
       selectedOther: {},
+      customOtherItems: [],
       adjustments: {
         stockReturn: 0,
         marketingCost: 0,
@@ -103,6 +109,40 @@ export const useRpbStore = create<RpbStore>()(
 
           return { selectedOther: next };
         }),
+      addCustomOtherItem: (item) =>
+        set((state) => ({
+          customOtherItems: [
+            ...state.customOtherItems,
+            {
+              ...item,
+              qty: safeNumber(item.qty),
+              hargaUsd: safeNumber(item.hargaUsd),
+              id: `custom-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            },
+          ],
+        })),
+      setCustomOtherItemQty: (itemId, qty) =>
+        set((state) => {
+          const nextQty = safeNumber(qty);
+          const next = state.customOtherItems
+            .map((item) => {
+              if (item.id !== itemId) {
+                return item;
+              }
+
+              return {
+                ...item,
+                qty: nextQty,
+              };
+            })
+            .filter((item) => item.qty > 0);
+
+          return { customOtherItems: next };
+        }),
+      removeCustomOtherItem: (itemId) =>
+        set((state) => ({
+          customOtherItems: state.customOtherItems.filter((item) => item.id !== itemId),
+        })),
       removeOther: (itemId) =>
         set((state) => {
           const next = { ...state.selectedOther };
@@ -116,7 +156,7 @@ export const useRpbStore = create<RpbStore>()(
             [key]: safePercent(value),
           },
         })),
-      resetOtherSelections: () => set({ selectedOther: {} }),
+      resetOtherSelections: () => set({ selectedOther: {}, customOtherItems: [] }),
     }),
     {
       name: "rpb-store-v1",

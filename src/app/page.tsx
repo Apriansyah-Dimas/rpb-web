@@ -55,16 +55,25 @@ export default function HomePage() {
   const dimensions = useRpbStore((state) => state.dimensions);
   const panelThickness = useRpbStore((state) => state.panelThickness);
   const selectedOther = useRpbStore((state) => state.selectedOther);
+  const customOtherItems = useRpbStore((state) => state.customOtherItems);
   const setCustomerName = useRpbStore((state) => state.setCustomerName);
   const setProjectName = useRpbStore((state) => state.setProjectName);
   const setPanelThickness = useRpbStore((state) => state.setPanelThickness);
   const setDimension = useRpbStore((state) => state.setDimension);
   const addOtherQty = useRpbStore((state) => state.addOtherQty);
+  const addCustomOtherItem = useRpbStore((state) => state.addCustomOtherItem);
 
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<OtherFilter>("Semua");
   const [modalItem, setModalItem] = useState<OtherItem | null>(null);
   const [modalQty, setModalQty] = useState(1);
+  const [customModalOpen, setCustomModalOpen] = useState(false);
+  const [customJenis, setCustomJenis] = useState("");
+  const [customKeterangan, setCustomKeterangan] = useState("");
+  const [customSatuan, setCustomSatuan] = useState("");
+  const [customJenisSpec, setCustomJenisSpec] = useState("");
+  const [customHarga, setCustomHarga] = useState(0);
+  const [customQty, setCustomQty] = useState(1);
 
   const profileUsd = useMemo(
     () => calculateProfileTotalUsd(dimensions, panelThickness),
@@ -88,12 +97,16 @@ export default function HomePage() {
   }, [activeFilter, search]);
 
   const selectedOtherCount = useMemo(
-    () =>
-      Object.values(selectedOther).reduce(
+    () => {
+      const stockQty = Object.values(selectedOther).reduce(
         (sum, qty) => sum + (Number.isFinite(qty) ? qty : 0),
         0,
-      ),
-    [selectedOther],
+      );
+      const customQtyTotal = customOtherItems.reduce((sum, item) => sum + item.qty, 0);
+
+      return stockQty + customQtyTotal;
+    },
+    [customOtherItems, selectedOther],
   );
 
   const openAddModal = (item: OtherItem) => {
@@ -113,6 +126,42 @@ export default function HomePage() {
 
     addOtherQty(modalItem.id, modalQty);
     closeAddModal();
+  };
+
+  const openCustomModal = () => {
+    setCustomModalOpen(true);
+    setCustomJenis("");
+    setCustomKeterangan("");
+    setCustomSatuan("");
+    setCustomJenisSpec("");
+    setCustomHarga(0);
+    setCustomQty(1);
+  };
+
+  const closeCustomModal = () => {
+    setCustomModalOpen(false);
+  };
+
+  const handleAddCustomOther = () => {
+    const jenis = customJenis.trim();
+    const keterangan = customKeterangan.trim();
+    const satuan = customSatuan.trim();
+    const jenisSpec = customJenisSpec.trim();
+
+    if (!jenis || !keterangan || !satuan || !jenisSpec || customHarga <= 0 || customQty <= 0) {
+      window.alert("Lengkapi semua field custom item dengan benar.");
+      return;
+    }
+
+    addCustomOtherItem({
+      jenis,
+      keterangan,
+      satuan,
+      jenisSpec,
+      hargaUsd: customHarga,
+      qty: customQty,
+    });
+    closeCustomModal();
   };
 
   const updateDimension = (key: DimensionKey, value: number) => {
@@ -277,6 +326,16 @@ export default function HomePage() {
                     </article>
                   );
                 })}
+                <button
+                  type="button"
+                  className="rpb-grid-card flex min-h-[130px] items-center justify-center border-[#6365b9] bg-[#6365b9] text-white"
+                  onClick={openCustomModal}
+                  aria-label="Tambah custom item"
+                >
+                  <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-white/45 text-4xl leading-none">
+                    +
+                  </span>
+                </button>
               </div>
             </div>
           </section>
@@ -361,6 +420,120 @@ export default function HomePage() {
                   type="button"
                   className="rpb-btn-primary px-4 py-2 text-sm font-semibold"
                   onClick={handleAddOther}
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {customModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#15172b]/45 p-4 backdrop-blur-[2px]">
+          <div className="rpb-shell w-full max-w-xl">
+            <div className="rpb-topbar px-5 py-4 text-white">
+              <h3 className="rpb-h-title text-lg font-semibold">Custom Item</h3>
+            </div>
+            <div className="space-y-4 p-5">
+              <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+                Jenis
+                <input
+                  className="rpb-input"
+                  value={customJenis}
+                  onChange={(event) => setCustomJenis(event.target.value)}
+                />
+              </label>
+
+              <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+                Keterangan
+                <input
+                  className="rpb-input"
+                  value={customKeterangan}
+                  onChange={(event) => setCustomKeterangan(event.target.value)}
+                />
+              </label>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+                  Satuan
+                  <input
+                    className="rpb-input"
+                    value={customSatuan}
+                    onChange={(event) => setCustomSatuan(event.target.value)}
+                  />
+                </label>
+                <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+                  Jenis Spec
+                  <input
+                    className="rpb-input"
+                    value={customJenisSpec}
+                    onChange={(event) => setCustomJenisSpec(event.target.value)}
+                  />
+                </label>
+              </div>
+
+              <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+                Harga (USD)
+                <input
+                  className="rpb-input"
+                  type="number"
+                  min={0}
+                  step="any"
+                  value={customHarga}
+                  onChange={(event) => setCustomHarga(parseNumberInput(event.target.value))}
+                />
+              </label>
+
+              <div>
+                <p className="mb-2 text-sm font-semibold text-rpb-ink-soft">Quantity</p>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    className="rpb-btn-ghost h-11 w-11 text-xl"
+                    onClick={() => setCustomQty((qty) => Math.max(1, qty - 1))}
+                  >
+                    -
+                  </button>
+                  <input
+                    className="rpb-input text-center"
+                    type="number"
+                    min={1}
+                    step={1}
+                    value={customQty}
+                    onChange={(event) =>
+                      setCustomQty(Math.max(1, Math.floor(parseNumberInput(event.target.value))))
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="rpb-btn-primary h-11 w-11 text-xl font-semibold"
+                    onClick={() => setCustomQty((qty) => qty + 1)}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div className="rpb-section p-4">
+                <p className="text-sm text-rpb-ink-soft">Total price</p>
+                <p className="text-xl font-semibold">
+                  {formatRupiah(usdToIdr(customHarga * customQty))}
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  className="rpb-btn-ghost px-4 py-2 text-sm font-semibold"
+                  onClick={closeCustomModal}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="rpb-btn-primary px-4 py-2 text-sm font-semibold"
+                  onClick={handleAddCustomOther}
                 >
                   Add
                 </button>

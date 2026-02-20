@@ -25,6 +25,16 @@ export interface OtherItem {
   priceUsd: number;
 }
 
+export interface CustomOtherItem {
+  id: string;
+  jenis: string;
+  keterangan: string;
+  satuan: string;
+  jenisSpec: string;
+  hargaUsd: number;
+  qty: number;
+}
+
 export interface SummaryLineItem {
   id: string;
   jenis: string;

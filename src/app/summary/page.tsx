@@ -32,8 +32,10 @@ export default function SummaryPage() {
   const dimensions = useRpbStore((state) => state.dimensions);
   const panelThickness = useRpbStore((state) => state.panelThickness);
   const selectedOther = useRpbStore((state) => state.selectedOther);
+  const customOtherItems = useRpbStore((state) => state.customOtherItems);
   const adjustments = useRpbStore((state) => state.adjustments);
   const setOtherQty = useRpbStore((state) => state.setOtherQty);
+  const setCustomOtherItemQty = useRpbStore((state) => state.setCustomOtherItemQty);
   const setAdjustment = useRpbStore((state) => state.setAdjustment);
 
   const profileUsd = useMemo(
@@ -67,7 +69,7 @@ export default function SummaryPage() {
 
     const selectedStockItems = OTHER_ITEMS.filter((item) => (selectedOther[item.id] ?? 0) > 0);
     const stockLines: SummaryLineItem[] = selectedStockItems.map((item) => ({
-      id: `other-${item.id}`,
+      id: `stock-${item.id}`,
       jenis: item.category,
       keterangan: item.model === "-" ? item.name : item.model,
       satuan: item.unit,
@@ -76,8 +78,18 @@ export default function SummaryPage() {
       hargaUsd: item.priceUsd,
     }));
 
-    return [...baseItems, ...stockLines];
-  }, [konstruksiUsd, panelThickness, profileUsd, selectedOther]);
+    const customLines: SummaryLineItem[] = customOtherItems.map((item) => ({
+      id: `custom-${item.id}`,
+      jenis: item.jenis,
+      keterangan: item.keterangan,
+      satuan: item.satuan,
+      jenisSpec: item.jenisSpec,
+      qty: item.qty,
+      hargaUsd: item.hargaUsd,
+    }));
+
+    return [...baseItems, ...stockLines, ...customLines];
+  }, [customOtherItems, konstruksiUsd, panelThickness, profileUsd, selectedOther]);
 
   const subtotalUsd = useMemo(
     () => lineItems.reduce((sum, item) => sum + item.hargaUsd * item.qty, 0),
@@ -92,12 +104,16 @@ export default function SummaryPage() {
   const grandTotalUsd = baseAfterAdjustUsd + profitUsd;
 
   const updateQty = (itemId: string, qty: number) => {
-    if (!itemId.startsWith("other-")) {
+    if (itemId.startsWith("stock-")) {
+      const stockId = itemId.replace("stock-", "");
+      setOtherQty(stockId, Math.max(0, qty));
       return;
     }
 
-    const stockId = itemId.replace("other-", "");
-    setOtherQty(stockId, Math.max(0, qty));
+    if (itemId.startsWith("custom-")) {
+      const customId = itemId.replace("custom-", "");
+      setCustomOtherItemQty(customId, Math.max(0, qty));
+    }
   };
 
   const saveState = () => {
@@ -303,7 +319,7 @@ export default function SummaryPage() {
                 </thead>
                 <tbody>
                   {lineItems.map((item, index) => {
-                    const isEditable = item.id.startsWith("other-");
+                    const isEditable = item.id.startsWith("stock-") || item.id.startsWith("custom-");
                     const lineTotalUsd = item.qty * item.hargaUsd;
 
                     return (
