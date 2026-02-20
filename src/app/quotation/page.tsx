@@ -6,16 +6,23 @@ import {
   formatRupiah,
   usdToIdr,
 } from "@/lib/rpb-calculator";
+import { FontSize, LineHeight, TextTransform } from "@/lib/tiptap-rich-format";
 import { OTHER_ITEMS } from "@/lib/rpb-data";
 import { useRpbStore } from "@/store/rpb-store";
 import type { SummaryLineItem } from "@/types/rpb";
 import { mergeAttributes } from "@tiptap/core";
+import Color from "@tiptap/extension-color";
+import FontFamily from "@tiptap/extension-font-family";
+import Highlight from "@tiptap/extension-highlight";
 import Image from "@tiptap/extension-image";
+import Subscript from "@tiptap/extension-subscript";
+import Superscript from "@tiptap/extension-superscript";
 import { Table } from "@tiptap/extension-table";
 import { TableCell } from "@tiptap/extension-table-cell";
 import { TableHeader } from "@tiptap/extension-table-header";
 import { TableRow } from "@tiptap/extension-table-row";
 import TextAlign from "@tiptap/extension-text-align";
+import { TextStyle } from "@tiptap/extension-text-style";
 import Underline from "@tiptap/extension-underline";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -29,6 +36,12 @@ import {
   Italic,
   List,
   ListOrdered,
+  PaintBucket,
+  Pilcrow,
+  RemoveFormatting,
+  Strikethrough,
+  Subscript as SubscriptIcon,
+  Superscript as SuperscriptIcon,
   Table2,
   Underline as UnderlineIcon,
 } from "lucide-react";
@@ -48,6 +61,23 @@ const initialDoc = `
 <h2>Quotation</h2>
 <p>Tulis isi quotation di sini...</p>
 `;
+
+const FONT_OPTIONS = [
+  { label: "Aptos (Body)", value: "Aptos, Calibri, Arial, sans-serif" },
+  { label: "Calibri", value: "Calibri, Arial, sans-serif" },
+  { label: "Arial", value: "Arial, sans-serif" },
+  { label: "Times New Roman", value: "\"Times New Roman\", serif" },
+  { label: "Georgia", value: "Georgia, serif" },
+];
+
+const FONT_SIZE_OPTIONS = ["10px", "11px", "12px", "14px", "16px", "18px", "24px", "32px"];
+const LINE_HEIGHT_OPTIONS = ["1", "1.15", "1.3", "1.5", "2"];
+const CASE_OPTIONS = [
+  { label: "Aa", value: "" },
+  { label: "UPPER", value: "uppercase" },
+  { label: "lower", value: "lowercase" },
+  { label: "Title", value: "capitalize" },
+];
 
 const EditableImage = Image.extend({
   addAttributes() {
@@ -97,6 +127,14 @@ export default function QuotationPage() {
   const customOtherItems = useRpbStore((state) => state.customOtherItems);
   const adjustments = useRpbStore((state) => state.adjustments);
   const [quoteTitle, setQuoteTitle] = useState("Quotation");
+  const [toolbarState, setToolbarState] = useState({
+    fontFamily: FONT_OPTIONS[0].value,
+    fontSize: "12px",
+    lineHeight: "1.3",
+    textTransform: "",
+    textColor: "#1f2340",
+    highlightColor: "#ffff00",
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const profileUsd = useMemo(
@@ -163,6 +201,27 @@ export default function QuotationPage() {
   const profitUsd = baseAfterAdjustUsd * (adjustments.profit / 100);
   const grandTotalUsd = baseAfterAdjustUsd + profitUsd;
 
+  const refreshToolbarState = (instance: {
+    getAttributes: (name: string) => Record<string, unknown>;
+    isActive: (name: string) => boolean;
+  }) => {
+    const textStyleAttrs = instance.getAttributes("textStyle");
+    const paragraphAttrs = instance.isActive("heading")
+      ? instance.getAttributes("heading")
+      : instance.getAttributes("paragraph");
+    const highlightAttrs = instance.getAttributes("highlight");
+
+    setToolbarState((prev) => ({
+      ...prev,
+      fontFamily: (textStyleAttrs.fontFamily as string) || prev.fontFamily,
+      fontSize: (textStyleAttrs.fontSize as string) || "12px",
+      lineHeight: (paragraphAttrs.lineHeight as string) || "1.3",
+      textTransform: (textStyleAttrs.textTransform as string) || "",
+      textColor: (textStyleAttrs.color as string) || "#1f2340",
+      highlightColor: (highlightAttrs.color as string) || "#ffff00",
+    }));
+  };
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -170,6 +229,21 @@ export default function QuotationPage() {
           levels: [1, 2, 3],
         },
       }),
+      TextStyle,
+      FontFamily.configure({
+        types: ["textStyle"],
+      }),
+      FontSize,
+      Color.configure({
+        types: ["textStyle"],
+      }),
+      TextTransform,
+      LineHeight,
+      Highlight.configure({
+        multicolor: true,
+      }),
+      Subscript,
+      Superscript,
       Underline,
       TextAlign.configure({
         types: ["heading", "paragraph"],
@@ -186,6 +260,9 @@ export default function QuotationPage() {
       }),
     ],
     content: initialDoc,
+    onCreate: ({ editor: instance }) => refreshToolbarState(instance),
+    onUpdate: ({ editor: instance }) => refreshToolbarState(instance),
+    onSelectionUpdate: ({ editor: instance }) => refreshToolbarState(instance),
   });
 
   const handleInsertRpbTable = () => {
@@ -330,6 +407,67 @@ export default function QuotationPage() {
     editor.chain().focus().updateAttributes("image", { width }).run();
   };
 
+  const applyFontFamily = (value: string) => {
+    if (!editor) {
+      return;
+    }
+
+    editor.chain().focus().setMark("textStyle", { fontFamily: value }).run();
+  };
+
+  const applyFontSize = (value: string) => {
+    if (!editor) {
+      return;
+    }
+
+    editor.chain().focus().setMark("textStyle", { fontSize: value }).run();
+  };
+
+  const applyLineHeight = (value: string) => {
+    if (!editor) {
+      return;
+    }
+
+    editor
+      .chain()
+      .focus()
+      .updateAttributes("paragraph", { lineHeight: value })
+      .updateAttributes("heading", { lineHeight: value })
+      .run();
+  };
+
+  const applyTextTransform = (value: string) => {
+    if (!editor) {
+      return;
+    }
+
+    editor.chain().focus().setMark("textStyle", { textTransform: value || null }).run();
+  };
+
+  const applyTextColor = (value: string) => {
+    if (!editor) {
+      return;
+    }
+
+    editor.chain().focus().setColor(value).run();
+  };
+
+  const applyHighlightColor = (value: string) => {
+    if (!editor) {
+      return;
+    }
+
+    editor.chain().focus().setHighlight({ color: value }).run();
+  };
+
+  const clearFormatting = () => {
+    if (!editor) {
+      return;
+    }
+
+    editor.chain().focus().clearNodes().unsetAllMarks().run();
+  };
+
   const handleExportPdf = async () => {
     if (!editor) {
       return;
@@ -418,6 +556,53 @@ export default function QuotationPage() {
 
           <section className="rpb-section p-3 md:p-4">
             <div className="rpb-editor-toolbar mb-3 flex flex-wrap gap-2">
+              <select
+                className="rpb-input w-auto min-w-[170px]"
+                value={toolbarState.fontFamily}
+                onChange={(event) => applyFontFamily(event.target.value)}
+              >
+                {FONT_OPTIONS.map((font) => (
+                  <option key={font.value} value={font.value}>
+                    {font.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="rpb-input w-auto min-w-[74px]"
+                value={toolbarState.fontSize}
+                onChange={(event) => applyFontSize(event.target.value)}
+              >
+                {FONT_SIZE_OPTIONS.map((size) => (
+                  <option key={size} value={size}>
+                    {size.replace("px", "")}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="rpb-input w-auto min-w-[74px]"
+                value={toolbarState.lineHeight}
+                onChange={(event) => applyLineHeight(event.target.value)}
+              >
+                {LINE_HEIGHT_OPTIONS.map((height) => (
+                  <option key={height} value={height}>
+                    {height}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="rpb-input w-auto min-w-[90px]"
+                value={toolbarState.textTransform}
+                onChange={(event) => applyTextTransform(event.target.value)}
+              >
+                {CASE_OPTIONS.map((option) => (
+                  <option key={option.label} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={clearFormatting}>
+                <span className="inline-flex items-center gap-1"><RemoveFormatting size={14} />Clear</span>
+              </button>
               <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={() => editor?.chain().focus().toggleBold().run()}>
                 <span className="inline-flex items-center gap-1"><Bold size={14} />Bold</span>
               </button>
@@ -427,12 +612,41 @@ export default function QuotationPage() {
               <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={() => editor?.chain().focus().toggleUnderline().run()}>
                 <span className="inline-flex items-center gap-1"><UnderlineIcon size={14} />Underline</span>
               </button>
+              <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={() => editor?.chain().focus().toggleStrike().run()}>
+                <span className="inline-flex items-center gap-1"><Strikethrough size={14} />Strike</span>
+              </button>
+              <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={() => editor?.chain().focus().toggleSubscript().run()}>
+                <span className="inline-flex items-center gap-1"><SubscriptIcon size={14} />Sub</span>
+              </button>
+              <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={() => editor?.chain().focus().toggleSuperscript().run()}>
+                <span className="inline-flex items-center gap-1"><SuperscriptIcon size={14} />Sup</span>
+              </button>
               <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={() => editor?.chain().focus().toggleBulletList().run()}>
                 <span className="inline-flex items-center gap-1"><List size={14} />Bullet</span>
               </button>
               <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={() => editor?.chain().focus().toggleOrderedList().run()}>
                 <span className="inline-flex items-center gap-1"><ListOrdered size={14} />Number</span>
               </button>
+              <label className="rpb-btn-ghost inline-flex cursor-pointer items-center gap-2 px-3 py-2 text-sm">
+                <Pilcrow size={14} />
+                Color
+                <input
+                  type="color"
+                  className="h-6 w-6 border-0 bg-transparent p-0"
+                  value={toolbarState.textColor}
+                  onChange={(event) => applyTextColor(event.target.value)}
+                />
+              </label>
+              <label className="rpb-btn-ghost inline-flex cursor-pointer items-center gap-2 px-3 py-2 text-sm">
+                <PaintBucket size={14} />
+                Highlight
+                <input
+                  type="color"
+                  className="h-6 w-6 border-0 bg-transparent p-0"
+                  value={toolbarState.highlightColor}
+                  onChange={(event) => applyHighlightColor(event.target.value)}
+                />
+              </label>
               <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 4, withHeaderRow: true }).run()}>
                 <span className="inline-flex items-center gap-1"><Table2 size={14} />Table</span>
               </button>
