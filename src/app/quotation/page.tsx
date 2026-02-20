@@ -270,13 +270,22 @@ export default function QuotationPage() {
       return;
     }
 
-    const summaryRowsData: Array<[string, string, boolean]> = [
-      ["Subtotal Items", formatRupiah(usdToIdr(subtotalUsd)), false],
-      ["Stock Return", formatRupiah(usdToIdr(stockReturnUsd)), false],
-      ["Marketing Cost", formatRupiah(usdToIdr(marketingCostUsd)), false],
-      ["Services", formatRupiah(usdToIdr(servicesUsd)), false],
-      ["Profit", formatRupiah(usdToIdr(profitUsd)), false],
-      ["Grand Total", formatRupiah(usdToIdr(grandTotalUsd)), true],
+    const additionalRows = [
+      {
+        label: "Pengembalian Saham",
+        pct: adjustments.stockReturn,
+        value: stockReturnUsd,
+      },
+      {
+        label: "Marketing Cost",
+        pct: adjustments.marketingCost,
+        value: marketingCostUsd,
+      },
+      {
+        label: "Jasa Kerja",
+        pct: adjustments.services,
+        value: servicesUsd,
+      },
     ];
 
     const textNode = (text: string) => ({
@@ -328,23 +337,58 @@ export default function QuotationPage() {
             bodyCell(formatRupiah(usdToIdr(item.hargaUsd * item.qty))),
           ],
         })),
-      ],
-    };
-
-    const summaryTableNode = {
-      type: "table",
-      content: [
-        {
-          type: "tableRow",
-          content: [headerCell("Item"), headerCell("Nilai")],
-        },
-        ...summaryRowsData.map(([label, value, highlight]) => ({
+        ...additionalRows.map((row) => ({
           type: "tableRow",
           content: [
-            bodyCell(highlight ? `* ${label}` : label),
-            bodyCell(highlight ? `* ${value}` : value),
+            bodyCell(""),
+            bodyCell("ADDITIONAL"),
+            bodyCell(row.label),
+            bodyCell("%"),
+            bodyCell(`${row.pct}%`),
+            bodyCell(""),
+            bodyCell(""),
+            bodyCell(formatRupiah(usdToIdr(row.value))),
           ],
         })),
+        {
+          type: "tableRow",
+          content: [
+            bodyCell(""),
+            bodyCell(""),
+            bodyCell("TOTAL"),
+            bodyCell(""),
+            bodyCell(""),
+            bodyCell(""),
+            bodyCell(""),
+            bodyCell(formatRupiah(usdToIdr(baseAfterAdjustUsd))),
+          ],
+        },
+        {
+          type: "tableRow",
+          content: [
+            bodyCell(""),
+            bodyCell(""),
+            bodyCell("PROFIT"),
+            bodyCell("%"),
+            bodyCell(`${adjustments.profit}%`),
+            bodyCell(""),
+            bodyCell(""),
+            bodyCell(formatRupiah(usdToIdr(profitUsd))),
+          ],
+        },
+        {
+          type: "tableRow",
+          content: [
+            bodyCell(""),
+            bodyCell(""),
+            bodyCell("GRAND TOTAL"),
+            bodyCell(""),
+            bodyCell(""),
+            bodyCell(""),
+            bodyCell(""),
+            bodyCell(formatRupiah(usdToIdr(grandTotalUsd))),
+          ],
+        },
       ],
     };
 
@@ -355,18 +399,10 @@ export default function QuotationPage() {
         {
           type: "heading",
           attrs: { level: 3 },
-          content: [textNode("RPB Line Items")],
+          content: [textNode("RPB + Additional Charge")],
         },
         lineItemsTableNode,
-        {
-          type: "heading",
-          attrs: { level: 3 },
-          content: [textNode("Ringkasan Perhitungan")],
-        },
-        summaryTableNode,
-        {
-          type: "paragraph",
-        },
+        { type: "paragraph" },
       ])
       .run();
   };
