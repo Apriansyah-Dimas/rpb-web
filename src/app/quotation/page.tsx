@@ -9,6 +9,7 @@ import {
 import { OTHER_ITEMS } from "@/lib/rpb-data";
 import { useRpbStore } from "@/store/rpb-store";
 import type { SummaryLineItem } from "@/types/rpb";
+import { mergeAttributes } from "@tiptap/core";
 import Image from "@tiptap/extension-image";
 import { Table } from "@tiptap/extension-table";
 import { TableCell } from "@tiptap/extension-table-cell";
@@ -20,6 +21,9 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
   Bold,
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
   FileDown,
   ImagePlus,
   Italic,
@@ -44,6 +48,45 @@ const initialDoc = `
 <h2>Quotation</h2>
 <p>Tulis isi quotation di sini...</p>
 `;
+
+const EditableImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      align: {
+        default: "center",
+        parseHTML: (element) => element.getAttribute("data-align") || "center",
+      },
+      width: {
+        default: 60,
+        parseHTML: (element) => {
+          const raw = element.getAttribute("data-width");
+          const parsed = Number.parseFloat(raw || "60");
+          return Number.isFinite(parsed) ? parsed : 60;
+        },
+      },
+    };
+  },
+  renderHTML({ HTMLAttributes }) {
+    const align = HTMLAttributes.align || "center";
+    const width = Number(HTMLAttributes.width || 60);
+    const marginStyle =
+      align === "left"
+        ? "margin: 8px auto 8px 0;"
+        : align === "right"
+          ? "margin: 8px 0 8px auto;"
+          : "margin: 8px auto;";
+
+    return [
+      "img",
+      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
+        "data-align": align,
+        "data-width": String(width),
+        style: `display:block; max-width:100%; width:${width}%; ${marginStyle}`,
+      }),
+    ];
+  },
+});
 
 export default function QuotationPage() {
   const customerName = useRpbStore((state) => state.customerName);
@@ -137,8 +180,9 @@ export default function QuotationPage() {
       TableRow,
       TableHeader,
       TableCell,
-      Image.configure({
+      EditableImage.configure({
         inline: false,
+        allowBase64: true,
       }),
     ],
     content: initialDoc,
@@ -188,7 +232,7 @@ export default function QuotationPage() {
 
     const tableHtml = `
       <h3>RPB Line Items</h3>
-      <table>
+      <table style="border-collapse:collapse; border-spacing:0; width:100%;">
         <thead>
           <tr>
             <th>No</th>
@@ -206,7 +250,7 @@ export default function QuotationPage() {
         </tbody>
       </table>
       <h3>Ringkasan Perhitungan</h3>
-      <table>
+      <table style="border-collapse:collapse; border-spacing:0; width:100%;">
         <thead>
           <tr>
             <th>Item</th>
@@ -232,10 +276,31 @@ export default function QuotationPage() {
     reader.onload = () => {
       const result = reader.result;
       if (typeof result === "string") {
-        editor.chain().focus().setImage({ src: result }).run();
+        editor
+          .chain()
+          .focus()
+          .setImage({ src: result })
+          .updateAttributes("image", { align: "center", width: 60 })
+          .run();
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const setSelectedImageAlign = (align: "left" | "center" | "right") => {
+    if (!editor) {
+      return;
+    }
+
+    editor.chain().focus().updateAttributes("image", { align }).run();
+  };
+
+  const setSelectedImageWidth = (width: number) => {
+    if (!editor) {
+      return;
+    }
+
+    editor.chain().focus().updateAttributes("image", { width }).run();
   };
 
   const handleExportPdf = async () => {
@@ -353,6 +418,48 @@ export default function QuotationPage() {
                 onClick={() => fileInputRef.current?.click()}
               >
                 <span className="inline-flex items-center gap-1"><ImagePlus size={14} />Insert Gambar</span>
+              </button>
+              <button
+                type="button"
+                className="rpb-btn-ghost px-3 py-2 text-sm"
+                onClick={() => setSelectedImageAlign("left")}
+              >
+                <span className="inline-flex items-center gap-1"><AlignLeft size={14} />Img Left</span>
+              </button>
+              <button
+                type="button"
+                className="rpb-btn-ghost px-3 py-2 text-sm"
+                onClick={() => setSelectedImageAlign("center")}
+              >
+                <span className="inline-flex items-center gap-1"><AlignCenter size={14} />Img Center</span>
+              </button>
+              <button
+                type="button"
+                className="rpb-btn-ghost px-3 py-2 text-sm"
+                onClick={() => setSelectedImageAlign("right")}
+              >
+                <span className="inline-flex items-center gap-1"><AlignRight size={14} />Img Right</span>
+              </button>
+              <button
+                type="button"
+                className="rpb-btn-ghost px-3 py-2 text-sm"
+                onClick={() => setSelectedImageWidth(40)}
+              >
+                Img S
+              </button>
+              <button
+                type="button"
+                className="rpb-btn-ghost px-3 py-2 text-sm"
+                onClick={() => setSelectedImageWidth(60)}
+              >
+                Img M
+              </button>
+              <button
+                type="button"
+                className="rpb-btn-ghost px-3 py-2 text-sm"
+                onClick={() => setSelectedImageWidth(85)}
+              >
+                Img L
               </button>
               <input
                 ref={fileInputRef}
