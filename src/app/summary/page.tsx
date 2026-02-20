@@ -16,8 +16,22 @@ import Link from "next/link";
 import type { FocusEvent } from "react";
 import { useMemo } from "react";
 
+const normalizeNumericInput = (value: string): string => {
+  const normalizedDot = value.replace(",", ".");
+
+  if (normalizedDot === "" || normalizedDot === "." || normalizedDot === "-") {
+    return normalizedDot;
+  }
+
+  if (normalizedDot.startsWith("0.") || normalizedDot.startsWith("-0.")) {
+    return normalizedDot;
+  }
+
+  return normalizedDot.replace(/^(-?)0+(?=\d)/, "$1");
+};
+
 const parsePercentInput = (value: string): number => {
-  const parsed = Number.parseFloat(value);
+  const parsed = Number.parseFloat(normalizeNumericInput(value));
   if (!Number.isFinite(parsed)) {
     return 0;
   }

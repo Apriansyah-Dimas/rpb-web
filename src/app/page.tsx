@@ -19,8 +19,22 @@ type OtherFilter = "Semua" | StockCategory;
 
 const FILTER_OPTIONS: OtherFilter[] = ["Semua", "Blower", "Motor", "Rotor"];
 
+const normalizeNumericInput = (value: string): string => {
+  const normalizedDot = value.replace(",", ".");
+
+  if (normalizedDot === "" || normalizedDot === "." || normalizedDot === "-") {
+    return normalizedDot;
+  }
+
+  if (normalizedDot.startsWith("0.") || normalizedDot.startsWith("-0.")) {
+    return normalizedDot;
+  }
+
+  return normalizedDot.replace(/^(-?)0+(?=\d)/, "$1");
+};
+
 const parseNumberInput = (value: string): number => {
-  const parsed = Number.parseFloat(value);
+  const parsed = Number.parseFloat(normalizeNumericInput(value));
   if (!Number.isFinite(parsed)) {
     return 0;
   }
