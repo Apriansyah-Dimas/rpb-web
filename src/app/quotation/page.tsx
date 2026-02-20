@@ -132,7 +132,7 @@ export default function QuotationPage() {
         types: ["heading", "paragraph"],
       }),
       Table.configure({
-        resizable: true,
+        resizable: false,
       }),
       TableRow,
       TableHeader,
@@ -166,32 +166,54 @@ export default function QuotationPage() {
       )
       .join("");
 
-    const summaryRows = `
-      <tr><td colspan="7"><strong>Subtotal Items</strong></td><td style="text-align:right"><strong>${escapeHtml(formatRupiah(usdToIdr(subtotalUsd)))}</strong></td></tr>
-      <tr><td colspan="7">Stock Return</td><td style="text-align:right">${escapeHtml(formatRupiah(usdToIdr(stockReturnUsd)))}</td></tr>
-      <tr><td colspan="7">Marketing Cost</td><td style="text-align:right">${escapeHtml(formatRupiah(usdToIdr(marketingCostUsd)))}</td></tr>
-      <tr><td colspan="7">Services</td><td style="text-align:right">${escapeHtml(formatRupiah(usdToIdr(servicesUsd)))}</td></tr>
-      <tr><td colspan="7">Profit</td><td style="text-align:right">${escapeHtml(formatRupiah(usdToIdr(profitUsd)))}</td></tr>
-      <tr><td colspan="7"><strong>Grand Total</strong></td><td style="text-align:right"><strong>${escapeHtml(formatRupiah(usdToIdr(grandTotalUsd)))}</strong></td></tr>
-    `;
+    const summaryRowsData: Array<[string, string, boolean]> = [
+      ["Subtotal Items", formatRupiah(usdToIdr(subtotalUsd)), false],
+      ["Stock Return", formatRupiah(usdToIdr(stockReturnUsd)), false],
+      ["Marketing Cost", formatRupiah(usdToIdr(marketingCostUsd)), false],
+      ["Services", formatRupiah(usdToIdr(servicesUsd)), false],
+      ["Profit", formatRupiah(usdToIdr(profitUsd)), false],
+      ["Grand Total", formatRupiah(usdToIdr(grandTotalUsd)), true],
+    ];
+
+    const summaryRows = summaryRowsData
+      .map(
+        ([label, value, highlight]) => `
+          <tr ${highlight ? 'style="background:#eef0ff;"' : ""}>
+            <td>${highlight ? `<strong>${escapeHtml(label)}</strong>` : escapeHtml(label)}</td>
+            <td style="text-align:right">${highlight ? `<strong>${escapeHtml(value)}</strong>` : escapeHtml(value)}</td>
+          </tr>
+        `,
+      )
+      .join("");
 
     const tableHtml = `
       <h3>RPB Line Items</h3>
-      <table style="width:100%; border-collapse:collapse; margin:12px 0;">
+      <table>
         <thead>
-          <tr style="background:#6365b9; color:#fff;">
-            <th style="padding:8px;border:1px solid #d9dbef;">No</th>
-            <th style="padding:8px;border:1px solid #d9dbef;">Jenis</th>
-            <th style="padding:8px;border:1px solid #d9dbef;">Keterangan</th>
-            <th style="padding:8px;border:1px solid #d9dbef;">Satuan</th>
-            <th style="padding:8px;border:1px solid #d9dbef;">Jenis Spec</th>
-            <th style="padding:8px;border:1px solid #d9dbef;">Qty</th>
-            <th style="padding:8px;border:1px solid #d9dbef;">Harga</th>
-            <th style="padding:8px;border:1px solid #d9dbef;">Total</th>
+          <tr>
+            <th>No</th>
+            <th>Jenis</th>
+            <th>Keterangan</th>
+            <th>Satuan</th>
+            <th>Jenis Spec</th>
+            <th>Qty</th>
+            <th>Harga</th>
+            <th>Total</th>
           </tr>
         </thead>
         <tbody>
           ${rows}
+        </tbody>
+      </table>
+      <h3>Ringkasan Perhitungan</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Nilai</th>
+          </tr>
+        </thead>
+        <tbody>
           ${summaryRows}
         </tbody>
       </table>
