@@ -72,7 +72,7 @@ export default function HomePage() {
   const [customKeterangan, setCustomKeterangan] = useState("");
   const [customSatuan, setCustomSatuan] = useState("");
   const [customJenisSpec, setCustomJenisSpec] = useState("");
-  const [customHarga, setCustomHarga] = useState(0);
+  const [customHargaIdr, setCustomHargaIdr] = useState(0);
   const [customQty, setCustomQty] = useState(1);
 
   const profileUsd = useMemo(
@@ -134,7 +134,7 @@ export default function HomePage() {
     setCustomKeterangan("");
     setCustomSatuan("");
     setCustomJenisSpec("");
-    setCustomHarga(0);
+    setCustomHargaIdr(0);
     setCustomQty(1);
   };
 
@@ -148,7 +148,14 @@ export default function HomePage() {
     const satuan = customSatuan.trim();
     const jenisSpec = customJenisSpec.trim();
 
-    if (!jenis || !keterangan || !satuan || !jenisSpec || customHarga <= 0 || customQty <= 0) {
+    if (
+      !jenis ||
+      !keterangan ||
+      !satuan ||
+      !jenisSpec ||
+      customHargaIdr <= 0 ||
+      customQty <= 0
+    ) {
       window.alert("Lengkapi semua field custom item dengan benar.");
       return;
     }
@@ -158,7 +165,7 @@ export default function HomePage() {
       keterangan,
       satuan,
       jenisSpec,
-      hargaUsd: customHarga,
+      hargaUsd: customHargaIdr / 16_900,
       qty: customQty,
     });
     closeCustomModal();
@@ -474,14 +481,14 @@ export default function HomePage() {
               </div>
 
               <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
-                Harga (USD)
+                Harga (Rupiah)
                 <input
                   className="rpb-input"
                   type="number"
                   min={0}
                   step="any"
-                  value={customHarga}
-                  onChange={(event) => setCustomHarga(parseNumberInput(event.target.value))}
+                  value={customHargaIdr}
+                  onChange={(event) => setCustomHargaIdr(parseNumberInput(event.target.value))}
                 />
               </label>
 
@@ -518,7 +525,7 @@ export default function HomePage() {
               <div className="rpb-section p-4">
                 <p className="text-sm text-rpb-ink-soft">Total price</p>
                 <p className="text-xl font-semibold">
-                  {formatRupiah(usdToIdr(customHarga * customQty))}
+                  {formatRupiah(customHargaIdr * customQty)}
                 </p>
               </div>
 
