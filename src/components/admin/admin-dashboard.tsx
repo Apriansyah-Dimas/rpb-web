@@ -20,6 +20,7 @@ import type {
 } from "@/types/rpb";
 
 type AdminRole = "admin" | "user";
+type AdminSection = "profile" | "konstruksi" | "other" | "users" | "security";
 
 interface UserProfileRow {
   id: string;
@@ -27,6 +28,14 @@ interface UserProfileRow {
   role: AdminRole;
   created_at: string | null;
 }
+
+const ADMIN_NAV_ITEMS: Array<{ key: AdminSection; label: string; description: string }> = [
+  { key: "profile", label: "Profile", description: "Formula & harga profile" },
+  { key: "konstruksi", label: "Konstruksi", description: "Formula & harga konstruksi" },
+  { key: "other", label: "Other", description: "Master item permanen" },
+  { key: "users", label: "User", description: "Buat akun & lihat user" },
+  { key: "security", label: "Security", description: "Ganti password admin" },
+];
 
 const parseNumber = (value: string) => {
   const parsed = Number.parseFloat(value.replace(",", "."));
@@ -53,6 +62,7 @@ export function AdminDashboard() {
   const [passwordForm, setPasswordForm] = useState({ password: "", confirm: "" });
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<AdminSection>("profile");
 
   useEffect(() => {
     if (!data) {
@@ -252,6 +262,33 @@ export function AdminDashboard() {
           {error ? <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
           {message ? <div className="rounded-xl border border-rpb-border bg-white px-4 py-3 text-sm text-rpb-ink-soft">{message}</div> : null}
 
+          <nav className="rpb-section p-2">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+              {ADMIN_NAV_ITEMS.map((item) => {
+                const isActive = activeSection === item.key;
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className={`rounded-xl border px-3 py-2 text-left transition ${
+                      isActive
+                        ? "border-rpb-primary bg-rpb-primary text-white"
+                        : "border-rpb-border bg-white text-foreground hover:border-rpb-primary/40"
+                    }`}
+                    onClick={() => setActiveSection(item.key)}
+                    aria-pressed={isActive}
+                  >
+                    <div className="text-sm font-semibold">{item.label}</div>
+                    <div className={`text-[11px] ${isActive ? "text-white/85" : "text-rpb-ink-soft"}`}>
+                      {item.description}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
+
+          {activeSection === "profile" ? (
           <section className="rpb-section p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h2 className="rpb-h-title text-base font-semibold">PROFILE (fixed items)</h2>
@@ -319,7 +356,9 @@ export function AdminDashboard() {
             </div>
             <p className="mt-2 text-xs text-rpb-ink-soft">Support formula: operator matematika, kurung, `10%`, fungsi `ROUND`, `CEIL`, `FLOOR`, `PCT/PERSEN`.</p>
           </section>
+          ) : null}
 
+          {activeSection === "konstruksi" ? (
           <section className="rpb-section p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h2 className="rpb-h-title text-base font-semibold">KONSTRUKSI (fixed items)</h2>
@@ -375,7 +414,9 @@ export function AdminDashboard() {
               </table>
             </div>
           </section>
+          ) : null}
 
+          {activeSection === "other" ? (
           <section className="rpb-section p-4">
             <h2 className="rpb-h-title mb-3 text-base font-semibold">OTHER (permanen)</h2>
             <form className="mb-4 grid gap-3 md:grid-cols-6" onSubmit={addOtherPermanent}>
@@ -423,9 +464,10 @@ export function AdminDashboard() {
               </table>
             </div>
           </section>
+          ) : null}
 
-          <div className="grid gap-4 xl:grid-cols-2">
-            <section className="rpb-section p-4">
+          {activeSection === "users" ? (
+          <section className="rpb-section p-4">
               <h2 className="rpb-h-title mb-3 text-base font-semibold">Buat User (Admin only)</h2>
               <form className="grid gap-3 md:grid-cols-2" onSubmit={createUser}>
                 <input className="rpb-input md:col-span-2" type="email" placeholder="Email" value={userForm.email} onChange={(e) => setUserForm((v) => ({ ...v, email: e.target.value }))} required />
@@ -459,9 +501,11 @@ export function AdminDashboard() {
                   </tbody>
                 </table>
               </div>
-            </section>
+          </section>
+          ) : null}
 
-            <section className="rpb-section p-4">
+          {activeSection === "security" ? (
+          <section className="rpb-section p-4">
               <h2 className="rpb-h-title mb-3 text-base font-semibold">Ganti Password Saya</h2>
               <form className="space-y-3" onSubmit={changeOwnPassword}>
                 <input className="rpb-input" type="password" placeholder="Password baru" value={passwordForm.password} onChange={(e) => setPasswordForm((v) => ({ ...v, password: e.target.value }))} required />
@@ -470,8 +514,8 @@ export function AdminDashboard() {
                   <Save size={14} />{busy === "password" ? "Menyimpan..." : "Ubah Password"}
                 </button>
               </form>
-            </section>
-          </div>
+          </section>
+          ) : null}
         </div>
       </main>
     </div>
