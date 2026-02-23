@@ -259,15 +259,21 @@ values
   ('pa6045t', 'PA6045T', 'pc', 16, 'omega_profil * 6', 0, 1.06, true)
 on conflict (code) do nothing;
 
--- NOTE: replace this placeholder with detailed fixed konstruksi items from your Excel sheet.
 insert into public.rpb_konstruksi_items
   (code, name, unit, sort_order, formula_expr, unit_price_usd, is_active)
 values
-  ('konstruksi_total', 'Konstruksi Total (Placeholder)', 'lot', 1, '1', 1252.6, true)
+  ('bjls', 'BJLS', 'unit', 1, '5', 150, true),
+  ('cat', 'CAT', 'unit', 2, '10', 7, true),
+  ('unp', 'UNP', 'unit', 3, '3', 30, true),
+  ('siku', 'SIKU', 'unit', 4, '3', 25, true),
+  ('majun', 'MAJUN', 'unit', 5, '3', 1, true),
+  ('argon', 'Argon', 'unit', 6, '1', 25, true),
+  ('kawat_las', 'Kawat Las', 'unit', 7, '5', 2, true),
+  ('thinner', 'Thinner', 'unit', 8, '20', 3, true),
+  ('girinda', 'Girinda', 'unit', 9, '20', 4, true),
+  ('amplas', 'Amplas', 'unit', 10, '40', 1, true),
+  ('dll', 'Dll', 'unit', 11, '1', 49.6, true)
 on conflict (code) do nothing;
-
-comment on table public.rpb_konstruksi_items is
-'TODO: seed detailed fixed konstruksi rows from 004_RPB_Belfood_2019.xls sheet Konstruksi';
 
 insert into public.rpb_other_items
   (name, category, model, unit, price_usd, is_active)
