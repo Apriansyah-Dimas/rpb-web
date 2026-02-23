@@ -13,7 +13,7 @@ import { ArrowLeft, Download, FileText, History, Minus, Plus, Save } from "lucid
 import autoTable from "jspdf-autotable";
 import jsPDF from "jspdf";
 import Link from "next/link";
-import type { FocusEvent } from "react";
+import type { FocusEvent, FormEvent } from "react";
 import { useMemo, useState } from "react";
 
 const normalizeNumericInput = (value: string): string => {
@@ -45,6 +45,13 @@ const selectInputOnFocus = (event: FocusEvent<HTMLInputElement>) => {
   event.currentTarget.select();
 };
 
+const buildDefaultHistoryTitle = (projectName: string): string =>
+  `${projectName || "RPB"} - ${new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(new Date())}`;
+
 export default function SummaryPage() {
   const { data: masterData, loading: masterLoading, error: masterError } = useRpbMasterData();
   const customerName = useRpbStore((state) => state.customerName);
@@ -60,6 +67,8 @@ export default function SummaryPage() {
   const getSnapshot = useRpbStore((state) => state.getSnapshot);
   const [saveBusy, setSaveBusy] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [saveTitleInput, setSaveTitleInput] = useState("");
 
   const { lineItems } = useMemo(
     () =>
@@ -108,28 +117,19 @@ export default function SummaryPage() {
     }
   };
 
-  const saveState = async () => {
-    const title =
-      window.prompt(
-        "Nama history (opsional).",
-        `${projectName || "RPB"} - ${new Intl.DateTimeFormat("id-ID", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        }).format(new Date())}`,
-      ) ?? "";
-
+  const submitSaveState = async (rawTitle: string) => {
     setSaveBusy(true);
     setSaveMessage(null);
     try {
       const supabase = getSupabaseBrowserClient();
       await saveSummaryHistory(supabase, {
-        title: title.trim() || projectName || "RPB Summary",
+        title: rawTitle.trim() || projectName || "RPB Summary",
         customerName,
         projectName,
         snapshot: getSnapshot(),
       });
       setSaveMessage("History berhasil disimpan ke database.");
+      setSaveModalOpen(false);
     } catch (error) {
       setSaveMessage(
         error instanceof Error ? `Gagal menyimpan history: ${error.message}` : "Gagal menyimpan.",
@@ -137,6 +137,24 @@ export default function SummaryPage() {
     } finally {
       setSaveBusy(false);
     }
+  };
+
+  const openSaveModal = () => {
+    setSaveMessage(null);
+    setSaveTitleInput(buildDefaultHistoryTitle(projectName));
+    setSaveModalOpen(true);
+  };
+
+  const closeSaveModal = () => {
+    if (saveBusy) {
+      return;
+    }
+    setSaveModalOpen(false);
+  };
+
+  const handleSaveModalSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await submitSaveState(saveTitleInput);
   };
 
   const downloadPdf = () => {
@@ -468,7 +486,7 @@ export default function SummaryPage() {
               <button
                 type="button"
                 className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
-                onClick={saveState}
+                onClick={openSaveModal}
                 disabled={saveBusy}
               >
                 <Save size={15} />
@@ -493,6 +511,46 @@ export default function SummaryPage() {
           </div>
         </div>
       </main>
+
+      {saveModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#15172b]/45 p-4 backdrop-blur-[2px]">
+          <div className="rpb-shell w-full max-w-lg overflow-hidden">
+            <div className="rpb-topbar px-5 py-4 text-white">
+              <h3 className="rpb-h-title text-lg font-semibold">Save History</h3>
+            </div>
+            <form className="space-y-4 p-5" onSubmit={handleSaveModalSubmit}>
+              <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+                Nama history (opsional)
+                <input
+                  className="rpb-input"
+                  value={saveTitleInput}
+                  onChange={(event) => setSaveTitleInput(event.target.value)}
+                  onFocus={selectInputOnFocus}
+                  autoFocus
+                />
+              </label>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  className="rpb-btn-ghost px-4 py-2 text-sm font-semibold"
+                  onClick={closeSaveModal}
+                  disabled={saveBusy}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rpb-btn-primary px-4 py-2 text-sm font-semibold"
+                  disabled={saveBusy}
+                >
+                  {saveBusy ? "Saving..." : "Save"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
