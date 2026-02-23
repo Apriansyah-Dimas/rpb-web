@@ -123,7 +123,7 @@ export const useRpbStore = create<RpbStore>()(
             {
               ...item,
               qty: safeNumber(item.qty),
-              hargaUsd: safeNumber(item.hargaUsd),
+              hargaIdr: safeNumber(item.hargaIdr),
               id: `custom-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
             },
           ],
@@ -197,7 +197,11 @@ export const useRpbStore = create<RpbStore>()(
             .map((item) => ({
               ...item,
               qty: safeNumber(item.qty),
-              hargaUsd: safeNumber(item.hargaUsd),
+              hargaIdr: safeNumber(
+                item.hargaIdr ??
+                  // Backward compatibility for old snapshots saved before IDR migration.
+                  (((item as unknown as { hargaUsd?: number }).hargaUsd ?? 0) * 16_900),
+              ),
             }))
             .filter((item) => item.qty > 0),
           adjustments: {

@@ -2,7 +2,6 @@
 
 import {
   formatRupiah,
-  usdToIdr,
 } from "@/lib/rpb-calculator";
 import { RpbUserActions } from "@/components/rpb-user-actions";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
@@ -62,8 +61,6 @@ export default function SummaryPage() {
   const [saveBusy, setSaveBusy] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
-  const exchangeRate = masterData?.settings.usdToIdr ?? 16_900;
-
   const { lineItems } = useMemo(
     () =>
       buildSummaryLineItems({
@@ -86,17 +83,17 @@ export default function SummaryPage() {
     ],
   );
 
-  const subtotalUsd = useMemo(
-    () => lineItems.reduce((sum, item) => sum + item.hargaUsd * item.qty, 0),
+  const subtotalIdr = useMemo(
+    () => lineItems.reduce((sum, item) => sum + item.hargaIdr * item.qty, 0),
     [lineItems],
   );
 
-  const stockReturnUsd = pctToValue(subtotalUsd, adjustments.stockReturn);
-  const marketingCostUsd = pctToValue(subtotalUsd, adjustments.marketingCost);
-  const servicesUsd = pctToValue(subtotalUsd, adjustments.services);
-  const baseAfterAdjustUsd = subtotalUsd + stockReturnUsd + marketingCostUsd + servicesUsd;
-  const profitUsd = pctToValue(baseAfterAdjustUsd, adjustments.profit);
-  const grandTotalUsd = baseAfterAdjustUsd + profitUsd;
+  const stockReturnIdr = pctToValue(subtotalIdr, adjustments.stockReturn);
+  const marketingCostIdr = pctToValue(subtotalIdr, adjustments.marketingCost);
+  const servicesIdr = pctToValue(subtotalIdr, adjustments.services);
+  const baseAfterAdjustIdr = subtotalIdr + stockReturnIdr + marketingCostIdr + servicesIdr;
+  const profitIdr = pctToValue(baseAfterAdjustIdr, adjustments.profit);
+  const grandTotalIdr = baseAfterAdjustIdr + profitIdr;
 
   const updateQty = (itemId: string, qty: number) => {
     if (itemId.startsWith("stock-")) {
@@ -174,8 +171,8 @@ export default function SummaryPage() {
       item.satuan,
       item.jenisSpec,
       String(item.qty),
-      formatRupiah(usdToIdr(item.hargaUsd, exchangeRate)),
-      formatRupiah(usdToIdr(item.hargaUsd * item.qty, exchangeRate)),
+      formatRupiah(item.hargaIdr),
+      formatRupiah(item.hargaIdr * item.qty),
     ]);
 
     autoTable(doc, {
@@ -209,13 +206,13 @@ export default function SummaryPage() {
     const lineItemsTable = (doc as jsPDF & { lastAutoTable?: { finalY: number } })
       .lastAutoTable;
     const summaryRows = [
-      ["Subtotal Items", formatRupiah(usdToIdr(subtotalUsd, exchangeRate))],
-      ["Stock Return", formatRupiah(usdToIdr(stockReturnUsd, exchangeRate))],
-      ["Marketing Cost", formatRupiah(usdToIdr(marketingCostUsd, exchangeRate))],
-      ["Services", formatRupiah(usdToIdr(servicesUsd, exchangeRate))],
-      ["Base After Adjust", formatRupiah(usdToIdr(baseAfterAdjustUsd, exchangeRate))],
-      ["Profit", formatRupiah(usdToIdr(profitUsd, exchangeRate))],
-      ["Grand Total", formatRupiah(usdToIdr(grandTotalUsd, exchangeRate))],
+      ["Subtotal Items", formatRupiah(subtotalIdr)],
+      ["Stock Return", formatRupiah(stockReturnIdr)],
+      ["Marketing Cost", formatRupiah(marketingCostIdr)],
+      ["Services", formatRupiah(servicesIdr)],
+      ["Base After Adjust", formatRupiah(baseAfterAdjustIdr)],
+      ["Profit", formatRupiah(profitIdr)],
+      ["Grand Total", formatRupiah(grandTotalIdr)],
     ];
 
     autoTable(doc, {
@@ -362,7 +359,7 @@ export default function SummaryPage() {
                 <tbody>
                   {lineItems.map((item, index) => {
                     const isEditable = item.id.startsWith("stock-") || item.id.startsWith("custom-");
-                    const lineTotalUsd = item.qty * item.hargaUsd;
+                    const lineTotalIdr = item.qty * item.hargaIdr;
 
                     return (
                       <tr key={item.id}>
@@ -398,9 +395,9 @@ export default function SummaryPage() {
                             <span className="font-semibold">{item.qty}</span>
                           )}
                         </td>
-                        <td>{formatRupiah(usdToIdr(item.hargaUsd, exchangeRate))}</td>
+                        <td>{formatRupiah(item.hargaIdr)}</td>
                         <td className="font-semibold">
-                          {formatRupiah(usdToIdr(lineTotalUsd, exchangeRate))}
+                          {formatRupiah(lineTotalIdr)}
                         </td>
                       </tr>
                     );
@@ -415,27 +412,27 @@ export default function SummaryPage() {
                 <div className="space-y-1 text-rpb-ink-soft">
                   <div className="flex items-center justify-between">
                     <span>Subtotal Items</span>
-                    <span>{formatRupiah(usdToIdr(subtotalUsd, exchangeRate))}</span>
+                    <span>{formatRupiah(subtotalIdr)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Stock Return</span>
-                    <span>{formatRupiah(usdToIdr(stockReturnUsd, exchangeRate))}</span>
+                    <span>{formatRupiah(stockReturnIdr)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Marketing Cost</span>
-                    <span>{formatRupiah(usdToIdr(marketingCostUsd, exchangeRate))}</span>
+                    <span>{formatRupiah(marketingCostIdr)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Services</span>
-                    <span>{formatRupiah(usdToIdr(servicesUsd, exchangeRate))}</span>
+                    <span>{formatRupiah(servicesIdr)}</span>
                   </div>
                   <div className="flex items-center justify-between border-t border-rpb-border pt-2 font-semibold text-foreground">
                     <span>Base After Adjust</span>
-                    <span>{formatRupiah(usdToIdr(baseAfterAdjustUsd, exchangeRate))}</span>
+                    <span>{formatRupiah(baseAfterAdjustIdr)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Profit</span>
-                    <span>{formatRupiah(usdToIdr(profitUsd, exchangeRate))}</span>
+                    <span>{formatRupiah(profitIdr)}</span>
                   </div>
                 </div>
               </div>
@@ -444,7 +441,7 @@ export default function SummaryPage() {
                 <div className="rpb-price-pill inline-flex w-fit flex-col gap-0.5 px-5 py-3">
                   <span className="text-sm font-semibold">Grand Total</span>
                   <span className="text-xl font-bold">
-                    {formatRupiah(usdToIdr(grandTotalUsd, exchangeRate))}
+                    {formatRupiah(grandTotalIdr)}
                   </span>
                 </div>
               </div>

@@ -1,11 +1,9 @@
 "use client";
 
 import {
-  calculateKonstruksiTotalUsd,
-  calculateProfileTotalUsd,
+  calculateKonstruksiTotalIdr,
+  calculateProfileTotalIdr,
   formatRupiah,
-  formatUsd,
-  usdToIdr,
 } from "@/lib/rpb-calculator";
 import { RpbUserActions } from "@/components/rpb-user-actions";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
@@ -95,21 +93,20 @@ export default function HomePage() {
   const [customHargaIdr, setCustomHargaIdr] = useState(0);
   const [customQty, setCustomQty] = useState(1);
 
-  const exchangeRate = masterData?.settings.usdToIdr ?? 16_900;
   const otherItems = useMemo(() => masterData?.otherItems ?? [], [masterData?.otherItems]);
   const filterOptions = useMemo<OtherFilter[]>(() => {
     const categories = Array.from(new Set(otherItems.map((item) => item.category)));
     return ["Semua", ...categories];
   }, [otherItems]);
 
-  const profileUsd = useMemo(
-    () => calculateProfileTotalUsd(dimensions, panelThickness, masterData?.profileItems ?? []),
+  const profileIdr = useMemo(
+    () => calculateProfileTotalIdr(dimensions, panelThickness, masterData?.profileItems ?? []),
     [dimensions, masterData?.profileItems, panelThickness],
   );
 
-  const konstruksiUsd = useMemo(
+  const konstruksiIdr = useMemo(
     () =>
-      calculateKonstruksiTotalUsd(
+      calculateKonstruksiTotalIdr(
         dimensions,
         panelThickness,
         masterData?.konstruksiItems ?? [],
@@ -200,7 +197,7 @@ export default function HomePage() {
       keterangan,
       satuan,
       jenisSpec,
-      hargaUsd: customHargaIdr / exchangeRate,
+      hargaIdr: customHargaIdr,
       qty: customQty,
     });
     closeCustomModal();
@@ -290,7 +287,7 @@ export default function HomePage() {
               <div className="rpb-price-pill inline-flex w-full items-center justify-between gap-4 px-5 py-3 text-sm font-semibold md:w-auto md:min-w-72">
                 <span>Harga Profile</span>
                 <span className="text-base">
-                  {formatRupiah(usdToIdr(profileUsd, exchangeRate))}
+                  {formatRupiah(profileIdr)}
                 </span>
               </div>
             </div>
@@ -302,7 +299,7 @@ export default function HomePage() {
               <div className="rpb-price-pill inline-flex w-full items-center justify-between gap-4 px-5 py-3 text-sm font-semibold md:w-auto md:min-w-72">
                 <span>Total Konstruksi</span>
                 <span className="text-base">
-                  {formatRupiah(usdToIdr(konstruksiUsd, exchangeRate))}
+                  {formatRupiah(konstruksiIdr)}
                 </span>
               </div>
             </div>
@@ -370,7 +367,7 @@ export default function HomePage() {
                       </p>
                       <div className="mt-2 flex items-center justify-between text-sm">
                           <span className="font-semibold">
-                          {formatRupiah(usdToIdr(item.priceUsd, exchangeRate))}
+                          {formatRupiah(item.priceIdr)}
                         </span>
                         {currentQty > 0 ? (
                           <span className="rpb-chip px-2 py-0.5 text-xs font-semibold text-rpb-primary">
@@ -417,10 +414,7 @@ export default function HomePage() {
               <div className="rpb-section p-4">
                 <p className="mb-1 text-sm text-rpb-ink-soft">Price</p>
                 <p className="text-2xl font-semibold">
-                  {formatRupiah(usdToIdr(modalItem.priceUsd, exchangeRate))}
-                </p>
-                <p className="mt-1 text-xs text-rpb-ink-soft">
-                  ({formatUsd(modalItem.priceUsd)})
+                  {formatRupiah(modalItem.priceIdr)}
                 </p>
               </div>
 
@@ -460,7 +454,7 @@ export default function HomePage() {
               <div className="rpb-section p-4">
                 <p className="text-sm text-rpb-ink-soft">Total price</p>
                 <p className="text-xl font-semibold">
-                  {formatRupiah(usdToIdr(modalQty * modalItem.priceUsd, exchangeRate))}
+                  {formatRupiah(modalQty * modalItem.priceIdr)}
                 </p>
               </div>
 

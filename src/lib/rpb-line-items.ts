@@ -1,6 +1,6 @@
 import {
-  calculateKonstruksiTotalUsd,
-  calculateProfileTotalUsd,
+  calculateKonstruksiTotalIdr,
+  calculateProfileTotalIdr,
 } from "@/lib/rpb-calculator";
 import type {
   CustomOtherItem,
@@ -22,8 +22,8 @@ export const buildSummaryLineItems = (params: {
   customOtherItems: CustomOtherItem[];
 }): {
   lineItems: SummaryLineItem[];
-  profileUsd: number;
-  konstruksiUsd: number;
+  profileIdr: number;
+  konstruksiIdr: number;
 } => {
   const {
     dimensions,
@@ -35,8 +35,8 @@ export const buildSummaryLineItems = (params: {
     customOtherItems,
   } = params;
 
-  const profileUsd = calculateProfileTotalUsd(dimensions, panelThickness, profileItems);
-  const konstruksiUsd = calculateKonstruksiTotalUsd(dimensions, panelThickness, konstruksiItems);
+  const profileIdr = calculateProfileTotalIdr(dimensions, panelThickness, profileItems);
+  const konstruksiIdr = calculateKonstruksiTotalIdr(dimensions, panelThickness, konstruksiItems);
 
   const baseItems: SummaryLineItem[] = [
     {
@@ -46,7 +46,7 @@ export const buildSummaryLineItems = (params: {
       satuan: "Lot",
       jenisSpec: String(panelThickness),
       qty: 1,
-      hargaUsd: profileUsd,
+      hargaIdr: profileIdr,
     },
     {
       id: "konstruksi",
@@ -55,7 +55,7 @@ export const buildSummaryLineItems = (params: {
       satuan: "Lot",
       jenisSpec: "1",
       qty: 1,
-      hargaUsd: konstruksiUsd,
+      hargaIdr: konstruksiIdr,
     },
   ];
 
@@ -67,7 +67,7 @@ export const buildSummaryLineItems = (params: {
     satuan: item.unit,
     jenisSpec: item.name,
     qty: selectedOther[item.id] ?? 0,
-    hargaUsd: item.priceUsd,
+    hargaIdr: item.priceIdr,
   }));
 
   const customLines: SummaryLineItem[] = customOtherItems.map((item) => ({
@@ -77,12 +77,12 @@ export const buildSummaryLineItems = (params: {
     satuan: item.satuan,
     jenisSpec: item.jenisSpec,
     qty: item.qty,
-    hargaUsd: item.hargaUsd,
+    hargaIdr: item.hargaIdr,
   }));
 
   return {
     lineItems: [...baseItems, ...stockLines, ...customLines],
-    profileUsd,
-    konstruksiUsd,
+    profileIdr,
+    konstruksiIdr,
   };
 };

@@ -80,8 +80,8 @@ create table if not exists public.rpb_profile_items (
   unit text not null default 'pc',
   sort_order integer not null default 0,
   formula_expr text not null default '0',
-  price_usd_30 numeric(18, 6) not null default 0,
-  price_usd_45 numeric(18, 6) not null default 0,
+  price_idr_30 numeric(18, 2) not null default 0,
+  price_idr_45 numeric(18, 2) not null default 0,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -99,7 +99,7 @@ create table if not exists public.rpb_konstruksi_items (
   unit text not null default 'pc',
   sort_order integer not null default 0,
   formula_expr text not null default '0',
-  unit_price_usd numeric(18, 6) not null default 0,
+  unit_price_idr numeric(18, 2) not null default 0,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -116,7 +116,7 @@ create table if not exists public.rpb_other_items (
   category text not null check (category in ('Blower', 'Motor', 'Rotor')),
   model text not null default '-',
   unit text not null default 'pc',
-  price_usd numeric(18, 6) not null default 0,
+  price_idr numeric(18, 2) not null default 0,
   is_active boolean not null default true,
   unique (name, category, model, unit),
   created_at timestamptz not null default now(),
@@ -239,75 +239,75 @@ values (1, 16900)
 on conflict (id) do update set usd_to_idr = excluded.usd_to_idr;
 
 insert into public.rpb_profile_items
-  (code, name, unit, sort_order, formula_expr, price_usd_30, price_usd_45, is_active)
+  (code, name, unit, sort_order, formula_expr, price_idr_30, price_idr_45, is_active)
 values
-  ('panel', 'Panel', 'lot', 1, '(((width * length + width * height + length * height) / 3600000) * 2) * 1.4', 92, 110, true),
-  ('corner_profil', 'Corner Profil', 'pc', 2, '(((width + width + length + height) * 4) / 5600) * 2', 39.28, 46, true),
-  ('omega_profil', 'Omega Profil', 'pc', 3, '((length / 1200) * ((2 * width + 2 * height) / 5600) * 1.3) * 3', 33.67, 53, true),
-  ('corner', 'Corner', 'pc', 4, '24', 2.21, 3, true),
-  ('pinchplate', 'Pinchplate', 'pc', 5, '(corner_profil + omega_profil) * 2', 4.92, 6.3, true),
-  ('round_rubber', 'Round Rubber', 'm', 6, 'pinchplate * 5.6', 0.18, 0, true),
-  ('flat_rubber', 'Flat Rubber', 'm', 7, 'pinchplate * 5.6', 0.18, 0, true),
-  ('angle_block', 'Angle Block', 'pc', 8, 'corner * 3', 0.07, 0, true),
-  ('omega_join', 'Omega Join', 'pc', 9, '(length / 1200) * 8 * 1.2', 0.59, 0.82, true),
-  ('handle', 'Handle', 'pc', 10, '0', 5, 5, true),
-  ('door', 'Door', 'pc', 11, '5', 75.37, 75.37, true),
-  ('hinge', 'Hinge', 'pc', 12, '0', 7, 7, true),
-  ('damper', 'Damper', 'pc', 13, '5', 45, 45, true),
-  ('screw_house', 'Screw House', 'pc', 14, 'panel * 28', 0, 0.07, true),
-  ('pvc45p', 'PVC45P', 'pc', 15, 'omega_profil * 6', 0, 0.88, true),
-  ('pa6045t', 'PA6045T', 'pc', 16, 'omega_profil * 6', 0, 1.06, true)
+  ('panel', 'Panel', 'lot', 1, '(((width * length + width * height + length * height) / 3600000) * 2) * 1.4', 92 * 16900, 110 * 16900, true),
+  ('corner_profil', 'Corner Profil', 'pc', 2, '(((width + width + length + height) * 4) / 5600) * 2', 39.28 * 16900, 46 * 16900, true),
+  ('omega_profil', 'Omega Profil', 'pc', 3, '((length / 1200) * ((2 * width + 2 * height) / 5600) * 1.3) * 3', 33.67 * 16900, 53 * 16900, true),
+  ('corner', 'Corner', 'pc', 4, '24', 2.21 * 16900, 3 * 16900, true),
+  ('pinchplate', 'Pinchplate', 'pc', 5, '(corner_profil + omega_profil) * 2', 4.92 * 16900, 6.3 * 16900, true),
+  ('round_rubber', 'Round Rubber', 'm', 6, 'pinchplate * 5.6', 0.18 * 16900, 0, true),
+  ('flat_rubber', 'Flat Rubber', 'm', 7, 'pinchplate * 5.6', 0.18 * 16900, 0, true),
+  ('angle_block', 'Angle Block', 'pc', 8, 'corner * 3', 0.07 * 16900, 0, true),
+  ('omega_join', 'Omega Join', 'pc', 9, '(length / 1200) * 8 * 1.2', 0.59 * 16900, 0.82 * 16900, true),
+  ('handle', 'Handle', 'pc', 10, '0', 5 * 16900, 5 * 16900, true),
+  ('door', 'Door', 'pc', 11, '5', 75.37 * 16900, 75.37 * 16900, true),
+  ('hinge', 'Hinge', 'pc', 12, '0', 7 * 16900, 7 * 16900, true),
+  ('damper', 'Damper', 'pc', 13, '5', 45 * 16900, 45 * 16900, true),
+  ('screw_house', 'Screw House', 'pc', 14, 'panel * 28', 0, 0.07 * 16900, true),
+  ('pvc45p', 'PVC45P', 'pc', 15, 'omega_profil * 6', 0, 0.88 * 16900, true),
+  ('pa6045t', 'PA6045T', 'pc', 16, 'omega_profil * 6', 0, 1.06 * 16900, true)
 on conflict (code) do nothing;
 
 insert into public.rpb_konstruksi_items
-  (code, name, unit, sort_order, formula_expr, unit_price_usd, is_active)
+  (code, name, unit, sort_order, formula_expr, unit_price_idr, is_active)
 values
-  ('bjls', 'BJLS', 'unit', 1, '5', 150, true),
-  ('cat', 'CAT', 'unit', 2, '10', 7, true),
-  ('unp', 'UNP', 'unit', 3, '3', 30, true),
-  ('siku', 'SIKU', 'unit', 4, '3', 25, true),
-  ('majun', 'MAJUN', 'unit', 5, '3', 1, true),
-  ('argon', 'Argon', 'unit', 6, '1', 25, true),
-  ('kawat_las', 'Kawat Las', 'unit', 7, '5', 2, true),
-  ('thinner', 'Thinner', 'unit', 8, '20', 3, true),
-  ('girinda', 'Girinda', 'unit', 9, '20', 4, true),
-  ('amplas', 'Amplas', 'unit', 10, '40', 1, true),
-  ('dll', 'Dll', 'unit', 11, '1', 49.6, true)
+  ('bjls', 'BJLS', 'unit', 1, '5', 150 * 16900, true),
+  ('cat', 'CAT', 'unit', 2, '10', 7 * 16900, true),
+  ('unp', 'UNP', 'unit', 3, '3', 30 * 16900, true),
+  ('siku', 'SIKU', 'unit', 4, '3', 25 * 16900, true),
+  ('majun', 'MAJUN', 'unit', 5, '3', 1 * 16900, true),
+  ('argon', 'Argon', 'unit', 6, '1', 25 * 16900, true),
+  ('kawat_las', 'Kawat Las', 'unit', 7, '5', 2 * 16900, true),
+  ('thinner', 'Thinner', 'unit', 8, '20', 3 * 16900, true),
+  ('girinda', 'Girinda', 'unit', 9, '20', 4 * 16900, true),
+  ('amplas', 'Amplas', 'unit', 10, '40', 1 * 16900, true),
+  ('dll', 'Dll', 'unit', 11, '1', 49.6 * 16900, true)
 on conflict (code) do nothing;
 
 insert into public.rpb_other_items
-  (name, category, model, unit, price_usd, is_active)
+  (name, category, model, unit, price_idr, is_active)
 values
-  ('SYQ 315', 'Blower', 'ER90C-4DN.N7.1R', 'pc', 343.75, true),
-  ('SYQ 355', 'Blower', 'ER10C-6DN.R7.1R', 'pc', 426.25, true),
-  ('SYQ 400', 'Blower', 'ER45C-ZID.GG.1R', 'pc', 500.5, true),
-  ('SYQ 450', 'Blower', 'ER31C-ZID.DC.1R', 'pc', 596.25, true),
-  ('SYQ 500', 'Blower', 'ER31C-ZID.DC.1R', 'pc', 720.5, true),
-  ('SYQ 560', 'Blower', 'ER63C-4DN.I7.1R', 'pc', 957, true),
-  ('SYQ 630', 'Blower', 'ER90C-6DN.N7.1R', 'pc', 1155.55, true),
-  ('SYQ 710', 'Blower', 'ER31C-ZID.DC.1R', 'pc', 1493.8, true),
-  ('ZA 1000 m3-EC', 'Blower', 'ER56C-ZID.GQ.CR', 'pc', 980, true),
-  ('ZA 1500 m3-EC', 'Blower', 'ER56C-ZID.GQ.CR', 'pc', 980, true),
-  ('ZA 2000 m3-EC', 'Blower', 'ER71C-4DN.I7.1R', 'pc', 1100, true),
-  ('ZA 2500 m3-EC', 'Blower', 'ER71C-4DN.K7.1R', 'pc', 1200, true),
-  ('ZA-3000 m3-EC', 'Blower', 'ER56C-4DN.H7.1R', 'pc', 1300, true),
-  ('ZA-5000 m3-EC', 'Blower', '-', 'pc', 1331, true),
-  ('ZA-9000 m3-EC', 'Blower', '-', 'pc', 1850, true),
-  ('ZA-10000-m3-EC', 'Blower', 'ER31C-ZID.DC.1R', 'pc', 1850, true),
-  ('ZA-13000-m3-AC', 'Blower', 'ER31C-ZID.DC.1R', 'pc', 1200, true),
-  ('ZA-18000-m3-AC', 'Blower', 'ER31C-ZID.DC.1R', 'pc', 2100, true),
-  ('ZA-22000-m3-AC', 'Blower', 'ER31C-ZID.DC.1R', 'pc', 2100, true),
-  ('SIEMENS 4 KW', 'Motor', 'ER40C-ZID.GG.1R', 'pc', 245, true),
-  ('SIEMENS 5.5 KW', 'Motor', 'ER56C-ZID.GQ.1R', 'pc', 385, true),
-  ('SIEMENS 7.5 KW', 'Motor', 'ER56C-ZID.GQ.CR', 'pc', 525, true),
-  ('SIEMENS 11 KW', 'Motor', 'ER71C-4DN.K7.1R', 'pc', 840, true),
-  ('SIEMENS 15 KW', 'Motor', '-', 'pc', 1120, true),
-  ('SIEMENS 22 KW', 'Motor', '-', 'pc', 1820, true),
-  ('SIEMENS 30 KW', 'Motor', '-', 'pc', 2380, true),
-  ('RO 075', 'Rotor', '450X200', 'pc', 1842.5, true),
-  ('RO 100', 'Rotor', '550X200', 'pc', 1953, true),
-  ('RO 125', 'Rotor', '650X200', 'pc', 2387, true),
-  ('RO 150', 'Rotor', '770 x200', 'pc', 2788, true)
+  ('SYQ 315', 'Blower', 'ER90C-4DN.N7.1R', 'pc', 343.75 * 16900, true),
+  ('SYQ 355', 'Blower', 'ER10C-6DN.R7.1R', 'pc', 426.25 * 16900, true),
+  ('SYQ 400', 'Blower', 'ER45C-ZID.GG.1R', 'pc', 500.5 * 16900, true),
+  ('SYQ 450', 'Blower', 'ER31C-ZID.DC.1R', 'pc', 596.25 * 16900, true),
+  ('SYQ 500', 'Blower', 'ER31C-ZID.DC.1R', 'pc', 720.5 * 16900, true),
+  ('SYQ 560', 'Blower', 'ER63C-4DN.I7.1R', 'pc', 957 * 16900, true),
+  ('SYQ 630', 'Blower', 'ER90C-6DN.N7.1R', 'pc', 1155.55 * 16900, true),
+  ('SYQ 710', 'Blower', 'ER31C-ZID.DC.1R', 'pc', 1493.8 * 16900, true),
+  ('ZA 1000 m3-EC', 'Blower', 'ER56C-ZID.GQ.CR', 'pc', 980 * 16900, true),
+  ('ZA 1500 m3-EC', 'Blower', 'ER56C-ZID.GQ.CR', 'pc', 980 * 16900, true),
+  ('ZA 2000 m3-EC', 'Blower', 'ER71C-4DN.I7.1R', 'pc', 1100 * 16900, true),
+  ('ZA 2500 m3-EC', 'Blower', 'ER71C-4DN.K7.1R', 'pc', 1200 * 16900, true),
+  ('ZA-3000 m3-EC', 'Blower', 'ER56C-4DN.H7.1R', 'pc', 1300 * 16900, true),
+  ('ZA-5000 m3-EC', 'Blower', '-', 'pc', 1331 * 16900, true),
+  ('ZA-9000 m3-EC', 'Blower', '-', 'pc', 1850 * 16900, true),
+  ('ZA-10000-m3-EC', 'Blower', 'ER31C-ZID.DC.1R', 'pc', 1850 * 16900, true),
+  ('ZA-13000-m3-AC', 'Blower', 'ER31C-ZID.DC.1R', 'pc', 1200 * 16900, true),
+  ('ZA-18000-m3-AC', 'Blower', 'ER31C-ZID.DC.1R', 'pc', 2100 * 16900, true),
+  ('ZA-22000-m3-AC', 'Blower', 'ER31C-ZID.DC.1R', 'pc', 2100 * 16900, true),
+  ('SIEMENS 4 KW', 'Motor', 'ER40C-ZID.GG.1R', 'pc', 245 * 16900, true),
+  ('SIEMENS 5.5 KW', 'Motor', 'ER56C-ZID.GQ.1R', 'pc', 385 * 16900, true),
+  ('SIEMENS 7.5 KW', 'Motor', 'ER56C-ZID.GQ.CR', 'pc', 525 * 16900, true),
+  ('SIEMENS 11 KW', 'Motor', 'ER71C-4DN.K7.1R', 'pc', 840 * 16900, true),
+  ('SIEMENS 15 KW', 'Motor', '-', 'pc', 1120 * 16900, true),
+  ('SIEMENS 22 KW', 'Motor', '-', 'pc', 1820 * 16900, true),
+  ('SIEMENS 30 KW', 'Motor', '-', 'pc', 2380 * 16900, true),
+  ('RO 075', 'Rotor', '450X200', 'pc', 1842.5 * 16900, true),
+  ('RO 100', 'Rotor', '550X200', 'pc', 1953 * 16900, true),
+  ('RO 125', 'Rotor', '650X200', 'pc', 2387 * 16900, true),
+  ('RO 150', 'Rotor', '770 x200', 'pc', 2788 * 16900, true)
 on conflict do nothing;
 
 -- Optional: disable self-signup in Supabase Dashboard > Authentication > Providers > Email

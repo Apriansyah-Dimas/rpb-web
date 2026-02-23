@@ -6,7 +6,6 @@ import { Plus, Save, UserPlus } from "lucide-react";
 import { RpbUserActions } from "@/components/rpb-user-actions";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
 import {
-  setRpbSettings,
   upsertKonstruksiMasterItem,
   upsertOtherMasterItem,
   upsertProfileMasterItem,
@@ -39,12 +38,11 @@ const newOtherDefault = {
   category: "Blower" as StockCategory,
   model: "-",
   unit: "pc",
-  priceUsd: 0,
+  priceIdr: 0,
 };
 
 export function AdminDashboard() {
   const { data, loading, error, refresh } = useRpbMasterData();
-  const [settingsUsdToIdr, setSettingsUsdToIdr] = useState(16_900);
   const [profileRows, setProfileRows] = useState<ProfileMasterItem[]>([]);
   const [konstruksiRows, setKonstruksiRows] = useState<KonstruksiMasterItem[]>([]);
   const [otherRows, setOtherRows] = useState<OtherItem[]>([]);
@@ -60,7 +58,6 @@ export function AdminDashboard() {
     if (!data) {
       return;
     }
-    setSettingsUsdToIdr(data.settings.usdToIdr);
     setProfileRows(data.profileItems.slice().sort((a, b) => a.sortOrder - b.sortOrder));
     setKonstruksiRows(data.konstruksiItems.slice().sort((a, b) => a.sortOrder - b.sortOrder));
     setOtherRows(data.otherItems.slice());
@@ -88,21 +85,6 @@ export function AdminDashboard() {
   useEffect(() => {
     void loadUsers();
   }, []);
-
-  const saveSettings = async () => {
-    setBusy("settings");
-    setMessage(null);
-    try {
-      const supabase = getSupabaseBrowserClient();
-      await setRpbSettings(supabase, { usdToIdr: Math.max(1, settingsUsdToIdr) });
-      setMessage("Settings berhasil disimpan.");
-      await refresh();
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Gagal simpan settings.");
-    } finally {
-      setBusy(null);
-    }
-  };
 
   const saveAllProfile = async () => {
     for (const row of profileRows) {
@@ -165,7 +147,7 @@ export function AdminDashboard() {
         category: row.category,
         model: row.model,
         unit: row.unit,
-        priceUsd: row.priceUsd,
+        priceIdr: row.priceIdr,
       });
       setMessage(`Other item ${row.name} disimpan.`);
       await refresh();
@@ -192,7 +174,7 @@ export function AdminDashboard() {
         category: newOther.category,
         model: newOther.model.trim() || "-",
         unit: newOther.unit.trim() || "pc",
-        priceUsd: Math.max(0, newOther.priceUsd),
+        priceIdr: Math.max(0, newOther.priceIdr),
       });
       setNewOther(newOtherDefault);
       setMessage("Other item permanen berhasil ditambahkan.");
@@ -271,25 +253,6 @@ export function AdminDashboard() {
           {message ? <div className="rounded-xl border border-rpb-border bg-white px-4 py-3 text-sm text-rpb-ink-soft">{message}</div> : null}
 
           <section className="rpb-section p-4">
-            <div className="flex flex-wrap items-end gap-3">
-              <label className="flex min-w-[220px] flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
-                Kurs USD to IDR
-                <input
-                  className="rpb-input"
-                  type="number"
-                  min={1}
-                  step="any"
-                  value={settingsUsdToIdr}
-                  onChange={(event) => setSettingsUsdToIdr(parseNumber(event.target.value))}
-                />
-              </label>
-              <button type="button" className="rpb-btn-primary px-4 py-2 text-sm font-semibold" onClick={() => void saveSettings()} disabled={busy === "settings"}>
-                {busy === "settings" ? "Menyimpan..." : "Simpan Settings"}
-              </button>
-            </div>
-          </section>
-
-          <section className="rpb-section p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h2 className="rpb-h-title text-base font-semibold">PROFILE (fixed items)</h2>
               <button type="button" className="rpb-btn-primary px-4 py-2 text-sm font-semibold" onClick={() => void saveAllProfile()} disabled={busy === "profile"}>
@@ -300,7 +263,7 @@ export function AdminDashboard() {
               <table className="rpb-table min-w-[1180px] w-full text-sm">
                 <thead>
                   <tr>
-                    <th>Code</th><th>Name</th><th>Unit</th><th>Formula Qty</th><th>Price 30</th><th>Price 45</th><th>Aktif</th>
+                    <th>Code</th><th>Name</th><th>Unit</th><th>Formula Qty</th><th>Harga 30 (Rp)</th><th>Harga 45 (Rp)</th><th>Aktif (Tampil)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -323,9 +286,9 @@ export function AdminDashboard() {
                           className="rpb-input min-w-[110px]"
                           type="number"
                           step="any"
-                          value={row.priceUsd30}
+                          value={row.priceIdr30}
                           onChange={(event) =>
-                            setProfileRows((list) => list.map((item) => item.id === row.id ? { ...item, priceUsd30: parseNumber(event.target.value) } : item))
+                            setProfileRows((list) => list.map((item) => item.id === row.id ? { ...item, priceIdr30: parseNumber(event.target.value) } : item))
                           }
                         />
                       </td>
@@ -334,9 +297,9 @@ export function AdminDashboard() {
                           className="rpb-input min-w-[110px]"
                           type="number"
                           step="any"
-                          value={row.priceUsd45}
+                          value={row.priceIdr45}
                           onChange={(event) =>
-                            setProfileRows((list) => list.map((item) => item.id === row.id ? { ...item, priceUsd45: parseNumber(event.target.value) } : item))
+                            setProfileRows((list) => list.map((item) => item.id === row.id ? { ...item, priceIdr45: parseNumber(event.target.value) } : item))
                           }
                         />
                       </td>
@@ -368,7 +331,7 @@ export function AdminDashboard() {
               <table className="rpb-table min-w-[1080px] w-full text-sm">
                 <thead>
                   <tr>
-                    <th>Code</th><th>Name</th><th>Unit</th><th>Formula Qty</th><th>Unit Price USD</th><th>Aktif</th>
+                    <th>Code</th><th>Name</th><th>Unit</th><th>Formula Qty</th><th>Harga Satuan (Rp)</th><th>Aktif (Tampil)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -391,9 +354,9 @@ export function AdminDashboard() {
                           className="rpb-input min-w-[140px]"
                           type="number"
                           step="any"
-                          value={row.unitPriceUsd}
+                          value={row.unitPriceIdr}
                           onChange={(event) =>
-                            setKonstruksiRows((list) => list.map((item) => item.id === row.id ? { ...item, unitPriceUsd: parseNumber(event.target.value) } : item))
+                            setKonstruksiRows((list) => list.map((item) => item.id === row.id ? { ...item, unitPriceIdr: parseNumber(event.target.value) } : item))
                           }
                         />
                       </td>
@@ -423,7 +386,7 @@ export function AdminDashboard() {
               <input className="rpb-input" placeholder="Model" value={newOther.model} onChange={(e) => setNewOther((v) => ({ ...v, model: e.target.value }))} />
               <input className="rpb-input" placeholder="Unit" value={newOther.unit} onChange={(e) => setNewOther((v) => ({ ...v, unit: e.target.value }))} />
               <div className="flex gap-2">
-                <input className="rpb-input" type="number" step="any" placeholder="Price USD" value={newOther.priceUsd} onChange={(e) => setNewOther((v) => ({ ...v, priceUsd: parseNumber(e.target.value) }))} />
+                <input className="rpb-input" type="number" step="any" placeholder="Harga (Rp)" value={newOther.priceIdr} onChange={(e) => setNewOther((v) => ({ ...v, priceIdr: parseNumber(e.target.value) }))} />
                 <button type="submit" className="rpb-btn-primary inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold" disabled={busy === "other:new"}>
                   <Plus size={14} />{busy === "other:new" ? "..." : "Tambah"}
                 </button>
@@ -434,7 +397,7 @@ export function AdminDashboard() {
               <table className="rpb-table min-w-[980px] w-full text-sm">
                 <thead>
                   <tr>
-                    <th>Category</th><th>Name</th><th>Model</th><th>Unit</th><th>Price USD</th><th>Aksi</th>
+                    <th>Category</th><th>Name</th><th>Model</th><th>Unit</th><th>Harga (Rp)</th><th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -448,7 +411,7 @@ export function AdminDashboard() {
                       <td><input className="rpb-input min-w-[180px]" value={row.name} onChange={(e) => setOtherRows((list) => list.map((x) => x.id === row.id ? { ...x, name: e.target.value } : x))} /></td>
                       <td><input className="rpb-input min-w-[220px]" value={row.model} onChange={(e) => setOtherRows((list) => list.map((x) => x.id === row.id ? { ...x, model: e.target.value } : x))} /></td>
                       <td><input className="rpb-input min-w-[90px]" value={row.unit} onChange={(e) => setOtherRows((list) => list.map((x) => x.id === row.id ? { ...x, unit: e.target.value } : x))} /></td>
-                      <td><input className="rpb-input min-w-[120px]" type="number" step="any" value={row.priceUsd} onChange={(e) => setOtherRows((list) => list.map((x) => x.id === row.id ? { ...x, priceUsd: parseNumber(e.target.value) } : x))} /></td>
+                      <td><input className="rpb-input min-w-[120px]" type="number" step="any" value={row.priceIdr} onChange={(e) => setOtherRows((list) => list.map((x) => x.id === row.id ? { ...x, priceIdr: parseNumber(e.target.value) } : x))} /></td>
                       <td>
                         <button type="button" className="rpb-btn-primary px-3 py-2 text-xs font-semibold" onClick={() => void saveOtherRow(row)} disabled={busy === `other:${row.id}`}>
                           {busy === `other:${row.id}` ? "..." : "Simpan"}

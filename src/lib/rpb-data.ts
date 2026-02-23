@@ -32,7 +32,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "ER90C-4DN.N7.1R",
     unit: "pc",
-    priceUsd: 343.75,
+    priceIdr: 343.75,
   },
   {
     id: "syq-355",
@@ -40,7 +40,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "ER10C-6DN.R7.1R",
     unit: "pc",
-    priceUsd: 426.25,
+    priceIdr: 426.25,
   },
   {
     id: "syq-400",
@@ -48,7 +48,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "ER45C-ZID.GG.1R",
     unit: "pc",
-    priceUsd: 500.5,
+    priceIdr: 500.5,
   },
   {
     id: "syq-450",
@@ -56,7 +56,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "ER31C-ZID.DC.1R",
     unit: "pc",
-    priceUsd: 596.25,
+    priceIdr: 596.25,
   },
   {
     id: "syq-500",
@@ -64,7 +64,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "ER31C-ZID.DC.1R",
     unit: "pc",
-    priceUsd: 720.5,
+    priceIdr: 720.5,
   },
   {
     id: "syq-560",
@@ -72,7 +72,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "ER63C-4DN.I7.1R",
     unit: "pc",
-    priceUsd: 957,
+    priceIdr: 957,
   },
   {
     id: "syq-630",
@@ -80,7 +80,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "ER90C-6DN.N7.1R",
     unit: "pc",
-    priceUsd: 1155.55,
+    priceIdr: 1155.55,
   },
   {
     id: "syq-710",
@@ -88,7 +88,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "ER31C-ZID.DC.1R",
     unit: "pc",
-    priceUsd: 1493.8,
+    priceIdr: 1493.8,
   },
   {
     id: "za-1000-ec",
@@ -96,7 +96,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "ER56C-ZID.GQ.CR",
     unit: "pc",
-    priceUsd: 980,
+    priceIdr: 980,
   },
   {
     id: "za-1500-ec",
@@ -104,7 +104,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "ER56C-ZID.GQ.CR",
     unit: "pc",
-    priceUsd: 980,
+    priceIdr: 980,
   },
   {
     id: "za-2000-ec",
@@ -112,7 +112,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "ER71C-4DN.I7.1R",
     unit: "pc",
-    priceUsd: 1100,
+    priceIdr: 1100,
   },
   {
     id: "za-2500-ec",
@@ -120,7 +120,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "ER71C-4DN.K7.1R",
     unit: "pc",
-    priceUsd: 1200,
+    priceIdr: 1200,
   },
   {
     id: "za-3000-ec",
@@ -128,7 +128,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "ER56C-4DN.H7.1R",
     unit: "pc",
-    priceUsd: 1300,
+    priceIdr: 1300,
   },
   {
     id: "za-5000-ec",
@@ -136,7 +136,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "-",
     unit: "pc",
-    priceUsd: 1331,
+    priceIdr: 1331,
   },
   {
     id: "za-9000-ec",
@@ -144,7 +144,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "-",
     unit: "pc",
-    priceUsd: 1850,
+    priceIdr: 1850,
   },
   {
     id: "za-10000-ec",
@@ -152,7 +152,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "ER31C-ZID.DC.1R",
     unit: "pc",
-    priceUsd: 1850,
+    priceIdr: 1850,
   },
   {
     id: "za-13000-ac",
@@ -160,7 +160,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "ER31C-ZID.DC.1R",
     unit: "pc",
-    priceUsd: 1200,
+    priceIdr: 1200,
   },
   {
     id: "za-18000-ac",
@@ -168,7 +168,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "ER31C-ZID.DC.1R",
     unit: "pc",
-    priceUsd: 2100,
+    priceIdr: 2100,
   },
   {
     id: "za-22000-ac",
@@ -176,7 +176,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Blower",
     model: "ER31C-ZID.DC.1R",
     unit: "pc",
-    priceUsd: 2100,
+    priceIdr: 2100,
   },
   {
     id: "siemens-4kw",
@@ -184,7 +184,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Motor",
     model: "ER40C-ZID.GG.1R",
     unit: "pc",
-    priceUsd: 245,
+    priceIdr: 245,
   },
   {
     id: "siemens-5-5kw",
@@ -192,7 +192,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Motor",
     model: "ER56C-ZID.GQ.1R",
     unit: "pc",
-    priceUsd: 385,
+    priceIdr: 385,
   },
   {
     id: "siemens-7-5kw",
@@ -200,7 +200,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Motor",
     model: "ER56C-ZID.GQ.CR",
     unit: "pc",
-    priceUsd: 525,
+    priceIdr: 525,
   },
   {
     id: "siemens-11kw",
@@ -208,7 +208,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Motor",
     model: "ER71C-4DN.K7.1R",
     unit: "pc",
-    priceUsd: 840,
+    priceIdr: 840,
   },
   {
     id: "siemens-15kw",
@@ -216,7 +216,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Motor",
     model: "-",
     unit: "pc",
-    priceUsd: 1120,
+    priceIdr: 1120,
   },
   {
     id: "siemens-22kw",
@@ -224,7 +224,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Motor",
     model: "-",
     unit: "pc",
-    priceUsd: 1820,
+    priceIdr: 1820,
   },
   {
     id: "siemens-30kw",
@@ -232,7 +232,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Motor",
     model: "-",
     unit: "pc",
-    priceUsd: 2380,
+    priceIdr: 2380,
   },
   {
     id: "ro-075",
@@ -240,7 +240,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Rotor",
     model: "450X200",
     unit: "pc",
-    priceUsd: 1842.5,
+    priceIdr: 1842.5,
   },
   {
     id: "ro-100",
@@ -248,7 +248,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Rotor",
     model: "550X200",
     unit: "pc",
-    priceUsd: 1953,
+    priceIdr: 1953,
   },
   {
     id: "ro-125",
@@ -256,7 +256,7 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Rotor",
     model: "650X200",
     unit: "pc",
-    priceUsd: 2387,
+    priceIdr: 2387,
   },
   {
     id: "ro-150",
@@ -264,6 +264,6 @@ export const OTHER_ITEMS: OtherItem[] = [
     category: "Rotor",
     model: "770 x200",
     unit: "pc",
-    priceUsd: 2788,
+    priceIdr: 2788,
   },
 ];

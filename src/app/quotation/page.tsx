@@ -2,7 +2,6 @@
 
 import {
   formatRupiah,
-  usdToIdr,
 } from "@/lib/rpb-calculator";
 import { RpbUserActions } from "@/components/rpb-user-actions";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
@@ -136,8 +135,6 @@ export default function QuotationPage() {
     highlightColor: "#ffff00",
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const exchangeRate = masterData?.settings.usdToIdr ?? 16_900;
-
   const { lineItems } = useMemo(
     () =>
       buildSummaryLineItems({
@@ -160,16 +157,16 @@ export default function QuotationPage() {
     ],
   );
 
-  const subtotalUsd = useMemo(
-    () => lineItems.reduce((sum, item) => sum + item.hargaUsd * item.qty, 0),
+  const subtotalIdr = useMemo(
+    () => lineItems.reduce((sum, item) => sum + item.hargaIdr * item.qty, 0),
     [lineItems],
   );
-  const stockReturnUsd = subtotalUsd * (adjustments.stockReturn / 100);
-  const marketingCostUsd = subtotalUsd * (adjustments.marketingCost / 100);
-  const servicesUsd = subtotalUsd * (adjustments.services / 100);
-  const baseAfterAdjustUsd = subtotalUsd + stockReturnUsd + marketingCostUsd + servicesUsd;
-  const profitUsd = baseAfterAdjustUsd * (adjustments.profit / 100);
-  const grandTotalUsd = baseAfterAdjustUsd + profitUsd;
+  const stockReturnIdr = subtotalIdr * (adjustments.stockReturn / 100);
+  const marketingCostIdr = subtotalIdr * (adjustments.marketingCost / 100);
+  const servicesIdr = subtotalIdr * (adjustments.services / 100);
+  const baseAfterAdjustIdr = subtotalIdr + stockReturnIdr + marketingCostIdr + servicesIdr;
+  const profitIdr = baseAfterAdjustIdr * (adjustments.profit / 100);
+  const grandTotalIdr = baseAfterAdjustIdr + profitIdr;
 
   const refreshToolbarState = (instance: {
     getAttributes: (name: string) => Record<string, unknown>;
@@ -244,17 +241,17 @@ export default function QuotationPage() {
       {
         label: "Pengembalian Saham",
         pct: adjustments.stockReturn,
-        value: stockReturnUsd,
+        value: stockReturnIdr,
       },
       {
         label: "Marketing Cost",
         pct: adjustments.marketingCost,
-        value: marketingCostUsd,
+        value: marketingCostIdr,
       },
       {
         label: "Jasa Kerja",
         pct: adjustments.services,
-        value: servicesUsd,
+        value: servicesIdr,
       },
     ];
 
@@ -303,8 +300,8 @@ export default function QuotationPage() {
             bodyCell(item.satuan),
             bodyCell(item.jenisSpec),
             bodyCell(String(item.qty)),
-            bodyCell(formatRupiah(usdToIdr(item.hargaUsd, exchangeRate))),
-            bodyCell(formatRupiah(usdToIdr(item.hargaUsd * item.qty, exchangeRate))),
+            bodyCell(formatRupiah(item.hargaIdr)),
+            bodyCell(formatRupiah(item.hargaIdr * item.qty)),
           ],
         })),
         ...additionalRows.map((row) => ({
@@ -317,7 +314,7 @@ export default function QuotationPage() {
             bodyCell(`${row.pct}%`),
             bodyCell(""),
             bodyCell(""),
-            bodyCell(formatRupiah(usdToIdr(row.value, exchangeRate))),
+            bodyCell(formatRupiah(row.value)),
           ],
         })),
         {
@@ -330,7 +327,7 @@ export default function QuotationPage() {
             bodyCell(""),
             bodyCell(""),
             bodyCell(""),
-            bodyCell(formatRupiah(usdToIdr(baseAfterAdjustUsd, exchangeRate))),
+            bodyCell(formatRupiah(baseAfterAdjustIdr)),
           ],
         },
         {
@@ -343,7 +340,7 @@ export default function QuotationPage() {
             bodyCell(`${adjustments.profit}%`),
             bodyCell(""),
             bodyCell(""),
-            bodyCell(formatRupiah(usdToIdr(profitUsd, exchangeRate))),
+            bodyCell(formatRupiah(profitIdr)),
           ],
         },
         {
@@ -356,7 +353,7 @@ export default function QuotationPage() {
             bodyCell(""),
             bodyCell(""),
             bodyCell(""),
-            bodyCell(formatRupiah(usdToIdr(grandTotalUsd, exchangeRate))),
+            bodyCell(formatRupiah(grandTotalIdr)),
           ],
         },
       ],

@@ -12,12 +12,6 @@ const RUPIAH_FORMATTER = new Intl.NumberFormat("id-ID", {
   maximumFractionDigits: 0,
 });
 
-const USD_FORMATTER = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 2,
-});
-
 const safe = (value: number): number => {
   if (!Number.isFinite(value)) {
     return 0;
@@ -38,8 +32,8 @@ export interface CalculatedFixedItem {
   name: string;
   unit: string;
   qty: number;
-  unitPriceUsd: number;
-  totalUsd: number;
+  unitPriceIdr: number;
+  totalIdr: number;
 }
 
 export const calculateProfileBreakdown = (
@@ -54,15 +48,15 @@ export const calculateProfileBreakdown = (
   const rows: CalculatedFixedItem[] = [];
   for (const item of items.filter((item) => item.isActive).sort((a, b) => a.sortOrder - b.sortOrder)) {
     const qty = evaluateFormulaQuantity(item.formulaExpr, variables);
-    const unitPriceUsd = panelThickness === 45 ? item.priceUsd45 : item.priceUsd30;
+    const unitPriceIdr = panelThickness === 45 ? item.priceIdr45 : item.priceIdr30;
     rows.push({
       id: item.id,
       code: item.code,
       name: item.name,
       unit: item.unit,
       qty,
-      unitPriceUsd: safe(unitPriceUsd),
-      totalUsd: safe(qty) * safe(unitPriceUsd),
+      unitPriceIdr: safe(unitPriceIdr),
+      totalIdr: safe(qty) * safe(unitPriceIdr),
     });
     variables[item.code] = qty;
   }
@@ -88,8 +82,8 @@ export const calculateKonstruksiBreakdown = (
       name: item.name,
       unit: item.unit,
       qty,
-      unitPriceUsd: safe(item.unitPriceUsd),
-      totalUsd: safe(qty) * safe(item.unitPriceUsd),
+      unitPriceIdr: safe(item.unitPriceIdr),
+      totalIdr: safe(qty) * safe(item.unitPriceIdr),
     });
     variables[item.code] = qty;
   }
@@ -97,31 +91,26 @@ export const calculateKonstruksiBreakdown = (
   return rows;
 };
 
-export const calculateProfileTotalUsd = (
+export const calculateProfileTotalIdr = (
   dimensions: Dimensions,
   panelThickness: PanelThickness,
   items: ProfileMasterItem[] = [],
 ): number => {
   return calculateProfileBreakdown(dimensions, panelThickness, items).reduce(
-    (sum, item) => sum + item.totalUsd,
+    (sum, item) => sum + item.totalIdr,
     0,
   );
 };
 
-export const calculateKonstruksiTotalUsd = (
+export const calculateKonstruksiTotalIdr = (
   dimensions: Dimensions,
   panelThickness: PanelThickness,
   items: KonstruksiMasterItem[] = [],
 ): number =>
   calculateKonstruksiBreakdown(dimensions, panelThickness, items).reduce(
-    (sum, item) => sum + item.totalUsd,
+    (sum, item) => sum + item.totalIdr,
     0,
   );
 
-export const usdToIdr = (usdValue: number, exchangeRate = 16_900): number =>
-  usdValue * exchangeRate;
-
 export const formatRupiah = (value: number): string =>
   RUPIAH_FORMATTER.format(value);
-
-export const formatUsd = (value: number): string => USD_FORMATTER.format(value);

@@ -30,7 +30,7 @@ export interface OtherItem {
   category: StockCategory;
   model: string;
   unit: string;
-  priceUsd: number;
+  priceIdr: number;
 }
 
 export interface CustomOtherItem {
@@ -39,7 +39,7 @@ export interface CustomOtherItem {
   keterangan: string;
   satuan: string;
   jenisSpec: string;
-  hargaUsd: number;
+  hargaIdr: number;
   qty: number;
 }
 
@@ -50,11 +50,7 @@ export interface SummaryLineItem {
   satuan: string;
   jenisSpec: string;
   qty: number;
-  hargaUsd: number;
-}
-
-export interface RpbSettings {
-  usdToIdr: number;
+  hargaIdr: number;
 }
 
 export interface ProfileMasterItem {
@@ -64,8 +60,8 @@ export interface ProfileMasterItem {
   unit: string;
   sortOrder: number;
   formulaExpr: string;
-  priceUsd30: number;
-  priceUsd45: number;
+  priceIdr30: number;
+  priceIdr45: number;
   isActive: boolean;
 }
 
@@ -76,12 +72,11 @@ export interface KonstruksiMasterItem {
   unit: string;
   sortOrder: number;
   formulaExpr: string;
-  unitPriceUsd: number;
+  unitPriceIdr: number;
   isActive: boolean;
 }
 
 export interface RpbMasterData {
-  settings: RpbSettings;
   profileItems: ProfileMasterItem[];
   konstruksiItems: KonstruksiMasterItem[];
   otherItems: OtherItem[];
