@@ -37,8 +37,20 @@ const ADMIN_NAV_ITEMS: Array<{ key: AdminSection; label: string; description: st
   { key: "security", label: "Security", description: "Ganti password admin" },
 ];
 
-const parseNumber = (value: string) => {
-  const parsed = Number.parseFloat(value.replace(",", "."));
+const IDR_INPUT_FORMATTER = new Intl.NumberFormat("id-ID", {
+  maximumFractionDigits: 0,
+});
+
+const formatIdrInput = (value: number) =>
+  IDR_INPUT_FORMATTER.format(Number.isFinite(value) ? Math.max(0, value) : 0);
+
+const parseIdrInput = (value: string) => {
+  const digitsOnly = value.replace(/[^\d]/g, "");
+  if (!digitsOnly) {
+    return 0;
+  }
+
+  const parsed = Number.parseInt(digitsOnly, 10);
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
@@ -300,7 +312,7 @@ export function AdminDashboard() {
               <table className="rpb-table min-w-[1180px] w-full text-sm">
                 <thead>
                   <tr>
-                    <th>Code</th><th>Name</th><th>Unit</th><th>Formula Qty</th><th>Harga 30 (Rp)</th><th>Harga 45 (Rp)</th><th>Aktif (Tampil)</th>
+                    <th>Code</th><th>Name</th><th>Unit</th><th>Formula Qty</th><th>Harga 30 (Rp)</th><th>Harga 45 (Rp)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -321,31 +333,22 @@ export function AdminDashboard() {
                       <td>
                         <input
                           className="rpb-input min-w-[110px]"
-                          type="number"
-                          step="any"
-                          value={row.priceIdr30}
+                          type="text"
+                          inputMode="numeric"
+                          value={formatIdrInput(row.priceIdr30)}
                           onChange={(event) =>
-                            setProfileRows((list) => list.map((item) => item.id === row.id ? { ...item, priceIdr30: parseNumber(event.target.value) } : item))
+                            setProfileRows((list) => list.map((item) => item.id === row.id ? { ...item, priceIdr30: parseIdrInput(event.target.value) } : item))
                           }
                         />
                       </td>
                       <td>
                         <input
                           className="rpb-input min-w-[110px]"
-                          type="number"
-                          step="any"
-                          value={row.priceIdr45}
+                          type="text"
+                          inputMode="numeric"
+                          value={formatIdrInput(row.priceIdr45)}
                           onChange={(event) =>
-                            setProfileRows((list) => list.map((item) => item.id === row.id ? { ...item, priceIdr45: parseNumber(event.target.value) } : item))
-                          }
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="checkbox"
-                          checked={row.isActive}
-                          onChange={(event) =>
-                            setProfileRows((list) => list.map((item) => item.id === row.id ? { ...item, isActive: event.target.checked } : item))
+                            setProfileRows((list) => list.map((item) => item.id === row.id ? { ...item, priceIdr45: parseIdrInput(event.target.value) } : item))
                           }
                         />
                       </td>
@@ -370,7 +373,7 @@ export function AdminDashboard() {
               <table className="rpb-table min-w-[1080px] w-full text-sm">
                 <thead>
                   <tr>
-                    <th>Code</th><th>Name</th><th>Unit</th><th>Formula Qty</th><th>Harga Satuan (Rp)</th><th>Aktif (Tampil)</th>
+                    <th>Code</th><th>Name</th><th>Unit</th><th>Formula Qty</th><th>Harga Satuan (Rp)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -391,20 +394,11 @@ export function AdminDashboard() {
                       <td>
                         <input
                           className="rpb-input min-w-[140px]"
-                          type="number"
-                          step="any"
-                          value={row.unitPriceIdr}
+                          type="text"
+                          inputMode="numeric"
+                          value={formatIdrInput(row.unitPriceIdr)}
                           onChange={(event) =>
-                            setKonstruksiRows((list) => list.map((item) => item.id === row.id ? { ...item, unitPriceIdr: parseNumber(event.target.value) } : item))
-                          }
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="checkbox"
-                          checked={row.isActive}
-                          onChange={(event) =>
-                            setKonstruksiRows((list) => list.map((item) => item.id === row.id ? { ...item, isActive: event.target.checked } : item))
+                            setKonstruksiRows((list) => list.map((item) => item.id === row.id ? { ...item, unitPriceIdr: parseIdrInput(event.target.value) } : item))
                           }
                         />
                       </td>
@@ -427,7 +421,7 @@ export function AdminDashboard() {
               <input className="rpb-input" placeholder="Model" value={newOther.model} onChange={(e) => setNewOther((v) => ({ ...v, model: e.target.value }))} />
               <input className="rpb-input" placeholder="Unit" value={newOther.unit} onChange={(e) => setNewOther((v) => ({ ...v, unit: e.target.value }))} />
               <div className="flex gap-2">
-                <input className="rpb-input" type="number" step="any" placeholder="Harga (Rp)" value={newOther.priceIdr} onChange={(e) => setNewOther((v) => ({ ...v, priceIdr: parseNumber(e.target.value) }))} />
+                <input className="rpb-input" type="text" inputMode="numeric" placeholder="Harga (Rp)" value={formatIdrInput(newOther.priceIdr)} onChange={(e) => setNewOther((v) => ({ ...v, priceIdr: parseIdrInput(e.target.value) }))} />
                 <button type="submit" className="rpb-btn-primary inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold" disabled={busy === "other:new"}>
                   <Plus size={14} />{busy === "other:new" ? "..." : "Tambah"}
                 </button>
@@ -452,7 +446,7 @@ export function AdminDashboard() {
                       <td><input className="rpb-input min-w-[180px]" value={row.name} onChange={(e) => setOtherRows((list) => list.map((x) => x.id === row.id ? { ...x, name: e.target.value } : x))} /></td>
                       <td><input className="rpb-input min-w-[220px]" value={row.model} onChange={(e) => setOtherRows((list) => list.map((x) => x.id === row.id ? { ...x, model: e.target.value } : x))} /></td>
                       <td><input className="rpb-input min-w-[90px]" value={row.unit} onChange={(e) => setOtherRows((list) => list.map((x) => x.id === row.id ? { ...x, unit: e.target.value } : x))} /></td>
-                      <td><input className="rpb-input min-w-[120px]" type="number" step="any" value={row.priceIdr} onChange={(e) => setOtherRows((list) => list.map((x) => x.id === row.id ? { ...x, priceIdr: parseNumber(e.target.value) } : x))} /></td>
+                      <td><input className="rpb-input min-w-[120px]" type="text" inputMode="numeric" value={formatIdrInput(row.priceIdr)} onChange={(e) => setOtherRows((list) => list.map((x) => x.id === row.id ? { ...x, priceIdr: parseIdrInput(e.target.value) } : x))} /></td>
                       <td>
                         <button type="button" className="rpb-btn-primary px-3 py-2 text-xs font-semibold" onClick={() => void saveOtherRow(row)} disabled={busy === `other:${row.id}`}>
                           {busy === `other:${row.id}` ? "..." : "Simpan"}

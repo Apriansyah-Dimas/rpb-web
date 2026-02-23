@@ -70,7 +70,6 @@ export const fetchRpbMasterData = async (supabase: SupabaseClient): Promise<RpbM
       supabase
         .from("rpb_other_items")
         .select("*")
-        .eq("is_active", true)
         .order("category", { ascending: true })
         .order("name", { ascending: true }),
     ]);

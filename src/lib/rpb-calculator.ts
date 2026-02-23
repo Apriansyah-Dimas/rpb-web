@@ -46,7 +46,7 @@ export const calculateProfileBreakdown = (
   };
 
   const rows: CalculatedFixedItem[] = [];
-  for (const item of items.filter((item) => item.isActive).sort((a, b) => a.sortOrder - b.sortOrder)) {
+  for (const item of items.slice().sort((a, b) => a.sortOrder - b.sortOrder)) {
     const qty = evaluateFormulaQuantity(item.formulaExpr, variables);
     const unitPriceIdr = panelThickness === 45 ? item.priceIdr45 : item.priceIdr30;
     rows.push({
@@ -74,7 +74,7 @@ export const calculateKonstruksiBreakdown = (
   };
 
   const rows: CalculatedFixedItem[] = [];
-  for (const item of items.filter((item) => item.isActive).sort((a, b) => a.sortOrder - b.sortOrder)) {
+  for (const item of items.slice().sort((a, b) => a.sortOrder - b.sortOrder)) {
     const qty = evaluateFormulaQuantity(item.formulaExpr, variables);
     rows.push({
       id: item.id,
