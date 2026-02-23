@@ -1,20 +1,21 @@
 "use client";
 
 import {
-  calculateKonstruksiTotalUsd,
-  calculateProfileTotalUsd,
   formatRupiah,
   usdToIdr,
 } from "@/lib/rpb-calculator";
-import { OTHER_ITEMS } from "@/lib/rpb-data";
+import { RpbUserActions } from "@/components/rpb-user-actions";
+import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
+import { buildSummaryLineItems } from "@/lib/rpb-line-items";
+import { saveSummaryHistory } from "@/lib/rpb-db";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useRpbStore } from "@/store/rpb-store";
-import type { SummaryLineItem } from "@/types/rpb";
-import { ArrowLeft, Download, FileText, Minus, Plus, Save } from "lucide-react";
+import { ArrowLeft, Download, FileText, History, Minus, Plus, Save } from "lucide-react";
 import autoTable from "jspdf-autotable";
 import jsPDF from "jspdf";
 import Link from "next/link";
 import type { FocusEvent } from "react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 const normalizeNumericInput = (value: string): string => {
   const normalizedDot = value.replace(",", ".");
@@ -46,6 +47,7 @@ const selectInputOnFocus = (event: FocusEvent<HTMLInputElement>) => {
 };
 
 export default function SummaryPage() {
+  const { data: masterData, loading: masterLoading, error: masterError } = useRpbMasterData();
   const customerName = useRpbStore((state) => state.customerName);
   const projectName = useRpbStore((state) => state.projectName);
   const dimensions = useRpbStore((state) => state.dimensions);
@@ -56,59 +58,33 @@ export default function SummaryPage() {
   const setOtherQty = useRpbStore((state) => state.setOtherQty);
   const setCustomOtherItemQty = useRpbStore((state) => state.setCustomOtherItemQty);
   const setAdjustment = useRpbStore((state) => state.setAdjustment);
+  const getSnapshot = useRpbStore((state) => state.getSnapshot);
+  const [saveBusy, setSaveBusy] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
-  const profileUsd = useMemo(
-    () => calculateProfileTotalUsd(dimensions, panelThickness),
-    [dimensions, panelThickness],
+  const exchangeRate = masterData?.settings.usdToIdr ?? 16_900;
+
+  const { lineItems } = useMemo(
+    () =>
+      buildSummaryLineItems({
+        dimensions,
+        panelThickness,
+        profileItems: masterData?.profileItems ?? [],
+        konstruksiItems: masterData?.konstruksiItems ?? [],
+        otherItems: masterData?.otherItems ?? [],
+        selectedOther,
+        customOtherItems,
+      }),
+    [
+      customOtherItems,
+      dimensions,
+      masterData?.konstruksiItems,
+      masterData?.otherItems,
+      masterData?.profileItems,
+      panelThickness,
+      selectedOther,
+    ],
   );
-
-  const konstruksiUsd = useMemo(() => calculateKonstruksiTotalUsd(), []);
-
-  const lineItems = useMemo(() => {
-    const baseItems: SummaryLineItem[] = [
-      {
-        id: "profile",
-        jenis: "PROFILE",
-        keterangan: "Profile Aluminium - layer 1",
-        satuan: "Lot",
-        jenisSpec: String(panelThickness),
-        qty: 1,
-        hargaUsd: profileUsd,
-      },
-      {
-        id: "konstruksi",
-        jenis: "KONSTRUKSI",
-        keterangan: "Plat BJS & konstruksi, paint, etc",
-        satuan: "Lot",
-        jenisSpec: "1",
-        qty: 1,
-        hargaUsd: konstruksiUsd,
-      },
-    ];
-
-    const selectedStockItems = OTHER_ITEMS.filter((item) => (selectedOther[item.id] ?? 0) > 0);
-    const stockLines: SummaryLineItem[] = selectedStockItems.map((item) => ({
-      id: `stock-${item.id}`,
-      jenis: item.category,
-      keterangan: item.model === "-" ? item.name : item.model,
-      satuan: item.unit,
-      jenisSpec: item.name,
-      qty: selectedOther[item.id] ?? 0,
-      hargaUsd: item.priceUsd,
-    }));
-
-    const customLines: SummaryLineItem[] = customOtherItems.map((item) => ({
-      id: `custom-${item.id}`,
-      jenis: item.jenis,
-      keterangan: item.keterangan,
-      satuan: item.satuan,
-      jenisSpec: item.jenisSpec,
-      qty: item.qty,
-      hargaUsd: item.hargaUsd,
-    }));
-
-    return [...baseItems, ...stockLines, ...customLines];
-  }, [customOtherItems, konstruksiUsd, panelThickness, profileUsd, selectedOther]);
 
   const subtotalUsd = useMemo(
     () => lineItems.reduce((sum, item) => sum + item.hargaUsd * item.qty, 0),
@@ -135,8 +111,35 @@ export default function SummaryPage() {
     }
   };
 
-  const saveState = () => {
-    window.alert("Data tersimpan di browser (local storage).");
+  const saveState = async () => {
+    const title =
+      window.prompt(
+        "Nama history (opsional).",
+        `${projectName || "RPB"} - ${new Intl.DateTimeFormat("id-ID", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }).format(new Date())}`,
+      ) ?? "";
+
+    setSaveBusy(true);
+    setSaveMessage(null);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await saveSummaryHistory(supabase, {
+        title: title.trim() || projectName || "RPB Summary",
+        customerName,
+        projectName,
+        snapshot: getSnapshot(),
+      });
+      setSaveMessage("History berhasil disimpan ke database.");
+    } catch (error) {
+      setSaveMessage(
+        error instanceof Error ? `Gagal menyimpan history: ${error.message}` : "Gagal menyimpan.",
+      );
+    } finally {
+      setSaveBusy(false);
+    }
   };
 
   const downloadPdf = () => {
@@ -171,8 +174,8 @@ export default function SummaryPage() {
       item.satuan,
       item.jenisSpec,
       String(item.qty),
-      formatRupiah(usdToIdr(item.hargaUsd)),
-      formatRupiah(usdToIdr(item.hargaUsd * item.qty)),
+      formatRupiah(usdToIdr(item.hargaUsd, exchangeRate)),
+      formatRupiah(usdToIdr(item.hargaUsd * item.qty, exchangeRate)),
     ]);
 
     autoTable(doc, {
@@ -206,13 +209,13 @@ export default function SummaryPage() {
     const lineItemsTable = (doc as jsPDF & { lastAutoTable?: { finalY: number } })
       .lastAutoTable;
     const summaryRows = [
-      ["Subtotal Items", formatRupiah(usdToIdr(subtotalUsd))],
-      ["Stock Return", formatRupiah(usdToIdr(stockReturnUsd))],
-      ["Marketing Cost", formatRupiah(usdToIdr(marketingCostUsd))],
-      ["Services", formatRupiah(usdToIdr(servicesUsd))],
-      ["Base After Adjust", formatRupiah(usdToIdr(baseAfterAdjustUsd))],
-      ["Profit", formatRupiah(usdToIdr(profitUsd))],
-      ["Grand Total", formatRupiah(usdToIdr(grandTotalUsd))],
+      ["Subtotal Items", formatRupiah(usdToIdr(subtotalUsd, exchangeRate))],
+      ["Stock Return", formatRupiah(usdToIdr(stockReturnUsd, exchangeRate))],
+      ["Marketing Cost", formatRupiah(usdToIdr(marketingCostUsd, exchangeRate))],
+      ["Services", formatRupiah(usdToIdr(servicesUsd, exchangeRate))],
+      ["Base After Adjust", formatRupiah(usdToIdr(baseAfterAdjustUsd, exchangeRate))],
+      ["Profit", formatRupiah(usdToIdr(profitUsd, exchangeRate))],
+      ["Grand Total", formatRupiah(usdToIdr(grandTotalUsd, exchangeRate))],
     ];
 
     autoTable(doc, {
@@ -254,11 +257,27 @@ export default function SummaryPage() {
   return (
     <div className="mx-auto min-h-screen w-full max-w-6xl p-4 md:px-10 md:py-5 lg:px-12">
       <main className="rpb-shell rpb-compact overflow-hidden">
-        <header className="rpb-topbar flex items-center justify-center px-4 py-3 text-white md:px-6">
+        <header className="rpb-topbar flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-white md:px-6">
           <h1 className="rpb-h-title text-xl font-semibold md:text-2xl">RPB</h1>
+          <RpbUserActions />
         </header>
 
         <div className="space-y-4 p-5 md:space-y-3 md:px-10 md:py-6 lg:px-12">
+          {masterLoading ? (
+            <div className="rpb-section p-4 text-sm text-rpb-ink-soft">
+              Memuat master data dari database...
+            </div>
+          ) : null}
+          {masterError ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {masterError}
+            </div>
+          ) : null}
+          {saveMessage ? (
+            <div className="rounded-xl border border-rpb-border bg-white px-4 py-3 text-sm text-rpb-ink-soft">
+              {saveMessage}
+            </div>
+          ) : null}
           <section className="rpb-section p-4 md:p-4">
             <div className="grid gap-2 md:grid-cols-4">
               <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
@@ -379,9 +398,9 @@ export default function SummaryPage() {
                             <span className="font-semibold">{item.qty}</span>
                           )}
                         </td>
-                        <td>{formatRupiah(usdToIdr(item.hargaUsd))}</td>
+                        <td>{formatRupiah(usdToIdr(item.hargaUsd, exchangeRate))}</td>
                         <td className="font-semibold">
-                          {formatRupiah(usdToIdr(lineTotalUsd))}
+                          {formatRupiah(usdToIdr(lineTotalUsd, exchangeRate))}
                         </td>
                       </tr>
                     );
@@ -396,27 +415,27 @@ export default function SummaryPage() {
                 <div className="space-y-1 text-rpb-ink-soft">
                   <div className="flex items-center justify-between">
                     <span>Subtotal Items</span>
-                    <span>{formatRupiah(usdToIdr(subtotalUsd))}</span>
+                    <span>{formatRupiah(usdToIdr(subtotalUsd, exchangeRate))}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Stock Return</span>
-                    <span>{formatRupiah(usdToIdr(stockReturnUsd))}</span>
+                    <span>{formatRupiah(usdToIdr(stockReturnUsd, exchangeRate))}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Marketing Cost</span>
-                    <span>{formatRupiah(usdToIdr(marketingCostUsd))}</span>
+                    <span>{formatRupiah(usdToIdr(marketingCostUsd, exchangeRate))}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Services</span>
-                    <span>{formatRupiah(usdToIdr(servicesUsd))}</span>
+                    <span>{formatRupiah(usdToIdr(servicesUsd, exchangeRate))}</span>
                   </div>
                   <div className="flex items-center justify-between border-t border-rpb-border pt-2 font-semibold text-foreground">
                     <span>Base After Adjust</span>
-                    <span>{formatRupiah(usdToIdr(baseAfterAdjustUsd))}</span>
+                    <span>{formatRupiah(usdToIdr(baseAfterAdjustUsd, exchangeRate))}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Profit</span>
-                    <span>{formatRupiah(usdToIdr(profitUsd))}</span>
+                    <span>{formatRupiah(usdToIdr(profitUsd, exchangeRate))}</span>
                   </div>
                 </div>
               </div>
@@ -425,7 +444,7 @@ export default function SummaryPage() {
                 <div className="rpb-price-pill inline-flex w-fit flex-col gap-0.5 px-5 py-3">
                   <span className="text-sm font-semibold">Grand Total</span>
                   <span className="text-xl font-bold">
-                    {formatRupiah(usdToIdr(grandTotalUsd))}
+                    {formatRupiah(usdToIdr(grandTotalUsd, exchangeRate))}
                   </span>
                 </div>
               </div>
@@ -453,10 +472,18 @@ export default function SummaryPage() {
                 type="button"
                 className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
                 onClick={saveState}
+                disabled={saveBusy}
               >
                 <Save size={15} />
-                Save
+                {saveBusy ? "Saving..." : "Save"}
               </button>
+              <Link
+                href="/history"
+                className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+              >
+                <History size={15} />
+                Save History
+              </Link>
               <button
                 type="button"
                 className="rpb-btn-primary inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"

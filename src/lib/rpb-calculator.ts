@@ -1,9 +1,10 @@
-import {
-  KONSTRUKSI_TOTAL_USD,
-  PROFILE_UNIT_PRICES_BY_THICKNESS,
-  USD_TO_IDR,
-} from "@/lib/rpb-data";
-import type { Dimensions, PanelThickness } from "@/types/rpb";
+import { buildFormulaContext, evaluateFormulaQuantity } from "@/lib/rpb-formula";
+import type {
+  Dimensions,
+  KonstruksiMasterItem,
+  PanelThickness,
+  ProfileMasterItem,
+} from "@/types/rpb";
 
 const RUPIAH_FORMATTER = new Intl.NumberFormat("id-ID", {
   style: "currency",
@@ -31,64 +32,94 @@ export const sanitizeDimensions = (dimensions: Dimensions): Dimensions => ({
   height: safe(dimensions.height),
 });
 
-export const calculateProfileQuantities = (dimensions: Dimensions): number[] => {
-  const d = sanitizeDimensions(dimensions);
-  const length = d.length;
-  const width = d.width;
-  const height = d.height;
+export interface CalculatedFixedItem {
+  id: string;
+  code: string;
+  name: string;
+  unit: string;
+  qty: number;
+  unitPriceUsd: number;
+  totalUsd: number;
+}
 
-  const panel =
-    (((width * length + width * height + length * height) / 3_600_000) * 2) *
-    1.4;
-  const cornerProfil = (((width + width + length + height) * 4) / 5600) * 2;
-  const omegaProfil = ((length / 1200) * ((2 * width + 2 * height) / 5600) * 1.3) * 3;
-  const corner = 24;
-  const pinchplate = (cornerProfil + omegaProfil) * 2;
-  const roundRubber = pinchplate * 5.6;
-  const flatRubber = pinchplate * 5.6;
-  const angleBlock = corner * 3;
-  const omegaJoin = (length / 1200) * 8 * 1.2;
-  const handle = 0;
-  const door = 5;
-  const hinge = 0;
-  const damper = 5;
-  const screwHouse = panel * 28;
-  const pvc45p = omegaProfil * 6;
-  const pa6045t = omegaProfil * 6;
+export const calculateProfileBreakdown = (
+  dimensions: Dimensions,
+  panelThickness: PanelThickness,
+  items: ProfileMasterItem[],
+): CalculatedFixedItem[] => {
+  const variables: Record<string, number> = {
+    ...buildFormulaContext(sanitizeDimensions(dimensions), panelThickness),
+  };
 
-  return [
-    panel,
-    cornerProfil,
-    omegaProfil,
-    corner,
-    pinchplate,
-    roundRubber,
-    flatRubber,
-    angleBlock,
-    omegaJoin,
-    handle,
-    door,
-    hinge,
-    damper,
-    screwHouse,
-    pvc45p,
-    pa6045t,
-  ];
+  const rows: CalculatedFixedItem[] = [];
+  for (const item of items.filter((item) => item.isActive).sort((a, b) => a.sortOrder - b.sortOrder)) {
+    const qty = evaluateFormulaQuantity(item.formulaExpr, variables);
+    const unitPriceUsd = panelThickness === 45 ? item.priceUsd45 : item.priceUsd30;
+    rows.push({
+      id: item.id,
+      code: item.code,
+      name: item.name,
+      unit: item.unit,
+      qty,
+      unitPriceUsd: safe(unitPriceUsd),
+      totalUsd: safe(qty) * safe(unitPriceUsd),
+    });
+    variables[item.code] = qty;
+  }
+
+  return rows;
+};
+
+export const calculateKonstruksiBreakdown = (
+  dimensions: Dimensions,
+  panelThickness: PanelThickness,
+  items: KonstruksiMasterItem[],
+): CalculatedFixedItem[] => {
+  const variables: Record<string, number> = {
+    ...buildFormulaContext(sanitizeDimensions(dimensions), panelThickness),
+  };
+
+  const rows: CalculatedFixedItem[] = [];
+  for (const item of items.filter((item) => item.isActive).sort((a, b) => a.sortOrder - b.sortOrder)) {
+    const qty = evaluateFormulaQuantity(item.formulaExpr, variables);
+    rows.push({
+      id: item.id,
+      code: item.code,
+      name: item.name,
+      unit: item.unit,
+      qty,
+      unitPriceUsd: safe(item.unitPriceUsd),
+      totalUsd: safe(qty) * safe(item.unitPriceUsd),
+    });
+    variables[item.code] = qty;
+  }
+
+  return rows;
 };
 
 export const calculateProfileTotalUsd = (
   dimensions: Dimensions,
   panelThickness: PanelThickness,
+  items: ProfileMasterItem[] = [],
 ): number => {
-  const qty = calculateProfileQuantities(dimensions);
-  const prices = PROFILE_UNIT_PRICES_BY_THICKNESS[panelThickness];
-
-  return qty.reduce((sum, q, index) => sum + q * prices[index], 0);
+  return calculateProfileBreakdown(dimensions, panelThickness, items).reduce(
+    (sum, item) => sum + item.totalUsd,
+    0,
+  );
 };
 
-export const calculateKonstruksiTotalUsd = (): number => KONSTRUKSI_TOTAL_USD;
+export const calculateKonstruksiTotalUsd = (
+  dimensions: Dimensions,
+  panelThickness: PanelThickness,
+  items: KonstruksiMasterItem[] = [],
+): number =>
+  calculateKonstruksiBreakdown(dimensions, panelThickness, items).reduce(
+    (sum, item) => sum + item.totalUsd,
+    0,
+  );
 
-export const usdToIdr = (usdValue: number): number => usdValue * USD_TO_IDR;
+export const usdToIdr = (usdValue: number, exchangeRate = 16_900): number =>
+  usdValue * exchangeRate;
 
 export const formatRupiah = (value: number): string =>
   RUPIAH_FORMATTER.format(value);

@@ -1,15 +1,14 @@
 "use client";
 
 import {
-  calculateKonstruksiTotalUsd,
-  calculateProfileTotalUsd,
   formatRupiah,
   usdToIdr,
 } from "@/lib/rpb-calculator";
+import { RpbUserActions } from "@/components/rpb-user-actions";
+import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
+import { buildSummaryLineItems } from "@/lib/rpb-line-items";
 import { FontSize, LineHeight, TextTransform } from "@/lib/tiptap-rich-format";
-import { OTHER_ITEMS } from "@/lib/rpb-data";
 import { useRpbStore } from "@/store/rpb-store";
-import type { SummaryLineItem } from "@/types/rpb";
 import { mergeAttributes } from "@tiptap/core";
 import Color from "@tiptap/extension-color";
 import FontFamily from "@tiptap/extension-font-family";
@@ -119,6 +118,7 @@ const EditableImage = Image.extend({
 });
 
 export default function QuotationPage() {
+  const { data: masterData, loading: masterLoading, error: masterError } = useRpbMasterData();
   const customerName = useRpbStore((state) => state.customerName);
   const projectName = useRpbStore((state) => state.projectName);
   const dimensions = useRpbStore((state) => state.dimensions);
@@ -136,59 +136,29 @@ export default function QuotationPage() {
     highlightColor: "#ffff00",
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const exchangeRate = masterData?.settings.usdToIdr ?? 16_900;
 
-  const profileUsd = useMemo(
-    () => calculateProfileTotalUsd(dimensions, panelThickness),
-    [dimensions, panelThickness],
+  const { lineItems } = useMemo(
+    () =>
+      buildSummaryLineItems({
+        dimensions,
+        panelThickness,
+        profileItems: masterData?.profileItems ?? [],
+        konstruksiItems: masterData?.konstruksiItems ?? [],
+        otherItems: masterData?.otherItems ?? [],
+        selectedOther,
+        customOtherItems,
+      }),
+    [
+      customOtherItems,
+      dimensions,
+      masterData?.konstruksiItems,
+      masterData?.otherItems,
+      masterData?.profileItems,
+      panelThickness,
+      selectedOther,
+    ],
   );
-
-  const konstruksiUsd = useMemo(() => calculateKonstruksiTotalUsd(), []);
-
-  const lineItems = useMemo(() => {
-    const baseItems: SummaryLineItem[] = [
-      {
-        id: "profile",
-        jenis: "PROFILE",
-        keterangan: "Profile Aluminium - layer 1",
-        satuan: "Lot",
-        jenisSpec: String(panelThickness),
-        qty: 1,
-        hargaUsd: profileUsd,
-      },
-      {
-        id: "konstruksi",
-        jenis: "KONSTRUKSI",
-        keterangan: "Plat BJS & konstruksi, paint, etc",
-        satuan: "Lot",
-        jenisSpec: "1",
-        qty: 1,
-        hargaUsd: konstruksiUsd,
-      },
-    ];
-
-    const selectedStockItems = OTHER_ITEMS.filter((item) => (selectedOther[item.id] ?? 0) > 0);
-    const stockLines: SummaryLineItem[] = selectedStockItems.map((item) => ({
-      id: `stock-${item.id}`,
-      jenis: item.category,
-      keterangan: item.model === "-" ? item.name : item.model,
-      satuan: item.unit,
-      jenisSpec: item.name,
-      qty: selectedOther[item.id] ?? 0,
-      hargaUsd: item.priceUsd,
-    }));
-
-    const customLines: SummaryLineItem[] = customOtherItems.map((item) => ({
-      id: `custom-${item.id}`,
-      jenis: item.jenis,
-      keterangan: item.keterangan,
-      satuan: item.satuan,
-      jenisSpec: item.jenisSpec,
-      qty: item.qty,
-      hargaUsd: item.hargaUsd,
-    }));
-
-    return [...baseItems, ...stockLines, ...customLines];
-  }, [customOtherItems, konstruksiUsd, panelThickness, profileUsd, selectedOther]);
 
   const subtotalUsd = useMemo(
     () => lineItems.reduce((sum, item) => sum + item.hargaUsd * item.qty, 0),
@@ -333,8 +303,8 @@ export default function QuotationPage() {
             bodyCell(item.satuan),
             bodyCell(item.jenisSpec),
             bodyCell(String(item.qty)),
-            bodyCell(formatRupiah(usdToIdr(item.hargaUsd))),
-            bodyCell(formatRupiah(usdToIdr(item.hargaUsd * item.qty))),
+            bodyCell(formatRupiah(usdToIdr(item.hargaUsd, exchangeRate))),
+            bodyCell(formatRupiah(usdToIdr(item.hargaUsd * item.qty, exchangeRate))),
           ],
         })),
         ...additionalRows.map((row) => ({
@@ -347,7 +317,7 @@ export default function QuotationPage() {
             bodyCell(`${row.pct}%`),
             bodyCell(""),
             bodyCell(""),
-            bodyCell(formatRupiah(usdToIdr(row.value))),
+            bodyCell(formatRupiah(usdToIdr(row.value, exchangeRate))),
           ],
         })),
         {
@@ -360,7 +330,7 @@ export default function QuotationPage() {
             bodyCell(""),
             bodyCell(""),
             bodyCell(""),
-            bodyCell(formatRupiah(usdToIdr(baseAfterAdjustUsd))),
+            bodyCell(formatRupiah(usdToIdr(baseAfterAdjustUsd, exchangeRate))),
           ],
         },
         {
@@ -373,7 +343,7 @@ export default function QuotationPage() {
             bodyCell(`${adjustments.profit}%`),
             bodyCell(""),
             bodyCell(""),
-            bodyCell(formatRupiah(usdToIdr(profitUsd))),
+            bodyCell(formatRupiah(usdToIdr(profitUsd, exchangeRate))),
           ],
         },
         {
@@ -386,7 +356,7 @@ export default function QuotationPage() {
             bodyCell(""),
             bodyCell(""),
             bodyCell(""),
-            bodyCell(formatRupiah(usdToIdr(grandTotalUsd))),
+            bodyCell(formatRupiah(usdToIdr(grandTotalUsd, exchangeRate))),
           ],
         },
       ],
@@ -556,9 +526,10 @@ export default function QuotationPage() {
   return (
     <div className="mx-auto min-h-screen w-full max-w-7xl p-4 md:px-10 md:py-5 lg:px-12">
       <main className="rpb-shell overflow-hidden">
-        <header className="rpb-topbar flex items-center justify-between px-4 py-3 text-white md:px-6">
+        <header className="rpb-topbar flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-white md:px-6">
           <h1 className="rpb-h-title text-xl font-semibold md:text-2xl">Quotation Builder</h1>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <RpbUserActions />
             <Link
               href="/summary"
               className="rounded-md border border-white/60 px-3 py-1.5 text-xs font-semibold text-white"
@@ -579,6 +550,16 @@ export default function QuotationPage() {
         </header>
 
         <div className="space-y-3 p-4 md:p-6">
+          {masterLoading ? (
+            <div className="rpb-section p-4 text-sm text-rpb-ink-soft">
+              Memuat master data dari database...
+            </div>
+          ) : null}
+          {masterError ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {masterError}
+            </div>
+          ) : null}
           <section className="rpb-section p-3 md:p-4">
             <div className="flex flex-wrap items-center gap-2">
               <label className="text-sm font-semibold text-rpb-ink-soft">Judul</label>

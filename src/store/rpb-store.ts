@@ -1,19 +1,28 @@
-import { DEFAULT_DIMENSIONS, DEFAULT_PANEL_THICKNESS } from "@/lib/rpb-data";
 import type {
+  AdjustmentValues,
   AdjustmentKey,
   CustomOtherItem,
   DimensionKey,
   PanelThickness,
+  RpbDraftSnapshot,
 } from "@/types/rpb";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-interface Adjustments {
-  stockReturn: number;
-  marketingCost: number;
-  services: number;
-  profit: number;
-}
+const DEFAULT_DIMENSIONS = {
+  length: 3550,
+  width: 1100,
+  height: 950,
+} as const;
+
+const DEFAULT_PANEL_THICKNESS: PanelThickness = 30;
+
+const DEFAULT_ADJUSTMENTS: AdjustmentValues = {
+  stockReturn: 0,
+  marketingCost: 0,
+  services: 0,
+  profit: 0,
+};
 
 interface RpbStore {
   customerName: string;
@@ -26,7 +35,7 @@ interface RpbStore {
   panelThickness: PanelThickness;
   selectedOther: Record<string, number>;
   customOtherItems: CustomOtherItem[];
-  adjustments: Adjustments;
+  adjustments: AdjustmentValues;
   setCustomerName: (value: string) => void;
   setProjectName: (value: string) => void;
   setDimension: (key: DimensionKey, value: number) => void;
@@ -39,6 +48,9 @@ interface RpbStore {
   removeOther: (itemId: string) => void;
   setAdjustment: (key: AdjustmentKey, value: number) => void;
   resetOtherSelections: () => void;
+  getSnapshot: () => RpbDraftSnapshot;
+  loadSnapshot: (snapshot: RpbDraftSnapshot) => void;
+  resetDraft: () => void;
 }
 
 const safeNumber = (value: number): number => {
@@ -59,19 +71,14 @@ const safePercent = (value: number): number => {
 
 export const useRpbStore = create<RpbStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       customerName: "",
       projectName: "",
       dimensions: DEFAULT_DIMENSIONS,
       panelThickness: DEFAULT_PANEL_THICKNESS,
       selectedOther: {},
       customOtherItems: [],
-      adjustments: {
-        stockReturn: 0,
-        marketingCost: 0,
-        services: 0,
-        profit: 0,
-      },
+      adjustments: DEFAULT_ADJUSTMENTS,
       setCustomerName: (value) => set({ customerName: value }),
       setProjectName: (value) => set({ projectName: value }),
       setDimension: (key, value) =>
@@ -157,6 +164,59 @@ export const useRpbStore = create<RpbStore>()(
           },
         })),
       resetOtherSelections: () => set({ selectedOther: {}, customOtherItems: [] }),
+      getSnapshot: () => {
+        const state = get();
+
+        return {
+          customerName: state.customerName,
+          projectName: state.projectName,
+          dimensions: { ...state.dimensions },
+          panelThickness: state.panelThickness,
+          selectedOther: { ...state.selectedOther },
+          customOtherItems: state.customOtherItems.map((item) => ({ ...item })),
+          adjustments: { ...state.adjustments },
+        };
+      },
+      loadSnapshot: (snapshot) =>
+        set({
+          customerName: snapshot.customerName ?? "",
+          projectName: snapshot.projectName ?? "",
+          dimensions: {
+            length: safeNumber(snapshot.dimensions?.length ?? DEFAULT_DIMENSIONS.length),
+            width: safeNumber(snapshot.dimensions?.width ?? DEFAULT_DIMENSIONS.width),
+            height: safeNumber(snapshot.dimensions?.height ?? DEFAULT_DIMENSIONS.height),
+          },
+          panelThickness: snapshot.panelThickness === 45 ? 45 : 30,
+          selectedOther: Object.fromEntries(
+            Object.entries(snapshot.selectedOther ?? {}).map(([key, value]) => [
+              key,
+              safeNumber(value),
+            ]),
+          ),
+          customOtherItems: (snapshot.customOtherItems ?? [])
+            .map((item) => ({
+              ...item,
+              qty: safeNumber(item.qty),
+              hargaUsd: safeNumber(item.hargaUsd),
+            }))
+            .filter((item) => item.qty > 0),
+          adjustments: {
+            stockReturn: safePercent(snapshot.adjustments?.stockReturn ?? 0),
+            marketingCost: safePercent(snapshot.adjustments?.marketingCost ?? 0),
+            services: safePercent(snapshot.adjustments?.services ?? 0),
+            profit: safePercent(snapshot.adjustments?.profit ?? 0),
+          },
+        }),
+      resetDraft: () =>
+        set({
+          customerName: "",
+          projectName: "",
+          dimensions: { ...DEFAULT_DIMENSIONS },
+          panelThickness: DEFAULT_PANEL_THICKNESS,
+          selectedOther: {},
+          customOtherItems: [],
+          adjustments: { ...DEFAULT_ADJUSTMENTS },
+        }),
     }),
     {
       name: "rpb-store-v1",

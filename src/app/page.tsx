@@ -7,7 +7,8 @@ import {
   formatUsd,
   usdToIdr,
 } from "@/lib/rpb-calculator";
-import { OTHER_ITEMS } from "@/lib/rpb-data";
+import { RpbUserActions } from "@/components/rpb-user-actions";
+import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
 import { useRpbStore } from "@/store/rpb-store";
 import type { DimensionKey, OtherItem, StockCategory } from "@/types/rpb";
 import { ArrowRight, Plus, Search } from "lucide-react";
@@ -15,9 +16,7 @@ import Link from "next/link";
 import type { FocusEvent } from "react";
 import { useMemo, useState } from "react";
 
-type OtherFilter = "Semua" | StockCategory;
-
-const FILTER_OPTIONS: OtherFilter[] = ["Semua", "Blower", "Motor", "Rotor"];
+type OtherFilter = "Semua" | StockCategory | string;
 
 const normalizeNumericInput = (value: string): string => {
   const normalizedDot = value.replace(",", ".");
@@ -70,6 +69,7 @@ const DimensionInput = ({
 );
 
 export default function HomePage() {
+  const { data: masterData, loading: masterLoading, error: masterError } = useRpbMasterData();
   const customerName = useRpbStore((state) => state.customerName);
   const projectName = useRpbStore((state) => state.projectName);
   const dimensions = useRpbStore((state) => state.dimensions);
@@ -95,17 +95,32 @@ export default function HomePage() {
   const [customHargaIdr, setCustomHargaIdr] = useState(0);
   const [customQty, setCustomQty] = useState(1);
 
+  const exchangeRate = masterData?.settings.usdToIdr ?? 16_900;
+  const otherItems = useMemo(() => masterData?.otherItems ?? [], [masterData?.otherItems]);
+  const filterOptions = useMemo<OtherFilter[]>(() => {
+    const categories = Array.from(new Set(otherItems.map((item) => item.category)));
+    return ["Semua", ...categories];
+  }, [otherItems]);
+
   const profileUsd = useMemo(
-    () => calculateProfileTotalUsd(dimensions, panelThickness),
-    [dimensions, panelThickness],
+    () => calculateProfileTotalUsd(dimensions, panelThickness, masterData?.profileItems ?? []),
+    [dimensions, masterData?.profileItems, panelThickness],
   );
 
-  const konstruksiUsd = useMemo(() => calculateKonstruksiTotalUsd(), []);
+  const konstruksiUsd = useMemo(
+    () =>
+      calculateKonstruksiTotalUsd(
+        dimensions,
+        panelThickness,
+        masterData?.konstruksiItems ?? [],
+      ),
+    [dimensions, masterData?.konstruksiItems, panelThickness],
+  );
 
   const filteredOtherItems = useMemo(() => {
     const keyword = search.trim().toLowerCase();
 
-    return OTHER_ITEMS.filter((item) => {
+    return otherItems.filter((item) => {
       const sameCategory =
         activeFilter === "Semua" ? true : item.category === activeFilter;
 
@@ -114,7 +129,7 @@ export default function HomePage() {
 
       return sameCategory && sameKeyword;
     });
-  }, [activeFilter, search]);
+  }, [activeFilter, otherItems, search]);
 
   const selectedOtherCount = useMemo(
     () => {
@@ -185,7 +200,7 @@ export default function HomePage() {
       keterangan,
       satuan,
       jenisSpec,
-      hargaUsd: customHargaIdr / 16_900,
+      hargaUsd: customHargaIdr / exchangeRate,
       qty: customQty,
     });
     closeCustomModal();
@@ -198,11 +213,22 @@ export default function HomePage() {
   return (
     <div className="mx-auto min-h-screen w-full max-w-6xl p-4 md:px-10 md:py-5 lg:px-12">
       <main className="rpb-shell rpb-compact overflow-hidden">
-        <header className="rpb-topbar flex items-center justify-center px-4 py-3 text-white md:px-6">
+        <header className="rpb-topbar flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-white md:px-6">
           <h1 className="rpb-h-title text-xl font-semibold md:text-2xl">RPB</h1>
+          <RpbUserActions />
         </header>
 
         <div className="space-y-4 p-5 md:space-y-3 md:px-10 md:py-6 lg:px-12">
+          {masterLoading ? (
+            <div className="rpb-section p-4 text-sm text-rpb-ink-soft">
+              Memuat master data dari database...
+            </div>
+          ) : null}
+          {masterError ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {masterError}
+            </div>
+          ) : null}
           <div className="grid gap-3 md:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
               Customer Name
@@ -263,7 +289,9 @@ export default function HomePage() {
               </label>
               <div className="rpb-price-pill inline-flex w-full items-center justify-between gap-4 px-5 py-3 text-sm font-semibold md:w-auto md:min-w-72">
                 <span>Harga Profile</span>
-                <span className="text-base">{formatRupiah(usdToIdr(profileUsd))}</span>
+                <span className="text-base">
+                  {formatRupiah(usdToIdr(profileUsd, exchangeRate))}
+                </span>
               </div>
             </div>
           </section>
@@ -274,7 +302,7 @@ export default function HomePage() {
               <div className="rpb-price-pill inline-flex w-full items-center justify-between gap-4 px-5 py-3 text-sm font-semibold md:w-auto md:min-w-72">
                 <span>Total Konstruksi</span>
                 <span className="text-base">
-                  {formatRupiah(usdToIdr(konstruksiUsd))}
+                  {formatRupiah(usdToIdr(konstruksiUsd, exchangeRate))}
                 </span>
               </div>
             </div>
@@ -307,7 +335,7 @@ export default function HomePage() {
                   value={activeFilter}
                   onChange={(event) => setActiveFilter(event.target.value as OtherFilter)}
                 >
-                  {FILTER_OPTIONS.map((option) => (
+                  {filterOptions.map((option) => (
                     <option key={option} value={option}>
                       {option}
                     </option>
@@ -341,8 +369,8 @@ export default function HomePage() {
                         Model: {item.model}
                       </p>
                       <div className="mt-2 flex items-center justify-between text-sm">
-                        <span className="font-semibold">
-                          {formatRupiah(usdToIdr(item.priceUsd))}
+                          <span className="font-semibold">
+                          {formatRupiah(usdToIdr(item.priceUsd, exchangeRate))}
                         </span>
                         {currentQty > 0 ? (
                           <span className="rpb-chip px-2 py-0.5 text-xs font-semibold text-rpb-primary">
@@ -389,7 +417,7 @@ export default function HomePage() {
               <div className="rpb-section p-4">
                 <p className="mb-1 text-sm text-rpb-ink-soft">Price</p>
                 <p className="text-2xl font-semibold">
-                  {formatRupiah(usdToIdr(modalItem.priceUsd))}
+                  {formatRupiah(usdToIdr(modalItem.priceUsd, exchangeRate))}
                 </p>
                 <p className="mt-1 text-xs text-rpb-ink-soft">
                   ({formatUsd(modalItem.priceUsd)})
@@ -432,7 +460,7 @@ export default function HomePage() {
               <div className="rpb-section p-4">
                 <p className="text-sm text-rpb-ink-soft">Total price</p>
                 <p className="text-xl font-semibold">
-                  {formatRupiah(usdToIdr(modalQty * modalItem.priceUsd))}
+                  {formatRupiah(usdToIdr(modalQty * modalItem.priceUsd, exchangeRate))}
                 </p>
               </div>
 
