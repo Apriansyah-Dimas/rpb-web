@@ -36,6 +36,7 @@ interface RpbStore {
   selectedOther: Record<string, number>;
   customOtherItems: CustomOtherItem[];
   adjustments: AdjustmentValues;
+  quotationContent: string;
   setCustomerName: (value: string) => void;
   setProjectName: (value: string) => void;
   setDimension: (key: DimensionKey, value: number) => void;
@@ -47,6 +48,7 @@ interface RpbStore {
   removeCustomOtherItem: (itemId: string) => void;
   removeOther: (itemId: string) => void;
   setAdjustment: (key: AdjustmentKey, value: number) => void;
+  setQuotationContent: (value: string) => void;
   resetOtherSelections: () => void;
   getSnapshot: () => RpbDraftSnapshot;
   loadSnapshot: (snapshot: RpbDraftSnapshot) => void;
@@ -79,6 +81,7 @@ export const useRpbStore = create<RpbStore>()(
       selectedOther: {},
       customOtherItems: [],
       adjustments: DEFAULT_ADJUSTMENTS,
+      quotationContent: "",
       setCustomerName: (value) => set({ customerName: value }),
       setProjectName: (value) => set({ projectName: value }),
       setDimension: (key, value) =>
@@ -163,6 +166,7 @@ export const useRpbStore = create<RpbStore>()(
             [key]: safePercent(value),
           },
         })),
+      setQuotationContent: (value) => set({ quotationContent: value }),
       resetOtherSelections: () => set({ selectedOther: {}, customOtherItems: [] }),
       getSnapshot: () => {
         const state = get();
@@ -220,6 +224,7 @@ export const useRpbStore = create<RpbStore>()(
           selectedOther: {},
           customOtherItems: [],
           adjustments: { ...DEFAULT_ADJUSTMENTS },
+          quotationContent: "",
         }),
     }),
     {

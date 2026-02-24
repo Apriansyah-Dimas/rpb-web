@@ -1,51 +1,23 @@
 "use client";
 
-import {
-  formatRupiah,
-} from "@/lib/rpb-calculator";
 import { RpbUserActions } from "@/components/rpb-user-actions";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
+import { formatRupiah } from "@/lib/rpb-calculator";
 import { buildSummaryLineItems } from "@/lib/rpb-line-items";
-import { FontSize, LineHeight, TextTransform } from "@/lib/tiptap-rich-format";
 import { useRpbStore } from "@/store/rpb-store";
-import { mergeAttributes } from "@tiptap/core";
-import Color from "@tiptap/extension-color";
-import FontFamily from "@tiptap/extension-font-family";
-import Highlight from "@tiptap/extension-highlight";
-import Image from "@tiptap/extension-image";
-import Subscript from "@tiptap/extension-subscript";
-import Superscript from "@tiptap/extension-superscript";
-import { Table } from "@tiptap/extension-table";
-import { TableCell } from "@tiptap/extension-table-cell";
-import { TableHeader } from "@tiptap/extension-table-header";
-import { TableRow } from "@tiptap/extension-table-row";
-import TextAlign from "@tiptap/extension-text-align";
-import { TextStyle } from "@tiptap/extension-text-style";
-import Underline from "@tiptap/extension-underline";
-import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import {
-  Bold,
   AlignCenter,
   AlignLeft,
-  AlignRight,
-  FileDown,
-  ImagePlus,
+  Bold,
+  FileText,
   Italic,
-  List,
-  ListOrdered,
-  PaintBucket,
-  Pilcrow,
-  RemoveFormatting,
-  Strikethrough,
-  Subscript as SubscriptIcon,
-  Superscript as SuperscriptIcon,
+  Printer,
+  RotateCcw,
   Table2,
-  Underline as UnderlineIcon,
+  Underline,
 } from "lucide-react";
-import jsPDF from "jspdf";
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 const escapeHtml = (value: string): string =>
   value
@@ -55,66 +27,12 @@ const escapeHtml = (value: string): string =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 
-const initialDoc = `
-<h2>Quotation</h2>
-<p>Tulis isi quotation di sini...</p>
-`;
-
-const FONT_OPTIONS = [
-  { label: "Aptos (Body)", value: "Aptos, Calibri, Arial, sans-serif" },
-  { label: "Calibri", value: "Calibri, Arial, sans-serif" },
-  { label: "Arial", value: "Arial, sans-serif" },
-  { label: "Times New Roman", value: "\"Times New Roman\", serif" },
-  { label: "Georgia", value: "Georgia, serif" },
-];
-
-const FONT_SIZE_OPTIONS = ["10px", "11px", "12px", "14px", "16px", "18px", "24px", "32px"];
-const LINE_HEIGHT_OPTIONS = ["1", "1.15", "1.3", "1.5", "2"];
-const CASE_OPTIONS = [
-  { label: "Aa", value: "" },
-  { label: "UPPER", value: "uppercase" },
-  { label: "lower", value: "lowercase" },
-  { label: "Title", value: "capitalize" },
-];
-
-const EditableImage = Image.extend({
-  addAttributes() {
-    return {
-      ...this.parent?.(),
-      align: {
-        default: "center",
-        parseHTML: (element) => element.getAttribute("data-align") || "center",
-      },
-      width: {
-        default: 60,
-        parseHTML: (element) => {
-          const raw = element.getAttribute("data-width");
-          const parsed = Number.parseFloat(raw || "60");
-          return Number.isFinite(parsed) ? parsed : 60;
-        },
-      },
-    };
-  },
-  renderHTML({ HTMLAttributes }) {
-    const align = HTMLAttributes.align || "center";
-    const width = Number(HTMLAttributes.width || 60);
-    const marginStyle =
-      align === "left"
-        ? "margin: 8px auto 8px 0;"
-        : align === "right"
-          ? "margin: 8px 0 8px auto;"
-          : "margin: 8px auto;";
-
-    return [
-      "img",
-      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
-        "data-align": align,
-        "data-width": String(width),
-        style: `display:block; max-width:100%; width:${width}%; ${marginStyle}`,
-      }),
-    ];
-  },
-});
+const formatDate = () =>
+  new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(new Date());
 
 export default function QuotationPage() {
   const { data: masterData, loading: masterLoading, error: masterError } = useRpbMasterData();
@@ -125,16 +43,12 @@ export default function QuotationPage() {
   const selectedOther = useRpbStore((state) => state.selectedOther);
   const customOtherItems = useRpbStore((state) => state.customOtherItems);
   const adjustments = useRpbStore((state) => state.adjustments);
-  const [quoteTitle, setQuoteTitle] = useState("Quotation");
-  const [toolbarState, setToolbarState] = useState({
-    fontFamily: FONT_OPTIONS[0].value,
-    fontSize: "12px",
-    lineHeight: "1.3",
-    textTransform: "",
-    textColor: "#1f2340",
-    highlightColor: "#ffff00",
-  });
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const quotationContent = useRpbStore((state) => state.quotationContent);
+  const setQuotationContent = useRpbStore((state) => state.setQuotationContent);
+
+  const editorRef = useRef<HTMLDivElement>(null);
+  const hasInitializedRef = useRef(false);
+
   const { lineItems } = useMemo(
     () =>
       buildSummaryLineItems({
@@ -164,366 +78,184 @@ export default function QuotationPage() {
   const stockReturnIdr = subtotalIdr * (adjustments.stockReturn / 100);
   const marketingCostIdr = subtotalIdr * (adjustments.marketingCost / 100);
   const servicesIdr = subtotalIdr * (adjustments.services / 100);
-  const baseAfterAdjustIdr = subtotalIdr + stockReturnIdr + marketingCostIdr + servicesIdr;
-  const profitIdr = baseAfterAdjustIdr * (adjustments.profit / 100);
-  const grandTotalIdr = baseAfterAdjustIdr + profitIdr;
+  const profitIdr = subtotalIdr * (adjustments.profit / 100);
+  const grandTotalIdr =
+    subtotalIdr + stockReturnIdr + marketingCostIdr + servicesIdr + profitIdr;
 
-  const refreshToolbarState = (instance: {
-    getAttributes: (name: string) => Record<string, unknown>;
-    isActive: (name: string) => boolean;
-  }) => {
-    const textStyleAttrs = instance.getAttributes("textStyle");
-    const paragraphAttrs = instance.isActive("heading")
-      ? instance.getAttributes("heading")
-      : instance.getAttributes("paragraph");
-    const highlightAttrs = instance.getAttributes("highlight");
-
-    setToolbarState((prev) => ({
-      ...prev,
-      fontFamily: (textStyleAttrs.fontFamily as string) || prev.fontFamily,
-      fontSize: (textStyleAttrs.fontSize as string) || "12px",
-      lineHeight: (paragraphAttrs.lineHeight as string) || "1.3",
-      textTransform: (textStyleAttrs.textTransform as string) || "",
-      textColor: (textStyleAttrs.color as string) || "#1f2340",
-      highlightColor: (highlightAttrs.color as string) || "#ffff00",
-    }));
-  };
-
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3],
-        },
-      }),
-      TextStyle,
-      FontFamily.configure({
-        types: ["textStyle"],
-      }),
-      FontSize,
-      Color.configure({
-        types: ["textStyle"],
-      }),
-      TextTransform,
-      LineHeight,
-      Highlight.configure({
-        multicolor: true,
-      }),
-      Subscript,
-      Superscript,
-      Underline,
-      TextAlign.configure({
-        types: ["heading", "paragraph"],
-      }),
-      Table.configure({
-        resizable: false,
-      }),
-      TableRow,
-      TableHeader,
-      TableCell,
-      EditableImage.configure({
-        inline: false,
-        allowBase64: true,
-      }),
-    ],
-    content: initialDoc,
-    onCreate: ({ editor: instance }) => refreshToolbarState(instance),
-    onUpdate: ({ editor: instance }) => refreshToolbarState(instance),
-    onSelectionUpdate: ({ editor: instance }) => refreshToolbarState(instance),
-  });
-
-  const handleInsertRpbTable = () => {
-    if (!editor) {
+  useEffect(() => {
+    if (!editorRef.current || hasInitializedRef.current) {
       return;
     }
 
-    const additionalRows = [
-      {
-        label: "Pengembalian Saham",
-        pct: adjustments.stockReturn,
-        value: stockReturnIdr,
-      },
-      {
-        label: "Marketing Cost",
-        pct: adjustments.marketingCost,
-        value: marketingCostIdr,
-      },
-      {
-        label: "Jasa Kerja",
-        pct: adjustments.services,
-        value: servicesIdr,
-      },
-    ];
+    const initialContent =
+      quotationContent.trim() ||
+      `<h2>PENAWARAN HARGA</h2>
+<p><strong>Kepada:</strong> ${escapeHtml(customerName || "-")}<br/>
+<strong>Proyek:</strong> ${escapeHtml(projectName || "-")}<br/>
+<strong>Dimensi:</strong> ${dimensions.length} × ${dimensions.width} × ${dimensions.height} mm | Tebal Panel: ${panelThickness} mm<br/>
+<strong>Tanggal:</strong> ${escapeHtml(formatDate())}</p>
+<p>Dengan hormat, bersama ini kami sampaikan penawaran harga sebagai berikut:</p>`;
 
-    const textNode = (text: string) => ({
-      type: "text",
-      text,
-    });
+    editorRef.current.innerHTML = initialContent;
+    if (!quotationContent.trim()) {
+      setQuotationContent(initialContent);
+    }
+    hasInitializedRef.current = true;
+  }, [
+    customerName,
+    dimensions.height,
+    dimensions.length,
+    dimensions.width,
+    panelThickness,
+    projectName,
+    quotationContent,
+    setQuotationContent,
+  ]);
 
-    const paragraphNode = (text: string) => ({
-      type: "paragraph",
-      content: text ? [textNode(text)] : [],
-    });
-
-    const headerCell = (text: string) => ({
-      type: "tableHeader",
-      content: [paragraphNode(text)],
-    });
-
-    const bodyCell = (text: string) => ({
-      type: "tableCell",
-      content: [paragraphNode(text)],
-    });
-
-    const lineItemsTableNode = {
-      type: "table",
-      content: [
-        {
-          type: "tableRow",
-          content: [
-            headerCell("No"),
-            headerCell("Jenis"),
-            headerCell("Keterangan"),
-            headerCell("Satuan"),
-            headerCell("Jenis Spec"),
-            headerCell("Qty"),
-            headerCell("Harga"),
-            headerCell("Total"),
-          ],
-        },
-        ...lineItems.map((item, index) => ({
-          type: "tableRow",
-          content: [
-            bodyCell(String(index + 1)),
-            bodyCell(item.jenis),
-            bodyCell(item.keterangan),
-            bodyCell(item.satuan),
-            bodyCell(item.jenisSpec),
-            bodyCell(String(item.qty)),
-            bodyCell(formatRupiah(item.hargaIdr)),
-            bodyCell(formatRupiah(item.hargaIdr * item.qty)),
-          ],
-        })),
-        ...additionalRows.map((row) => ({
-          type: "tableRow",
-          content: [
-            bodyCell(""),
-            bodyCell("ADDITIONAL"),
-            bodyCell(row.label),
-            bodyCell("%"),
-            bodyCell(`${row.pct}%`),
-            bodyCell(""),
-            bodyCell(""),
-            bodyCell(formatRupiah(row.value)),
-          ],
-        })),
-        {
-          type: "tableRow",
-          content: [
-            bodyCell(""),
-            bodyCell(""),
-            bodyCell("TOTAL"),
-            bodyCell(""),
-            bodyCell(""),
-            bodyCell(""),
-            bodyCell(""),
-            bodyCell(formatRupiah(baseAfterAdjustIdr)),
-          ],
-        },
-        {
-          type: "tableRow",
-          content: [
-            bodyCell(""),
-            bodyCell(""),
-            bodyCell("PROFIT"),
-            bodyCell("%"),
-            bodyCell(`${adjustments.profit}%`),
-            bodyCell(""),
-            bodyCell(""),
-            bodyCell(formatRupiah(profitIdr)),
-          ],
-        },
-        {
-          type: "tableRow",
-          content: [
-            bodyCell(""),
-            bodyCell(""),
-            bodyCell("GRAND TOTAL"),
-            bodyCell(""),
-            bodyCell(""),
-            bodyCell(""),
-            bodyCell(""),
-            bodyCell(formatRupiah(grandTotalIdr)),
-          ],
-        },
-      ],
-    };
-
-    editor
-      .chain()
-      .focus()
-      .insertContent([
-        {
-          type: "heading",
-          attrs: { level: 3 },
-          content: [textNode("RPB + Additional Charge")],
-        },
-        lineItemsTableNode,
-        { type: "paragraph" },
-      ])
-      .run();
-  };
-
-  const handleInsertImageByFile = (file: File) => {
-    if (!editor) {
+  const saveContent = () => {
+    if (!editorRef.current) {
       return;
     }
+    setQuotationContent(editorRef.current.innerHTML);
+  };
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result === "string") {
-        editor
-          .chain()
-          .focus()
-          .setImage({ src: result })
-          .updateAttributes("image", { align: "center", width: 60 })
-          .run();
+  const execCmd = (command: string, value?: string) => {
+    document.execCommand(command, false, value);
+    saveContent();
+    editorRef.current?.focus();
+  };
+
+  const generateRpbTableHtml = () => {
+    let rows = "";
+
+    const categories = [
+      { key: "PROFILE", label: "Profile" },
+      { key: "KONSTRUKSI", label: "Konstruksi" },
+    ] as const;
+
+    let no = 1;
+    for (const category of categories) {
+      const items = lineItems.filter((item) => item.jenis === category.key);
+      if (items.length === 0) {
+        continue;
       }
-    };
-    reader.readAsDataURL(file);
-  };
 
-  const setSelectedImageAlign = (align: "left" | "center" | "right") => {
-    if (!editor) {
-      return;
+      rows += `
+        <tr style="background:#fff7cc;">
+          <td colspan="8" style="padding:8px 10px;font-weight:700;color:#3b3d79;font-size:12px;">${category.label}</td>
+        </tr>`;
+
+      for (const item of items) {
+        rows += `
+          <tr>
+            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;text-align:center;font-size:12px;">${no++}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;font-size:12px;">${escapeHtml(item.jenis)}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;font-size:12px;">${escapeHtml(item.keterangan)}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;font-size:12px;">${escapeHtml(item.satuan)}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;font-size:12px;">${escapeHtml(item.jenisSpec)}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;text-align:right;font-size:12px;">${item.qty}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;text-align:right;font-size:12px;">${escapeHtml(formatRupiah(item.hargaIdr))}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;text-align:right;font-size:12px;font-weight:600;">${escapeHtml(formatRupiah(item.hargaIdr * item.qty))}</td>
+          </tr>`;
+      }
     }
 
-    editor.chain().focus().updateAttributes("image", { align }).run();
-  };
-
-  const setSelectedImageWidth = (width: number) => {
-    if (!editor) {
-      return;
+    const otherItems = lineItems.filter(
+      (item) => item.jenis !== "PROFILE" && item.jenis !== "KONSTRUKSI",
+    );
+    if (otherItems.length > 0) {
+      rows += `
+        <tr style="background:#fff7cc;">
+          <td colspan="8" style="padding:8px 10px;font-weight:700;color:#3b3d79;font-size:12px;">Other / Tambahan</td>
+        </tr>`;
+      for (const item of otherItems) {
+        rows += `
+          <tr>
+            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;text-align:center;font-size:12px;">${no++}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;font-size:12px;">${escapeHtml(item.jenis)}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;font-size:12px;">${escapeHtml(item.keterangan)}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;font-size:12px;">${escapeHtml(item.satuan)}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;font-size:12px;">${escapeHtml(item.jenisSpec)}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;text-align:right;font-size:12px;">${item.qty}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;text-align:right;font-size:12px;">${escapeHtml(formatRupiah(item.hargaIdr))}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;text-align:right;font-size:12px;font-weight:600;">${escapeHtml(formatRupiah(item.hargaIdr * item.qty))}</td>
+          </tr>`;
+      }
     }
 
-    editor.chain().focus().updateAttributes("image", { width }).run();
+    return `
+      <div style="margin:16px 0;">
+        <table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;border:1px solid #d9dbef;border-radius:8px;overflow:hidden;">
+          <thead>
+            <tr style="background:#6365b9;">
+              <th style="padding:8px;color:#fff;text-align:center;font-size:11px;width:34px;">No</th>
+              <th style="padding:8px;color:#fff;text-align:left;font-size:11px;">Jenis</th>
+              <th style="padding:8px;color:#fff;text-align:left;font-size:11px;">Keterangan</th>
+              <th style="padding:8px;color:#fff;text-align:left;font-size:11px;">Satuan</th>
+              <th style="padding:8px;color:#fff;text-align:left;font-size:11px;">Jenis Spec</th>
+              <th style="padding:8px;color:#fff;text-align:right;font-size:11px;">Qty</th>
+              <th style="padding:8px;color:#fff;text-align:right;font-size:11px;">Harga</th>
+              <th style="padding:8px;color:#fff;text-align:right;font-size:11px;">Total</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+          <tfoot>
+            <tr>
+              <td colspan="7" style="padding:6px 8px;text-align:right;border-top:1px solid #d9dbef;font-size:12px;">Subtotal</td>
+              <td style="padding:6px 8px;text-align:right;border-top:1px solid #d9dbef;font-size:12px;font-weight:600;">${escapeHtml(formatRupiah(subtotalIdr))}</td>
+            </tr>
+            <tr>
+              <td colspan="7" style="padding:4px 8px;text-align:right;font-size:12px;color:#555;">Stock Return (${adjustments.stockReturn}%)</td>
+              <td style="padding:4px 8px;text-align:right;font-size:12px;">${escapeHtml(formatRupiah(stockReturnIdr))}</td>
+            </tr>
+            <tr>
+              <td colspan="7" style="padding:4px 8px;text-align:right;font-size:12px;color:#555;">Marketing Cost (${adjustments.marketingCost}%)</td>
+              <td style="padding:4px 8px;text-align:right;font-size:12px;">${escapeHtml(formatRupiah(marketingCostIdr))}</td>
+            </tr>
+            <tr>
+              <td colspan="7" style="padding:4px 8px;text-align:right;font-size:12px;color:#555;">Services (${adjustments.services}%)</td>
+              <td style="padding:4px 8px;text-align:right;font-size:12px;">${escapeHtml(formatRupiah(servicesIdr))}</td>
+            </tr>
+            <tr>
+              <td colspan="7" style="padding:4px 8px;text-align:right;font-size:12px;color:#555;">Profit (${adjustments.profit}%)</td>
+              <td style="padding:4px 8px;text-align:right;font-size:12px;">${escapeHtml(formatRupiah(profitIdr))}</td>
+            </tr>
+            <tr style="background:#6365b9;">
+              <td colspan="7" style="padding:8px;text-align:right;color:#fff;font-weight:800;font-size:12px;">GRAND TOTAL</td>
+              <td style="padding:8px;text-align:right;color:#fff;font-weight:800;font-size:13px;">${escapeHtml(formatRupiah(grandTotalIdr))}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>`;
   };
 
-  const applyFontFamily = (value: string) => {
-    if (!editor) {
+  const insertRpbTable = () => {
+    if (!editorRef.current) {
       return;
     }
-
-    editor.chain().focus().setMark("textStyle", { fontFamily: value }).run();
+    editorRef.current.focus();
+    document.execCommand("insertHTML", false, generateRpbTableHtml());
+    saveContent();
   };
 
-  const applyFontSize = (value: string) => {
-    if (!editor) {
+  const resetEditor = () => {
+    if (!editorRef.current) {
       return;
     }
-
-    editor.chain().focus().setMark("textStyle", { fontSize: value }).run();
+    editorRef.current.innerHTML = "";
+    setQuotationContent("");
+    hasInitializedRef.current = false;
   };
 
-  const applyLineHeight = (value: string) => {
-    if (!editor) {
-      return;
-    }
-
-    editor
-      .chain()
-      .focus()
-      .updateAttributes("paragraph", { lineHeight: value })
-      .updateAttributes("heading", { lineHeight: value })
-      .run();
-  };
-
-  const applyTextTransform = (value: string) => {
-    if (!editor) {
-      return;
-    }
-
-    editor.chain().focus().setMark("textStyle", { textTransform: value || null }).run();
-  };
-
-  const applyTextColor = (value: string) => {
-    if (!editor) {
-      return;
-    }
-
-    editor.chain().focus().setColor(value).run();
-  };
-
-  const applyHighlightColor = (value: string) => {
-    if (!editor) {
-      return;
-    }
-
-    editor.chain().focus().setHighlight({ color: value }).run();
-  };
-
-  const clearFormatting = () => {
-    if (!editor) {
-      return;
-    }
-
-    editor.chain().focus().clearNodes().unsetAllMarks().run();
-  };
-
-  const handleExportPdf = async () => {
-    if (!editor) {
-      return;
-    }
-
-    const dateText = new Intl.DateTimeFormat("id-ID", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    }).format(new Date());
-
-    const exportEl = document.createElement("div");
-    exportEl.className = "rpb-export-doc";
-    exportEl.innerHTML = `
-      <div style="font-family: Arial, sans-serif; color:#1f2340; font-size:12px; padding:18px;">
-        <h2 style="margin:0 0 10px 0;">${escapeHtml(quoteTitle)}</h2>
-        <div style="margin-bottom:12px;">
-          <div><strong>Customer Name:</strong> ${escapeHtml(customerName || "-")}</div>
-          <div><strong>Project Name:</strong> ${escapeHtml(projectName || "-")}</div>
-          <div><strong>Date:</strong> ${escapeHtml(dateText)}</div>
-        </div>
-        <div>${editor.getHTML()}</div>
-      </div>
-    `;
-    document.body.appendChild(exportEl);
-
-    const doc = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    });
-
-    await doc.html(exportEl, {
-      x: 8,
-      y: 8,
-      width: 194,
-      autoPaging: "text",
-      html2canvas: {
-        scale: 0.58,
-      },
-    });
-
-    exportEl.remove();
-    const safeName = (projectName || "quotation")
-      .replace(/[^a-z0-9-_]+/gi, "-")
-      .replace(/^-+|-+$/g, "");
-    doc.save(`${safeName || "quotation"}.pdf`);
+  const handlePrint = () => {
+    saveContent();
+    window.print();
   };
 
   return (
     <div className="mx-auto min-h-screen w-full max-w-7xl p-4 md:px-10 md:py-5 lg:px-12">
-      <main className="rpb-shell overflow-hidden">
-        <header className="rpb-topbar flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-white md:px-6">
+      <main className="rpb-shell overflow-hidden print-a4">
+        <header className="rpb-topbar no-print flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-white md:px-6">
           <h1 className="rpb-h-title text-xl font-semibold md:text-2xl">Quotation Builder</h1>
           <div className="flex flex-wrap items-center gap-2">
             <RpbUserActions />
@@ -533,20 +265,10 @@ export default function QuotationPage() {
             >
               Back
             </Link>
-            <button
-              type="button"
-              className="rounded-md bg-white/14 px-3 py-1.5 text-xs font-semibold text-white"
-              onClick={handleExportPdf}
-            >
-              <span className="inline-flex items-center gap-1">
-                <FileDown size={14} />
-                Export PDF
-              </span>
-            </button>
           </div>
         </header>
 
-        <div className="space-y-3 p-4 md:p-6">
+        <div className="space-y-4 p-4 md:p-6">
           {masterLoading ? (
             <div className="rpb-section p-4 text-sm text-rpb-ink-soft">
               Memuat master data dari database...
@@ -557,198 +279,198 @@ export default function QuotationPage() {
               {masterError}
             </div>
           ) : null}
-          <section className="rpb-section p-3 md:p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <label className="text-sm font-semibold text-rpb-ink-soft">Judul</label>
-              <input
-                className="rpb-input max-w-md"
-                value={quoteTitle}
-                onChange={(event) => setQuoteTitle(event.target.value)}
-              />
-            </div>
-          </section>
 
-          <section className="rpb-section p-3 md:p-4">
-            <div className="rpb-editor-toolbar mb-3 flex flex-wrap gap-2">
+          <section className="rpb-section no-print p-3 md:p-4">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
               <select
-                className="rpb-input w-auto min-w-[170px]"
-                value={toolbarState.fontFamily}
-                onChange={(event) => applyFontFamily(event.target.value)}
+                defaultValue=""
+                className="rpb-input w-auto min-w-[130px] text-sm"
+                onChange={(event) => {
+                  if (event.target.value) {
+                    execCmd("formatBlock", event.target.value);
+                    event.target.value = "";
+                  }
+                }}
               >
-                {FONT_OPTIONS.map((font) => (
-                  <option key={font.value} value={font.value}>
-                    {font.label}
-                  </option>
-                ))}
+                <option value="" disabled>
+                  Heading
+                </option>
+                <option value="h1">Heading 1</option>
+                <option value="h2">Heading 2</option>
+                <option value="h3">Heading 3</option>
+                <option value="p">Paragraph</option>
               </select>
-              <select
-                className="rpb-input w-auto min-w-[74px]"
-                value={toolbarState.fontSize}
-                onChange={(event) => applyFontSize(event.target.value)}
+
+              <button
+                type="button"
+                className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  execCmd("bold");
+                }}
+                title="Bold"
               >
-                {FONT_SIZE_OPTIONS.map((size) => (
-                  <option key={size} value={size}>
-                    {size.replace("px", "")}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="rpb-input w-auto min-w-[74px]"
-                value={toolbarState.lineHeight}
-                onChange={(event) => applyLineHeight(event.target.value)}
+                <Bold size={15} />
+              </button>
+              <button
+                type="button"
+                className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  execCmd("italic");
+                }}
+                title="Italic"
               >
-                {LINE_HEIGHT_OPTIONS.map((height) => (
-                  <option key={height} value={height}>
-                    {height}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="rpb-input w-auto min-w-[90px]"
-                value={toolbarState.textTransform}
-                onChange={(event) => applyTextTransform(event.target.value)}
+                <Italic size={15} />
+              </button>
+              <button
+                type="button"
+                className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  execCmd("underline");
+                }}
+                title="Underline"
               >
-                {CASE_OPTIONS.map((option) => (
-                  <option key={option.label} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={clearFormatting}>
-                <span className="inline-flex items-center gap-1"><RemoveFormatting size={14} />Clear</span>
+                <Underline size={15} />
               </button>
-              <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={() => editor?.chain().focus().toggleBold().run()}>
-                <span className="inline-flex items-center gap-1"><Bold size={14} />Bold</span>
+              <button
+                type="button"
+                className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  execCmd("justifyLeft");
+                }}
+                title="Align Left"
+              >
+                <AlignLeft size={15} />
               </button>
-              <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={() => editor?.chain().focus().toggleItalic().run()}>
-                <span className="inline-flex items-center gap-1"><Italic size={14} />Italic</span>
+              <button
+                type="button"
+                className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  execCmd("justifyCenter");
+                }}
+                title="Align Center"
+              >
+                <AlignCenter size={15} />
               </button>
-              <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={() => editor?.chain().focus().toggleUnderline().run()}>
-                <span className="inline-flex items-center gap-1"><UnderlineIcon size={14} />Underline</span>
-              </button>
-              <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={() => editor?.chain().focus().toggleStrike().run()}>
-                <span className="inline-flex items-center gap-1"><Strikethrough size={14} />Strike</span>
-              </button>
-              <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={() => editor?.chain().focus().toggleSubscript().run()}>
-                <span className="inline-flex items-center gap-1"><SubscriptIcon size={14} />Sub</span>
-              </button>
-              <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={() => editor?.chain().focus().toggleSuperscript().run()}>
-                <span className="inline-flex items-center gap-1"><SuperscriptIcon size={14} />Sup</span>
-              </button>
-              <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={() => editor?.chain().focus().toggleBulletList().run()}>
-                <span className="inline-flex items-center gap-1"><List size={14} />Bullet</span>
-              </button>
-              <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={() => editor?.chain().focus().toggleOrderedList().run()}>
-                <span className="inline-flex items-center gap-1"><ListOrdered size={14} />Number</span>
-              </button>
-              <label className="rpb-btn-ghost inline-flex cursor-pointer items-center gap-2 px-3 py-2 text-sm">
-                <Pilcrow size={14} />
-                Color
-                <input
-                  type="color"
-                  className="h-6 w-6 border-0 bg-transparent p-0"
-                  value={toolbarState.textColor}
-                  onChange={(event) => applyTextColor(event.target.value)}
-                />
-              </label>
-              <label className="rpb-btn-ghost inline-flex cursor-pointer items-center gap-2 px-3 py-2 text-sm">
-                <PaintBucket size={14} />
-                Highlight
-                <input
-                  type="color"
-                  className="h-6 w-6 border-0 bg-transparent p-0"
-                  value={toolbarState.highlightColor}
-                  onChange={(event) => applyHighlightColor(event.target.value)}
-                />
-              </label>
-              <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 4, withHeaderRow: true }).run()}>
-                <span className="inline-flex items-center gap-1"><Table2 size={14} />Table</span>
-              </button>
-              <button type="button" className="rpb-btn-ghost px-3 py-2 text-sm" onClick={handleInsertRpbTable}>
+
+              <button
+                type="button"
+                className="rpb-btn-primary inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold"
+                onClick={insertRpbTable}
+                disabled={masterLoading || lineItems.length === 0}
+                title={
+                  lineItems.length === 0 ? "Lengkapi data summary terlebih dahulu." : "Insert tabel RPB"
+                }
+              >
+                <Table2 size={15} />
                 Insert Tabel RPB
               </button>
-              <button
-                type="button"
-                className="rpb-btn-ghost px-3 py-2 text-sm"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <span className="inline-flex items-center gap-1"><ImagePlus size={14} />Insert Gambar</span>
-              </button>
-              <button
-                type="button"
-                className="rpb-btn-ghost px-3 py-2 text-sm"
-                onClick={() => setSelectedImageAlign("left")}
-              >
-                <span className="inline-flex items-center gap-1"><AlignLeft size={14} />Img Left</span>
-              </button>
-              <button
-                type="button"
-                className="rpb-btn-ghost px-3 py-2 text-sm"
-                onClick={() => setSelectedImageAlign("center")}
-              >
-                <span className="inline-flex items-center gap-1"><AlignCenter size={14} />Img Center</span>
-              </button>
-              <button
-                type="button"
-                className="rpb-btn-ghost px-3 py-2 text-sm"
-                onClick={() => setSelectedImageAlign("right")}
-              >
-                <span className="inline-flex items-center gap-1"><AlignRight size={14} />Img Right</span>
-              </button>
-              <button
-                type="button"
-                className="rpb-btn-ghost px-3 py-2 text-sm"
-                onClick={() => setSelectedImageWidth(40)}
-              >
-                Img S
-              </button>
-              <button
-                type="button"
-                className="rpb-btn-ghost px-3 py-2 text-sm"
-                onClick={() => setSelectedImageWidth(60)}
-              >
-                Img M
-              </button>
-              <button
-                type="button"
-                className="rpb-btn-ghost px-3 py-2 text-sm"
-                onClick={() => setSelectedImageWidth(85)}
-              >
-                Img L
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (file) {
-                    handleInsertImageByFile(file);
-                  }
-                  event.currentTarget.value = "";
-                }}
-              />
+
+              <div className="ml-auto flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  className="rpb-btn-ghost inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold"
+                  onClick={resetEditor}
+                >
+                  <RotateCcw size={14} />
+                  Reset
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#7c3aed] px-3 py-2 text-sm font-semibold text-white"
+                  onClick={handlePrint}
+                >
+                  <Printer size={14} />
+                  Print / PDF
+                </button>
+              </div>
+            </div>
+
+            {lineItems.length === 0 ? (
+              <div className="rounded-xl border border-[#ffde55] bg-[#fff7cc] px-4 py-3 text-sm text-[#7c5a00]">
+                Belum ada data estimasi. Isi data di halaman input/summary agar tombol insert tabel bisa digunakan.
+              </div>
+            ) : null}
+          </section>
+
+          <section className="rpb-section p-4">
+            <div className="mb-4 text-sm text-rpb-ink-soft">
+              <div>
+                <strong>Customer Name:</strong> {customerName || "-"}
+              </div>
+              <div>
+                <strong>Project Name:</strong> {projectName || "-"}
+              </div>
+              <div>
+                <strong>Date:</strong> {formatDate()}
+              </div>
             </div>
 
             <div className="rpb-doc-canvas">
-              <div className="mb-4 text-sm text-rpb-ink-soft">
-                <div><strong>Customer Name:</strong> {customerName || "-"}</div>
-                <div><strong>Project Name:</strong> {projectName || "-"}</div>
-                <div>
-                  <strong>Date:</strong>{" "}
-                  {new Intl.DateTimeFormat("id-ID", {
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric",
-                  }).format(new Date())}
-                </div>
-              </div>
-              <EditorContent editor={editor} className="rpb-editor-content" />
+              <div
+                ref={editorRef}
+                contentEditable
+                suppressContentEditableWarning
+                onInput={saveContent}
+                className="rpb-plain-editor min-h-[920px] outline-none"
+                data-placeholder="Ketik isi penawaran di sini, lalu klik 'Insert Tabel RPB' untuk memasukkan tabel harga otomatis..."
+              />
             </div>
           </section>
+
+          <div className="no-print flex justify-end">
+            <Link
+              href="/summary"
+              className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+            >
+              <FileText size={14} />
+              Back to Summary
+            </Link>
+          </div>
         </div>
       </main>
+
+      <style>{`
+        .rpb-plain-editor {
+          color: #1f2340;
+          font-size: 14px;
+          line-height: 1.8;
+          font-family: Arial, sans-serif;
+        }
+        .rpb-plain-editor:empty:before {
+          content: attr(data-placeholder);
+          color: #9ca3af;
+          pointer-events: none;
+        }
+        .rpb-plain-editor h1 {
+          font-size: 1.6rem;
+          font-weight: 800;
+          margin: 1rem 0 0.5rem;
+          color: #1f2340;
+        }
+        .rpb-plain-editor h2 {
+          font-size: 1.25rem;
+          font-weight: 700;
+          margin: 0.9rem 0 0.4rem;
+          color: #2d3173;
+        }
+        .rpb-plain-editor h3 {
+          font-size: 1.05rem;
+          font-weight: 700;
+          margin: 0.75rem 0 0.35rem;
+          color: #4548a8;
+        }
+        .rpb-plain-editor p {
+          margin: 0.45rem 0;
+        }
+        .rpb-plain-editor table {
+          max-width: 100%;
+        }
+      `}</style>
     </div>
   );
 }
