@@ -398,7 +398,7 @@ export default function QuotationPage() {
           </section>
 
           <section className="rpb-section p-4">
-            <div className="mb-4 text-sm text-rpb-ink-soft">
+            <div className="no-print mb-4 text-sm text-rpb-ink-soft">
               <div>
                 <strong>Customer Name:</strong> {customerName || "-"}
               </div>

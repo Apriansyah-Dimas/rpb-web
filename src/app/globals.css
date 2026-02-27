@@ -152,7 +152,8 @@ body {
 }
 
 .rpb-doc-canvas {
-  min-height: 1122px;
+  width: min(100%, 210mm);
+  min-height: 297mm;
   max-width: 794px;
   margin: 0 auto;
   border: 1px solid var(--rpb-border);
@@ -254,6 +255,11 @@ body {
   .print-a4 .rpb-topbar {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+  }
+
+  .print-a4 .rpb-doc-canvas {
+    width: 100% !important;
+    min-height: auto !important;
   }
 
   .no-print {
