@@ -156,11 +156,17 @@ body {
   min-height: 297mm;
   max-width: 794px;
   margin: 0 auto;
-  border: 1px solid var(--rpb-border);
-  border-radius: 12px;
+  border: 0;
+  border-radius: 0;
   background: #fff;
   padding: 34px 38px;
-  box-shadow: 0 8px 20px rgba(44, 50, 112, 0.08);
+  box-shadow: none;
+}
+
+.rpb-paper-wrap {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .rpb-editor-content .tiptap {

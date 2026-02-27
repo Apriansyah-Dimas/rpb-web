@@ -9,15 +9,15 @@ import {
   AlignCenter,
   AlignLeft,
   Bold,
+  Download,
   FileText,
   Italic,
-  Printer,
   RotateCcw,
   Table2,
   Underline,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const escapeHtml = (value: string): string =>
   value
@@ -47,7 +47,10 @@ export default function QuotationPage() {
   const setQuotationContent = useRpbStore((state) => state.setQuotationContent);
 
   const editorRef = useRef<HTMLDivElement>(null);
+  const paperRef = useRef<HTMLDivElement>(null);
   const hasInitializedRef = useRef(false);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   const { lineItems } = useMemo(
     () =>
@@ -247,9 +250,63 @@ export default function QuotationPage() {
     hasInitializedRef.current = false;
   };
 
-  const handlePrint = () => {
+  const handleDownloadPdf = async () => {
     saveContent();
-    window.print();
+    if (!paperRef.current || pdfBusy) {
+      return;
+    }
+
+    setPdfBusy(true);
+    setPdfError(null);
+    try {
+      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+        import("html2canvas"),
+        import("jspdf"),
+      ]);
+      const canvas = await html2canvas(paperRef.current, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const contentWidth = pageWidth - margin * 2;
+      const contentHeight = pageHeight - margin * 2;
+      const imageHeight = (canvas.height * contentWidth) / canvas.width;
+      const imageData = canvas.toDataURL("image/png");
+
+      let drawnHeight = 0;
+      let pageIndex = 0;
+      while (drawnHeight < imageHeight) {
+        if (pageIndex > 0) {
+          pdf.addPage();
+        }
+        const yOffset = margin - drawnHeight;
+        pdf.addImage(imageData, "PNG", margin, yOffset, contentWidth, imageHeight);
+        drawnHeight += contentHeight;
+        pageIndex += 1;
+      }
+
+      const safeProjectName = (projectName || "quotation")
+        .replace(/[^a-z0-9-_]+/gi, "-")
+        .replace(/^-+|-+$/g, "");
+      pdf.save(`Quotation-${safeProjectName || "quotation"}.pdf`);
+    } catch (error) {
+      setPdfError(
+        error instanceof Error ? `Gagal download PDF: ${error.message}` : "Gagal download PDF.",
+      );
+    } finally {
+      setPdfBusy(false);
+    }
   };
 
   return (
@@ -277,6 +334,11 @@ export default function QuotationPage() {
           {masterError ? (
             <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {masterError}
+            </div>
+          ) : null}
+          {pdfError ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {pdfError}
             </div>
           ) : null}
 
@@ -382,10 +444,11 @@ export default function QuotationPage() {
                 <button
                   type="button"
                   className="inline-flex items-center gap-2 rounded-xl bg-[#7c3aed] px-3 py-2 text-sm font-semibold text-white"
-                  onClick={handlePrint}
+                  onClick={() => void handleDownloadPdf()}
+                  disabled={pdfBusy}
                 >
-                  <Printer size={14} />
-                  Print / PDF
+                  <Download size={14} />
+                  {pdfBusy ? "Menyiapkan PDF..." : "Download PDF"}
                 </button>
               </div>
             </div>
@@ -397,7 +460,7 @@ export default function QuotationPage() {
             ) : null}
           </section>
 
-          <section className="rpb-section p-4">
+          <section className="rpb-section rpb-paper-wrap p-4">
             <div className="no-print mb-4 text-sm text-rpb-ink-soft">
               <div>
                 <strong>Customer Name:</strong> {customerName || "-"}
@@ -410,7 +473,7 @@ export default function QuotationPage() {
               </div>
             </div>
 
-            <div className="rpb-doc-canvas">
+            <div ref={paperRef} className="rpb-doc-canvas">
               <div
                 ref={editorRef}
                 contentEditable
