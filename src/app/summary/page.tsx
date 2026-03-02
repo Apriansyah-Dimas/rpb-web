@@ -379,10 +379,10 @@ export default function SummaryPage() {
                 <thead>
                   <tr>
                     <th style={{ width: "5%", textAlign: "center" }}>No</th>
-                    <th style={{ width: "13%" }}>Jenis</th>
-                    <th style={{ width: "22%" }}>Keterangan</th>
-                    <th style={{ width: "7%" }}>Satuan</th>
-                    <th style={{ width: "13%" }}>Jenis Spec</th>
+                    <th style={{ width: "13%", textAlign: "center" }}>Jenis</th>
+                    <th style={{ width: "22%", textAlign: "center" }}>Keterangan</th>
+                    <th style={{ width: "7%", textAlign: "center" }}>Satuan</th>
+                    <th style={{ width: "13%", textAlign: "center" }}>Jenis Spec</th>
                     <th style={{ width: "11%", textAlign: "center" }}>Qty</th>
                     <th style={{ width: "14.5%", textAlign: "right" }}>Harga</th>
                     <th style={{ width: "14.5%", textAlign: "right" }}>Total</th>
@@ -450,14 +450,14 @@ export default function SummaryPage() {
                   {calculationRows.map((row) => (
                     <tr key={row.key} className={row.highlight ? "bg-[#6365b9]" : ""}>
                       <td
-                        colSpan={7}
-                        className={`text-right ${
+                        colSpan={6}
+                        className={`${
                           row.highlight
                             ? "border-t-0 font-bold text-white"
                             : "bg-[#fbfbff] text-rpb-ink-soft"
                         }`}
                       >
-                        {row.label}
+                        <span className="inline-flex w-full justify-end pr-3">{row.label}</span>
                       </td>
                       <td
                         className={`text-right whitespace-nowrap ${
@@ -468,6 +468,13 @@ export default function SummaryPage() {
                       >
                         {formatRupiah(row.value)}
                       </td>
+                      <td
+                        className={`${
+                          row.highlight
+                            ? "border-t-0 font-bold text-white"
+                            : "bg-[#fbfbff] font-semibold text-foreground"
+                        }`}
+                      />
                     </tr>
                   ))}
                 </tfoot>
