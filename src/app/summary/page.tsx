@@ -375,17 +375,17 @@ export default function SummaryPage() {
           <section className="rpb-section p-4 md:p-4">
             <h3 className="rpb-h-title mb-2 text-base font-semibold">Line Items</h3>
             <div className="hidden lg:block">
-              <table className="rpb-table w-full text-xs xl:text-sm" style={{ tableLayout: "fixed" }}>
+              <table className="rpb-table w-full text-sm" style={{ tableLayout: "fixed" }}>
                 <thead>
                   <tr>
                     <th style={{ width: "5%", textAlign: "center" }}>No</th>
-                    <th style={{ width: "12%" }}>Jenis</th>
-                    <th style={{ width: "26%" }}>Keterangan</th>
-                    <th style={{ width: "8%" }}>Satuan</th>
-                    <th style={{ width: "15%" }}>Jenis Spec</th>
-                    <th style={{ width: "8%", textAlign: "center" }}>Qty</th>
-                    <th style={{ width: "13%", textAlign: "right" }}>Harga</th>
-                    <th style={{ width: "13%", textAlign: "right" }}>Total</th>
+                    <th style={{ width: "13%" }}>Jenis</th>
+                    <th style={{ width: "22%" }}>Keterangan</th>
+                    <th style={{ width: "7%" }}>Satuan</th>
+                    <th style={{ width: "13%" }}>Jenis Spec</th>
+                    <th style={{ width: "11%", textAlign: "center" }}>Qty</th>
+                    <th style={{ width: "14.5%", textAlign: "right" }}>Harga</th>
+                    <th style={{ width: "14.5%", textAlign: "right" }}>Total</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -397,24 +397,24 @@ export default function SummaryPage() {
                     return (
                       <tr key={item.id}>
                         <td className="text-center align-top">{index + 1}</td>
-                        <td className="align-top text-xs font-semibold leading-tight xl:text-sm">
+                        <td className="align-top font-semibold leading-tight">
                           {item.jenis}
                         </td>
-                        <td className="align-top text-[11px] leading-tight xl:text-sm">
+                        <td className="align-top leading-tight">
                           {item.keterangan}
                         </td>
-                        <td className="align-top text-[11px] leading-tight xl:text-sm">
+                        <td className="align-top leading-tight">
                           {item.satuan}
                         </td>
-                        <td className="align-top text-[11px] leading-tight xl:text-sm">
+                        <td className="align-top leading-tight">
                           {item.jenisSpec || "-"}
                         </td>
-                        <td className="align-top text-center">
+                        <td className="align-middle text-center whitespace-nowrap">
                           {isEditable ? (
-                            <div className="inline-flex items-center gap-0.5">
+                            <div className="inline-flex items-center gap-1 whitespace-nowrap">
                               <button
                                 type="button"
-                                className="rpb-btn-ghost inline-flex h-5 w-5 items-center justify-center"
+                                className="rpb-btn-ghost inline-flex h-6 w-6 items-center justify-center"
                                 onClick={() => updateQty(item.id, item.qty - 1)}
                                 aria-label={`Kurangi qty ${item.jenisSpec}`}
                               >
@@ -425,7 +425,7 @@ export default function SummaryPage() {
                               </span>
                               <button
                                 type="button"
-                                className="rpb-btn-primary inline-flex h-5 w-5 items-center justify-center"
+                                className="rpb-btn-primary inline-flex h-6 w-6 items-center justify-center"
                                 onClick={() => updateQty(item.id, item.qty + 1)}
                                 aria-label={`Tambah qty ${item.jenisSpec}`}
                               >
@@ -436,10 +436,10 @@ export default function SummaryPage() {
                             <span className="text-xs font-semibold">{item.qty}</span>
                           )}
                         </td>
-                        <td className="align-top text-right text-[11px] break-words xl:text-sm">
+                        <td className="align-top text-right whitespace-nowrap">
                           {formatRupiah(item.hargaIdr)}
                         </td>
-                        <td className="align-top text-right text-[11px] font-semibold break-words xl:text-sm">
+                        <td className="align-top text-right font-semibold whitespace-nowrap">
                           {formatRupiah(lineTotalIdr)}
                         </td>
                       </tr>
@@ -460,7 +460,7 @@ export default function SummaryPage() {
                         {row.label}
                       </td>
                       <td
-                        className={`text-right ${
+                        className={`text-right whitespace-nowrap ${
                           row.highlight
                             ? "border-t-0 font-bold text-white"
                             : "bg-[#fbfbff] font-semibold text-foreground"
