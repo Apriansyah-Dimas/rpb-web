@@ -52,6 +52,13 @@ const buildDefaultHistoryTitle = (projectName: string): string =>
     year: "numeric",
   }).format(new Date())}`;
 
+interface CalculationRow {
+  key: string;
+  label: string;
+  value: number;
+  highlight?: boolean;
+}
+
 export default function SummaryPage() {
   const { data: masterData, loading: masterLoading, error: masterError } = useRpbMasterData();
   const customerName = useRpbStore((state) => state.customerName);
@@ -103,6 +110,19 @@ export default function SummaryPage() {
   const baseAfterAdjustIdr = subtotalIdr + stockReturnIdr + marketingCostIdr + servicesIdr;
   const profitIdr = pctToValue(baseAfterAdjustIdr, adjustments.profit);
   const grandTotalIdr = baseAfterAdjustIdr + profitIdr;
+
+  const calculationRows: CalculationRow[] = [
+    { key: "subtotal", label: "Subtotal", value: subtotalIdr },
+    { key: "stock", label: `Stock Return (${adjustments.stockReturn}%)`, value: stockReturnIdr },
+    {
+      key: "marketing",
+      label: `Marketing Cost (${adjustments.marketingCost}%)`,
+      value: marketingCostIdr,
+    },
+    { key: "services", label: `Services (${adjustments.services}%)`, value: servicesIdr },
+    { key: "profit", label: `Profit (${adjustments.profit}%)`, value: profitIdr },
+    { key: "grand", label: "GRAND TOTAL", value: grandTotalIdr, highlight: true },
+  ];
 
   const updateQty = (itemId: string, qty: number) => {
     if (itemId.startsWith("stock-")) {
@@ -354,16 +374,18 @@ export default function SummaryPage() {
 
           <section className="rpb-section p-4 md:p-4">
             <h3 className="rpb-h-title mb-2 text-base font-semibold">Line Items</h3>
-            <div className="hidden md:block">
-              <table className="rpb-table w-full text-xs lg:text-sm" style={{ tableLayout: "fixed" }}>
+            <div className="hidden lg:block">
+              <table className="rpb-table w-full text-xs xl:text-sm" style={{ tableLayout: "fixed" }}>
                 <thead>
                   <tr>
-                    <th style={{ width: "4%", textAlign: "center" }}>No</th>
-                    <th style={{ width: "31%" }}>Item</th>
-                    <th style={{ width: "18%" }}>Spec</th>
-                    <th style={{ width: "15%", textAlign: "center" }}>Qty</th>
-                    <th style={{ width: "16%", textAlign: "right" }}>Harga</th>
-                    <th style={{ width: "16%", textAlign: "right" }}>Total</th>
+                    <th style={{ width: "5%", textAlign: "center" }}>No</th>
+                    <th style={{ width: "12%" }}>Jenis</th>
+                    <th style={{ width: "26%" }}>Keterangan</th>
+                    <th style={{ width: "8%" }}>Satuan</th>
+                    <th style={{ width: "15%" }}>Jenis Spec</th>
+                    <th style={{ width: "8%", textAlign: "center" }}>Qty</th>
+                    <th style={{ width: "13%", textAlign: "right" }}>Harga</th>
+                    <th style={{ width: "13%", textAlign: "right" }}>Total</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -375,68 +397,84 @@ export default function SummaryPage() {
                     return (
                       <tr key={item.id}>
                         <td className="text-center align-top">{index + 1}</td>
-                        <td className="align-top">
-                          <p className="text-xs font-semibold leading-tight lg:text-sm">
-                            {item.jenis}
-                          </p>
-                          <p className="mt-0.5 text-[11px] leading-tight text-rpb-ink-soft lg:text-xs">
-                            {item.keterangan}
-                          </p>
+                        <td className="align-top text-xs font-semibold leading-tight xl:text-sm">
+                          {item.jenis}
                         </td>
-                        <td className="align-top">
-                          <p className="text-[11px] leading-tight lg:text-xs">
-                            {item.jenisSpec || "-"}
-                          </p>
+                        <td className="align-top text-[11px] leading-tight xl:text-sm">
+                          {item.keterangan}
+                        </td>
+                        <td className="align-top text-[11px] leading-tight xl:text-sm">
+                          {item.satuan}
+                        </td>
+                        <td className="align-top text-[11px] leading-tight xl:text-sm">
+                          {item.jenisSpec || "-"}
                         </td>
                         <td className="align-top text-center">
                           {isEditable ? (
-                            <div className="inline-flex flex-col items-center gap-0.5">
-                              <div className="inline-flex items-center gap-1">
-                                <button
-                                  type="button"
-                                  className="rpb-btn-ghost inline-flex h-6 w-6 items-center justify-center"
-                                  onClick={() => updateQty(item.id, item.qty - 1)}
-                                  aria-label={`Kurangi qty ${item.jenisSpec}`}
-                                >
-                                  <Minus size={11} />
-                                </button>
-                                <span className="min-w-5 text-center text-xs font-semibold">
-                                  {item.qty}
-                                </span>
-                                <button
-                                  type="button"
-                                  className="rpb-btn-primary inline-flex h-6 w-6 items-center justify-center"
-                                  onClick={() => updateQty(item.id, item.qty + 1)}
-                                  aria-label={`Tambah qty ${item.jenisSpec}`}
-                                >
-                                  <Plus size={11} />
-                                </button>
-                              </div>
-                              <span className="text-[10px] leading-tight text-rpb-ink-soft">
-                                {item.satuan}
+                            <div className="inline-flex items-center gap-0.5">
+                              <button
+                                type="button"
+                                className="rpb-btn-ghost inline-flex h-5 w-5 items-center justify-center"
+                                onClick={() => updateQty(item.id, item.qty - 1)}
+                                aria-label={`Kurangi qty ${item.jenisSpec}`}
+                              >
+                                <Minus size={10} />
+                              </button>
+                              <span className="min-w-4 text-center text-xs font-semibold">
+                                {item.qty}
                               </span>
+                              <button
+                                type="button"
+                                className="rpb-btn-primary inline-flex h-5 w-5 items-center justify-center"
+                                onClick={() => updateQty(item.id, item.qty + 1)}
+                                aria-label={`Tambah qty ${item.jenisSpec}`}
+                              >
+                                <Plus size={10} />
+                              </button>
                             </div>
                           ) : (
-                            <div className="inline-flex flex-col items-center leading-tight">
-                              <span className="text-xs font-semibold">{item.qty}</span>
-                              <span className="text-[10px] text-rpb-ink-soft">{item.satuan}</span>
-                            </div>
+                            <span className="text-xs font-semibold">{item.qty}</span>
                           )}
                         </td>
-                        <td className="align-top text-right text-[11px] break-words lg:text-xs">
+                        <td className="align-top text-right text-[11px] break-words xl:text-sm">
                           {formatRupiah(item.hargaIdr)}
                         </td>
-                        <td className="align-top text-right text-[11px] font-semibold break-words lg:text-xs">
+                        <td className="align-top text-right text-[11px] font-semibold break-words xl:text-sm">
                           {formatRupiah(lineTotalIdr)}
                         </td>
                       </tr>
                     );
                   })}
                 </tbody>
+                <tfoot>
+                  {calculationRows.map((row) => (
+                    <tr key={row.key} className={row.highlight ? "bg-[#6365b9]" : ""}>
+                      <td
+                        colSpan={7}
+                        className={`text-right ${
+                          row.highlight
+                            ? "border-t-0 font-bold text-white"
+                            : "bg-[#fbfbff] text-rpb-ink-soft"
+                        }`}
+                      >
+                        {row.label}
+                      </td>
+                      <td
+                        className={`text-right ${
+                          row.highlight
+                            ? "border-t-0 font-bold text-white"
+                            : "bg-[#fbfbff] font-semibold text-foreground"
+                        }`}
+                      >
+                        {formatRupiah(row.value)}
+                      </td>
+                    </tr>
+                  ))}
+                </tfoot>
               </table>
             </div>
 
-            <div className="space-y-2 md:hidden">
+            <div className="space-y-2 lg:hidden">
               {lineItems.map((item, index) => {
                 const isEditable = item.id.startsWith("stock-") || item.id.startsWith("custom-");
                 const lineTotalIdr = item.qty * item.hargaIdr;
@@ -454,41 +492,37 @@ export default function SummaryPage() {
                         <p className="text-[10px] leading-tight text-rpb-ink-soft">
                           {item.keterangan}
                         </p>
-                        <p className="mt-0.5 text-[10px] leading-tight text-rpb-ink-soft">
-                          {item.jenisSpec || "-"}
-                        </p>
+                        <div className="mt-0.5 flex gap-2 text-[10px] leading-tight text-rpb-ink-soft">
+                          <span>Spec: {item.jenisSpec || "-"}</span>
+                          <span>Satuan: {item.satuan}</span>
+                        </div>
                       </div>
 
                       <div className="shrink-0">
                         {isEditable ? (
-                          <div className="inline-flex flex-col items-center gap-0.5">
-                            <div className="inline-flex items-center gap-1">
-                              <button
-                                type="button"
-                                className="rpb-btn-ghost inline-flex h-6 w-6 items-center justify-center"
-                                onClick={() => updateQty(item.id, item.qty - 1)}
-                                aria-label={`Kurangi qty ${item.jenisSpec}`}
-                              >
-                                <Minus size={11} />
-                              </button>
-                              <span className="min-w-4 text-center text-[11px] font-semibold">
-                                {item.qty}
-                              </span>
-                              <button
-                                type="button"
-                                className="rpb-btn-primary inline-flex h-6 w-6 items-center justify-center"
-                                onClick={() => updateQty(item.id, item.qty + 1)}
-                                aria-label={`Tambah qty ${item.jenisSpec}`}
-                              >
-                                <Plus size={11} />
-                              </button>
-                            </div>
-                            <span className="text-[10px] text-rpb-ink-soft">{item.satuan}</span>
+                          <div className="inline-flex items-center gap-1">
+                            <button
+                              type="button"
+                              className="rpb-btn-ghost inline-flex h-6 w-6 items-center justify-center"
+                              onClick={() => updateQty(item.id, item.qty - 1)}
+                              aria-label={`Kurangi qty ${item.jenisSpec}`}
+                            >
+                              <Minus size={11} />
+                            </button>
+                            <span className="min-w-4 text-center text-[11px] font-semibold">
+                              {item.qty}
+                            </span>
+                            <button
+                              type="button"
+                              className="rpb-btn-primary inline-flex h-6 w-6 items-center justify-center"
+                              onClick={() => updateQty(item.id, item.qty + 1)}
+                              aria-label={`Tambah qty ${item.jenisSpec}`}
+                            >
+                              <Plus size={11} />
+                            </button>
                           </div>
                         ) : (
-                          <span className="text-[11px] font-semibold">
-                            Qty {item.qty} {item.satuan}
-                          </span>
+                          <span className="text-[11px] font-semibold">Qty {item.qty}</span>
                         )}
                       </div>
                     </div>
@@ -510,47 +544,27 @@ export default function SummaryPage() {
                   </article>
                 );
               })}
-            </div>
 
-            <div className="mt-3 grid gap-2 text-sm md:grid-cols-2">
-              <div className="rpb-section p-4">
-                <p className="mb-2 font-semibold">Ringkasan Perhitungan</p>
-                <div className="space-y-1 text-rpb-ink-soft">
-                  <div className="flex items-center justify-between">
-                    <span>Subtotal Items</span>
-                    <span>{formatRupiah(subtotalIdr)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Stock Return</span>
-                    <span>{formatRupiah(stockReturnIdr)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Marketing Cost</span>
-                    <span>{formatRupiah(marketingCostIdr)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Services</span>
-                    <span>{formatRupiah(servicesIdr)}</span>
-                  </div>
-                  <div className="flex items-center justify-between border-t border-rpb-border pt-2 font-semibold text-foreground">
-                    <span>Base After Adjust</span>
-                    <span>{formatRupiah(baseAfterAdjustIdr)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Profit</span>
-                    <span>{formatRupiah(profitIdr)}</span>
-                  </div>
+              <article className="rounded-xl border border-rpb-border bg-white px-3 py-2">
+                <p className="mb-1 text-[11px] font-semibold text-foreground">Ringkasan</p>
+                <div className="space-y-1 text-[10px]">
+                  {calculationRows.map((row) => (
+                    <div
+                      key={row.key}
+                      className={`flex items-center justify-between gap-2 rounded-md px-2 py-1 ${
+                        row.highlight
+                          ? "bg-[#6365b9] font-bold text-white"
+                          : "text-rpb-ink-soft"
+                      }`}
+                    >
+                      <span>{row.label}</span>
+                      <span className={row.highlight ? "text-white" : "font-semibold text-foreground"}>
+                        {formatRupiah(row.value)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              </div>
-
-              <div className="flex items-start md:justify-end">
-                <div className="rpb-price-pill inline-flex w-fit flex-col gap-0.5 px-5 py-3">
-                  <span className="text-sm font-semibold">Grand Total</span>
-                  <span className="text-xl font-bold">
-                    {formatRupiah(grandTotalIdr)}
-                  </span>
-                </div>
-              </div>
+              </article>
             </div>
           </section>
 
