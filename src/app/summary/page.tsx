@@ -535,15 +535,15 @@ export default function SummaryPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 border-t border-rpb-border pt-1.5 text-[10px]">
-                      <div>
+                      <div className="text-right">
                         <p className="text-rpb-ink-soft">Harga</p>
-                        <p className="font-semibold leading-tight break-words">
+                        <p className="font-semibold leading-tight whitespace-nowrap">
                           {formatRupiah(item.hargaIdr)}
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="text-rpb-ink-soft">Total</p>
-                        <p className="font-semibold leading-tight break-words">
+                        <p className="font-semibold leading-tight whitespace-nowrap">
                           {formatRupiah(lineTotalIdr)}
                         </p>
                       </div>
@@ -558,14 +558,18 @@ export default function SummaryPage() {
                   {calculationRows.map((row) => (
                     <div
                       key={row.key}
-                      className={`flex items-center justify-between gap-2 rounded-md px-2 py-1 ${
+                      className={`grid grid-cols-[1fr_auto] items-center gap-3 rounded-md px-2 py-1 ${
                         row.highlight
                           ? "bg-[#6365b9] font-bold text-white"
                           : "text-rpb-ink-soft"
                       }`}
                     >
-                      <span>{row.label}</span>
-                      <span className={row.highlight ? "text-white" : "font-semibold text-foreground"}>
+                      <span className="text-right">{row.label}</span>
+                      <span
+                        className={`text-right whitespace-nowrap ${
+                          row.highlight ? "text-white" : "font-semibold text-foreground"
+                        }`}
+                      >
                         {formatRupiah(row.value)}
                       </span>
                     </div>
