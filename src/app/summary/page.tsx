@@ -389,7 +389,7 @@ export default function SummaryPage() {
             </div>
           </section>
 
-          <section className="rpb-section p-4 md:p-4">
+          <section className="rpb-section p-3 md:p-4">
             <h3 className="rpb-h-title mb-2 text-base font-semibold">Line Items</h3>
             <div className="hidden lg:block">
               <table className="rpb-table w-full text-sm" style={{ tableLayout: "fixed" }}>
@@ -475,7 +475,7 @@ export default function SummaryPage() {
                         }`}
                       />
                       <td
-                        className={`text-right whitespace-nowrap ${
+                        className={`text-right align-top leading-tight whitespace-normal break-words ${
                           row.highlight
                             ? "border-t-0 font-bold text-white"
                             : "bg-[#fbfbff] text-rpb-ink-soft"
