@@ -59,11 +59,12 @@ const verifyAdminAccess = async (): Promise<{
     return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
 
-  const { data: profile } = await supabase
-    .from("user_profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
+  const metadataRole = user.user_metadata?.role;
+  if (metadataRole === "admin") {
+    return { actorId: user.id };
+  }
+
+  const { data: profile } = await supabase.from("user_profiles").select("role").eq("id", user.id).maybeSingle();
 
   if (profile?.role !== "admin") {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };

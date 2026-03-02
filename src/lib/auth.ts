@@ -18,11 +18,16 @@ export const getAuthContext = async (): Promise<AuthContext | null> => {
     return null;
   }
 
-  const { data: profile } = await supabase
-    .from("user_profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
+  const metadataRole = user.user_metadata?.role;
+  if (metadataRole === "admin" || metadataRole === "user") {
+    return {
+      userId: user.id,
+      email: user.email ?? null,
+      role: metadataRole,
+    };
+  }
+
+  const { data: profile } = await supabase.from("user_profiles").select("role").eq("id", user.id).maybeSingle();
 
   const role: UserRole = profile?.role === "admin" ? "admin" : "user";
 
