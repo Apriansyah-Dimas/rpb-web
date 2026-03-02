@@ -453,11 +453,18 @@ export default function SummaryPage() {
                         colSpan={6}
                         className={`${
                           row.highlight
+                            ? "border-t-0 text-white"
+                            : "bg-[#fbfbff]"
+                        }`}
+                      />
+                      <td
+                        className={`text-right whitespace-nowrap ${
+                          row.highlight
                             ? "border-t-0 font-bold text-white"
                             : "bg-[#fbfbff] text-rpb-ink-soft"
                         }`}
                       >
-                        <span className="inline-flex w-full justify-end pr-3">{row.label}</span>
+                        {row.label}
                       </td>
                       <td
                         className={`text-right whitespace-nowrap ${
@@ -468,13 +475,6 @@ export default function SummaryPage() {
                       >
                         {formatRupiah(row.value)}
                       </td>
-                      <td
-                        className={`${
-                          row.highlight
-                            ? "border-t-0 font-bold text-white"
-                            : "bg-[#fbfbff] font-semibold text-foreground"
-                        }`}
-                      />
                     </tr>
                   ))}
                 </tfoot>
