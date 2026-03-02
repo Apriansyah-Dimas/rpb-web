@@ -1,6 +1,6 @@
 "use client";
 
-import { RpbUserActions } from "@/components/rpb-user-actions";
+import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
 import { formatRupiah } from "@/lib/rpb-calculator";
 import { buildSummaryLineItems } from "@/lib/rpb-line-items";
@@ -10,7 +10,6 @@ import {
   AlignLeft,
   Bold,
   Download,
-  FileText,
   Italic,
   RotateCcw,
   Table2,
@@ -457,22 +456,12 @@ export default function QuotationPage() {
   };
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-7xl p-4 md:px-10 md:py-5 lg:px-12">
-      <main className="rpb-shell overflow-hidden print-a4">
-        <header className="rpb-topbar no-print flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-white md:px-6">
-          <h1 className="rpb-h-title text-xl font-semibold md:text-2xl">Quotation Builder</h1>
-          <div className="flex flex-wrap items-center gap-2">
-            <RpbUserActions />
-            <Link
-              href="/summary"
-              className="rounded-md border border-white/60 px-3 py-1.5 text-xs font-semibold text-white"
-            >
-              Back
-            </Link>
-          </div>
-        </header>
-
-        <div className="space-y-4 p-4 md:p-6">
+    <RpbPageFrame
+      maxWidthClassName="max-w-7xl"
+      shellClassName="print-a4"
+      headerClassName="no-print"
+    >
+      <div className="space-y-4 p-4 md:p-6">
           {masterLoading ? (
             <div className="rpb-section p-4 text-sm text-rpb-ink-soft">
               Memuat master data dari database...
@@ -625,12 +614,10 @@ export default function QuotationPage() {
               href="/summary"
               className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
             >
-              <FileText size={14} />
               Back to Summary
             </Link>
           </div>
-        </div>
-      </main>
+      </div>
 
       <style>{`
         .rpb-plain-editor {
@@ -669,6 +656,6 @@ export default function QuotationPage() {
           max-width: 100%;
         }
       `}</style>
-    </div>
+    </RpbPageFrame>
   );
 }

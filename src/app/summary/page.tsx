@@ -3,7 +3,7 @@
 import {
   formatRupiah,
 } from "@/lib/rpb-calculator";
-import { RpbUserActions } from "@/components/rpb-user-actions";
+import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
 import { buildSummaryLineItems } from "@/lib/rpb-line-items";
 import { saveSummaryHistory } from "@/lib/rpb-db";
@@ -270,14 +270,8 @@ export default function SummaryPage() {
   };
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-6xl p-4 md:px-10 md:py-5 lg:px-12">
-      <main className="rpb-shell rpb-compact overflow-hidden">
-        <header className="rpb-topbar flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-white md:px-6">
-          <h1 className="rpb-h-title text-xl font-semibold md:text-2xl">RPB</h1>
-          <RpbUserActions />
-        </header>
-
-        <div className="space-y-4 p-5 md:space-y-3 md:px-10 md:py-6 lg:px-12">
+    <RpbPageFrame shellClassName="rpb-compact">
+      <div className="space-y-4 p-5 md:space-y-3 md:px-10 md:py-6 lg:px-12">
           {masterLoading ? (
             <div className="rpb-section p-4 text-sm text-rpb-ink-soft">
               Memuat master data dari database...
@@ -509,8 +503,7 @@ export default function SummaryPage() {
               </button>
             </div>
           </div>
-        </div>
-      </main>
+      </div>
 
       {saveModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#15172b]/45 p-4 backdrop-blur-[2px]">
@@ -551,6 +544,6 @@ export default function SummaryPage() {
           </div>
         </div>
       ) : null}
-    </div>
+    </RpbPageFrame>
   );
 }

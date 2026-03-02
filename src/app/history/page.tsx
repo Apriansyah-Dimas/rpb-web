@@ -4,7 +4,7 @@ import { Trash2, Upload } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { RpbUserActions } from "@/components/rpb-user-actions";
+import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
 import { deleteSummaryHistory, fetchSummaryHistory } from "@/lib/rpb-db";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useRpbStore } from "@/store/rpb-store";
@@ -79,14 +79,8 @@ export default function HistoryPage() {
   };
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-6xl p-4 md:px-10 md:py-5 lg:px-12">
-      <main className="rpb-shell rpb-compact overflow-hidden">
-        <header className="rpb-topbar flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-white md:px-6">
-          <h1 className="rpb-h-title text-xl font-semibold md:text-2xl">Save History</h1>
-          <RpbUserActions />
-        </header>
-
-        <div className="space-y-4 p-5 md:px-10 md:py-6">
+    <RpbPageFrame shellClassName="rpb-compact">
+      <div className="space-y-4 p-5 md:px-10 md:py-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Link
               href="/summary"
@@ -160,8 +154,7 @@ export default function HistoryPage() {
               </div>
             )}
           </section>
-        </div>
-      </main>
-    </div>
+      </div>
+    </RpbPageFrame>
   );
 }
