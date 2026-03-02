@@ -25,8 +25,9 @@ export function RpbPageFrame({
     <div className={`min-h-screen w-full bg-rpb-primary ${containerClassName}`.trim()}>
       <RpbAppHeader className={headerClassName} />
       <main className={`relative z-0 min-h-screen ${contentOffsetClass}`}>
-        <div className={`rpb-shell relative z-0 -mt-px bg-white ${contentMinHeightClass} ${shellClassName}`.trim()}>
-          <div className={`bg-white px-3 sm:px-8 md:px-28 lg:px-40 xl:px-52 2xl:px-64 ${bottomPaddingClass}`.trim()}>
+        <div className={`rpb-shell relative z-0 -mt-[2px] bg-white ${contentMinHeightClass} ${shellClassName}`.trim()}>
+          <div className={`relative bg-white px-3 sm:px-8 md:px-28 lg:px-40 xl:px-52 2xl:px-64 ${bottomPaddingClass}`.trim()}>
+            <div className="pointer-events-none absolute top-0 right-0 left-0 h-px bg-white" />
             {children}
           </div>
         </div>
