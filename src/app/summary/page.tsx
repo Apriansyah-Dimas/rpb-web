@@ -10,7 +10,7 @@ import { saveSummaryHistory } from "@/lib/rpb-db";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useRpbStore } from "@/store/rpb-store";
 import { ArrowLeft, Download, FileText, History, Minus, Plus, Save } from "lucide-react";
-import autoTable from "jspdf-autotable";
+import autoTable, { type RowInput } from "jspdf-autotable";
 import jsPDF from "jspdf";
 import Link from "next/link";
 import type { FocusEvent, FormEvent } from "react";
@@ -212,11 +212,58 @@ export default function SummaryPage() {
       formatRupiah(item.hargaIdr),
       formatRupiah(item.hargaIdr * item.qty),
     ]);
+    const tableFoot: RowInput[] = calculationRows.map((row) => {
+      const fillColor = row.highlight
+        ? ([99, 101, 185] as [number, number, number])
+        : ([251, 251, 255] as [number, number, number]);
+      const textColor = row.highlight
+        ? ([255, 255, 255] as [number, number, number])
+        : ([75, 82, 122] as [number, number, number]);
+      const valueTextColor = row.highlight
+        ? ([255, 255, 255] as [number, number, number])
+        : ([31, 35, 64] as [number, number, number]);
+
+      return [
+        {
+          content: "",
+          colSpan: 6,
+          styles: {
+            fillColor,
+            lineColor: [217, 219, 239],
+            lineWidth: 0.15,
+          },
+        },
+        {
+          content: row.label,
+          styles: {
+            fillColor,
+            textColor,
+            halign: "right",
+            fontStyle: row.highlight ? "bold" : "normal",
+            lineColor: [217, 219, 239],
+            lineWidth: 0.15,
+          },
+        },
+        {
+          content: formatRupiah(row.value),
+          styles: {
+            fillColor,
+            textColor: valueTextColor,
+            halign: "right",
+            fontStyle: "bold",
+            lineColor: [217, 219, 239],
+            lineWidth: 0.15,
+          },
+        },
+      ] as RowInput;
+    });
 
     autoTable(doc, {
       startY: 45,
       head: tableHead,
       body: tableBody,
+      foot: tableFoot,
+      showFoot: "lastPage",
       theme: "grid",
       styles: {
         fontSize: 8.5,
@@ -230,55 +277,21 @@ export default function SummaryPage() {
         fontStyle: "bold",
       },
       columnStyles: {
-        0: { cellWidth: 10 },
-        1: { cellWidth: 22 },
-        2: { cellWidth: 48 },
-        3: { cellWidth: 16 },
-        4: { cellWidth: 28 },
-        5: { cellWidth: 12, halign: "right" },
+        0: { cellWidth: 10, halign: "center" },
+        1: { cellWidth: 22, halign: "left" },
+        2: { cellWidth: 48, halign: "left" },
+        3: { cellWidth: 16, halign: "left" },
+        4: { cellWidth: 28, halign: "left" },
+        5: { cellWidth: 12, halign: "center" },
         6: { cellWidth: 26, halign: "right" },
         7: { cellWidth: 28, halign: "right" },
       },
-    });
-
-    const lineItemsTable = (doc as jsPDF & { lastAutoTable?: { finalY: number } })
-      .lastAutoTable;
-    const summaryRows = [
-      ["Subtotal Items", formatRupiah(subtotalIdr)],
-      ["Stock Return", formatRupiah(stockReturnIdr)],
-      ["Marketing Cost", formatRupiah(marketingCostIdr)],
-      ["Services", formatRupiah(servicesIdr)],
-      ["Base After Adjust", formatRupiah(baseAfterAdjustIdr)],
-      ["Profit", formatRupiah(profitIdr)],
-      ["Grand Total", formatRupiah(grandTotalIdr)],
-    ];
-
-    autoTable(doc, {
-      startY: (lineItemsTable?.finalY ?? 45) + 7,
-      head: [["Ringkasan Perhitungan", "Nilai"]],
-      body: summaryRows,
-      theme: "grid",
-      styles: {
-        fontSize: 9,
-        cellPadding: 2.4,
-        lineColor: [217, 219, 239],
-        lineWidth: 0.15,
-      },
-      headStyles: {
-        fillColor: [99, 101, 185],
-        textColor: [255, 255, 255],
-        fontStyle: "bold",
-      },
-      columnStyles: {
-        0: { cellWidth: 80 },
-        1: { cellWidth: 55, halign: "right" },
-      },
       didParseCell: (data) => {
-        const grandTotalRowIndex = summaryRows.length - 1;
-        if (data.section === "body" && data.row.index === grandTotalRowIndex) {
+        if (data.section === "body" && data.column.index === 1) {
           data.cell.styles.fontStyle = "bold";
-          data.cell.styles.fillColor = [238, 240, 255];
-          data.cell.styles.textColor = [31, 35, 64];
+        }
+        if (data.section === "body" && data.column.index === 7) {
+          data.cell.styles.fontStyle = "bold";
         }
       },
     });

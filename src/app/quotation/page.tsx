@@ -151,7 +151,7 @@ export default function QuotationPage() {
 
     return `
       <div style="margin:16px 0;">
-        <table style="width:100%;table-layout:fixed;border-collapse:collapse;font-family:Arial,sans-serif;border:1px solid #d9dbef;border-radius:8px;overflow:hidden;">
+        <table style="width:100%;table-layout:fixed;border-collapse:collapse;font-family:Arial,sans-serif;border:1px solid #d9dbef;">
           <thead>
             <tr style="background:#6365b9;">
               <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:5%;">No</th>
@@ -516,6 +516,8 @@ export default function QuotationPage() {
           max-width: 100% !important;
           table-layout: fixed;
           border-collapse: collapse;
+          border-radius: 0 !important;
+          overflow: visible !important;
         }
         .rpb-plain-editor th,
         .rpb-plain-editor td {
