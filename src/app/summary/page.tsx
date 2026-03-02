@@ -601,26 +601,26 @@ export default function SummaryPage() {
             </div>
           </section>
 
-          <div className="no-print flex flex-wrap items-center justify-between gap-3">
+          <div className="no-print space-y-3">
             <Link
               href="/"
-              className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+              className="rpb-btn-ghost inline-flex h-11 items-center gap-2 px-4 py-2 text-sm font-semibold"
             >
               <ArrowLeft size={16} />
               Back
             </Link>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap">
               <Link
                 href="/quotation"
-                className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+                className="rpb-btn-ghost inline-flex h-11 items-center justify-center gap-2 px-3 py-2 text-sm font-semibold"
               >
                 <FileText size={15} />
                 Quotation
               </Link>
               <button
                 type="button"
-                className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+                className="rpb-btn-ghost inline-flex h-11 items-center justify-center gap-2 px-3 py-2 text-sm font-semibold"
                 onClick={openSaveModal}
                 disabled={saveBusy}
               >
@@ -629,14 +629,14 @@ export default function SummaryPage() {
               </button>
               <Link
                 href="/history"
-                className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+                className="rpb-btn-ghost inline-flex h-11 items-center justify-center gap-2 px-3 py-2 text-sm font-semibold"
               >
                 <History size={15} />
                 Save History
               </Link>
               <button
                 type="button"
-                className="rpb-btn-primary inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+                className="rpb-btn-primary col-span-2 inline-flex h-11 items-center justify-center gap-2 px-4 py-2 text-sm font-semibold md:col-span-1"
                 onClick={() => void downloadPdf()}
               >
                 <Download size={15} />

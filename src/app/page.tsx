@@ -337,6 +337,16 @@ export default function HomePage() {
 
             <div className="max-h-[300px] overflow-y-auto pr-1 md:max-h-[360px]">
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                <button
+                  type="button"
+                  className="rpb-grid-card rpb-custom-card flex min-h-[130px] items-center justify-center"
+                  onClick={openCustomModal}
+                  aria-label="Tambah custom item"
+                >
+                  <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-white/45 text-4xl leading-none">
+                    +
+                  </span>
+                </button>
                 {filteredOtherItems.map((item) => {
                   const currentQty = selectedOther[item.id] ?? 0;
 
@@ -372,16 +382,6 @@ export default function HomePage() {
                     </article>
                   );
                 })}
-                <button
-                  type="button"
-                  className="rpb-grid-card rpb-custom-card flex min-h-[130px] items-center justify-center"
-                  onClick={openCustomModal}
-                  aria-label="Tambah custom item"
-                >
-                  <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-white/45 text-4xl leading-none">
-                    +
-                  </span>
-                </button>
               </div>
             </div>
           </section>
