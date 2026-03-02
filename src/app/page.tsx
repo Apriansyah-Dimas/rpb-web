@@ -1,15 +1,18 @@
 "use client";
 
 import {
+  calculateKonstruksiBreakdown,
   calculateKonstruksiTotalIdr,
+  calculateProfileBreakdown,
   calculateProfileTotalIdr,
+  type CalculatedFixedItem,
   formatRupiah,
 } from "@/lib/rpb-calculator";
 import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
 import { useRpbStore } from "@/store/rpb-store";
 import type { DimensionKey, OtherItem, StockCategory } from "@/types/rpb";
-import { ArrowRight, Plus, Search } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronUp, Plus, Search } from "lucide-react";
 import Link from "next/link";
 import type { FocusEvent } from "react";
 import { useMemo, useState } from "react";
@@ -42,6 +45,60 @@ const parseNumberInput = (value: string): number => {
 const selectInputOnFocus = (event: FocusEvent<HTMLInputElement>) => {
   event.currentTarget.select();
 };
+
+const formatQty = (value: number): string => {
+  if (!Number.isFinite(value)) {
+    return "0";
+  }
+
+  if (Number.isInteger(value)) {
+    return String(value);
+  }
+
+  return value.toLocaleString("id-ID", { maximumFractionDigits: 3 });
+};
+
+const FixedBreakdownPanel = ({
+  items,
+  emptyText,
+  totalLabel,
+  totalValue,
+}: {
+  items: CalculatedFixedItem[];
+  emptyText: string;
+  totalLabel: string;
+  totalValue: number;
+}) => (
+  <div className="mt-3 overflow-hidden rounded-xl border border-rpb-border bg-white">
+    {items.length === 0 ? (
+      <p className="px-4 py-3 text-xs text-rpb-ink-soft">{emptyText}</p>
+    ) : (
+      <div className="divide-y divide-rpb-border">
+        {items.map((item) => (
+          <div
+            key={item.id}
+            className="grid gap-1 px-4 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-3"
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">{item.name}</p>
+              <p className="text-xs text-rpb-ink-soft">
+                {formatQty(item.qty)} {item.unit} x {formatRupiah(item.unitPriceIdr)}
+              </p>
+            </div>
+            <p className="text-sm font-semibold text-foreground md:text-right">
+              {formatRupiah(item.totalIdr)}
+            </p>
+          </div>
+        ))}
+      </div>
+    )}
+
+    <div className="flex items-center justify-between border-t border-rpb-border bg-[#fbfbff] px-4 py-2 text-sm font-semibold">
+      <span>{totalLabel}</span>
+      <span>{formatRupiah(totalValue)}</span>
+    </div>
+  </div>
+);
 
 const DimensionInput = ({
   label,
@@ -92,6 +149,8 @@ export default function HomePage() {
   const [customJenisSpec, setCustomJenisSpec] = useState("");
   const [customHargaIdr, setCustomHargaIdr] = useState(0);
   const [customQty, setCustomQty] = useState(1);
+  const [profileBreakdownOpen, setProfileBreakdownOpen] = useState(false);
+  const [konstruksiBreakdownOpen, setKonstruksiBreakdownOpen] = useState(false);
 
   const otherItems = useMemo(() => masterData?.otherItems ?? [], [masterData?.otherItems]);
   const filterOptions = useMemo<OtherFilter[]>(() => {
@@ -104,6 +163,14 @@ export default function HomePage() {
     [dimensions, masterData?.profileItems, panelThickness],
   );
 
+  const profileBreakdown = useMemo(
+    () =>
+      calculateProfileBreakdown(dimensions, panelThickness, masterData?.profileItems ?? []).filter(
+        (item) => item.qty > 0,
+      ),
+    [dimensions, masterData?.profileItems, panelThickness],
+  );
+
   const konstruksiIdr = useMemo(
     () =>
       calculateKonstruksiTotalIdr(
@@ -111,6 +178,16 @@ export default function HomePage() {
         panelThickness,
         masterData?.konstruksiItems ?? [],
       ),
+    [dimensions, masterData?.konstruksiItems, panelThickness],
+  );
+
+  const konstruksiBreakdown = useMemo(
+    () =>
+      calculateKonstruksiBreakdown(
+        dimensions,
+        panelThickness,
+        masterData?.konstruksiItems ?? [],
+      ).filter((item) => item.qty > 0),
     [dimensions, masterData?.konstruksiItems, panelThickness],
   );
 
@@ -263,7 +340,19 @@ export default function HomePage() {
           </div>
 
           <section className="rpb-key-card p-4 md:p-5">
-            <h2 className="rpb-h-title mb-2 text-base font-semibold md:text-lg">Profile</h2>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h2 className="rpb-h-title text-base font-semibold md:text-lg">Profile</h2>
+              <button
+                type="button"
+                className="rpb-btn-ghost inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold"
+                onClick={() => setProfileBreakdownOpen((current) => !current)}
+                aria-expanded={profileBreakdownOpen}
+                aria-controls="profile-breakdown"
+              >
+                <span>Ringkasan</span>
+                {profileBreakdownOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+            </div>
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft md:w-64">
                 Tebal Panel
@@ -280,23 +369,51 @@ export default function HomePage() {
               </label>
               <div className="rpb-price-pill inline-flex w-full items-center justify-between gap-4 px-5 py-3 text-sm font-semibold md:w-auto md:min-w-72">
                 <span>Harga Profile</span>
-                <span className="text-base">
-                  {formatRupiah(profileIdr)}
-                </span>
+                <span className="text-base">{formatRupiah(profileIdr)}</span>
               </div>
             </div>
+            {profileBreakdownOpen ? (
+              <div id="profile-breakdown">
+                <FixedBreakdownPanel
+                  items={profileBreakdown}
+                  emptyText="Belum ada item profile yang terhitung."
+                  totalLabel="Total Profile"
+                  totalValue={profileIdr}
+                />
+              </div>
+            ) : null}
           </section>
 
           <section className="rpb-key-card p-4 md:p-5">
-            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="rpb-h-title text-base font-semibold md:text-lg">Konstruksi</h2>
+              <button
+                type="button"
+                className="rpb-btn-ghost inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold"
+                onClick={() => setKonstruksiBreakdownOpen((current) => !current)}
+                aria-expanded={konstruksiBreakdownOpen}
+                aria-controls="konstruksi-breakdown"
+              >
+                <span>Ringkasan</span>
+                {konstruksiBreakdownOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+            </div>
+            <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div className="rpb-price-pill inline-flex w-full items-center justify-between gap-4 px-5 py-3 text-sm font-semibold md:w-auto md:min-w-72">
                 <span>Total Konstruksi</span>
-                <span className="text-base">
-                  {formatRupiah(konstruksiIdr)}
-                </span>
+                <span className="text-base">{formatRupiah(konstruksiIdr)}</span>
               </div>
             </div>
+            {konstruksiBreakdownOpen ? (
+              <div id="konstruksi-breakdown">
+                <FixedBreakdownPanel
+                  items={konstruksiBreakdown}
+                  emptyText="Belum ada item konstruksi yang terhitung."
+                  totalLabel="Total Konstruksi"
+                  totalValue={konstruksiIdr}
+                />
+              </div>
+            ) : null}
           </section>
 
           <section className="rpb-section p-4 md:p-4">
