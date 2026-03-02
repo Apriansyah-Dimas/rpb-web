@@ -9,7 +9,7 @@ export default async function AdminUsersPage() {
 
   return (
     <RpbPageFrame>
-      <div className="space-y-4 p-4 pb-0 md:px-6 md:pt-6">
+      <div className="space-y-4 pt-4 pb-0 md:pt-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="rpb-h-title text-lg font-semibold">User Management</h2>
           <Link

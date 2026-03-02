@@ -23,7 +23,7 @@ export function RpbPageFrame({
     <div className={`min-h-screen w-full ${bottomPaddingClass} ${containerClassName}`.trim()}>
       <main className={`rpb-shell min-h-screen overflow-hidden ${shellClassName}`.trim()}>
         <RpbAppHeader className={headerClassName} />
-        {children}
+        <div className="px-6 sm:px-8 md:px-12 lg:px-16 xl:px-20">{children}</div>
       </main>
       {showBottomNav ? <RpbBottomNav /> : null}
     </div>

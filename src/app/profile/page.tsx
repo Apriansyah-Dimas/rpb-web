@@ -72,7 +72,7 @@ export default function ProfilePage() {
 
   return (
     <RpbPageFrame shellClassName="rpb-compact">
-      <div className="space-y-4 p-5 md:px-10 md:py-6">
+      <div className="space-y-4 py-5 md:py-6">
         {loading || busy ? (
           <div className="rpb-section p-4 text-sm text-rpb-ink-soft">Memuat profil...</div>
         ) : null}

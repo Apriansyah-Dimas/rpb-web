@@ -209,7 +209,7 @@ export default function HomePage() {
 
   return (
     <RpbPageFrame shellClassName="rpb-compact">
-      <div className="space-y-4 p-3 sm:p-4 md:space-y-3 md:px-6 md:py-5">
+      <div className="space-y-4 py-4 md:space-y-3 md:py-5">
           {masterLoading ? (
             <div className="rpb-section p-4 text-sm text-rpb-ink-soft">
               Memuat master data dari database...

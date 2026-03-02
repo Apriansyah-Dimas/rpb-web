@@ -271,7 +271,7 @@ export default function SummaryPage() {
 
   return (
     <RpbPageFrame shellClassName="rpb-compact">
-      <div className="space-y-4 p-5 md:space-y-3 md:px-10 md:py-6 lg:px-12">
+      <div className="space-y-4 py-5 md:space-y-3 md:py-6">
           {masterLoading ? (
             <div className="rpb-section p-4 text-sm text-rpb-ink-soft">
               Memuat master data dari database...
