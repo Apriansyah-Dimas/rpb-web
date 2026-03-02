@@ -1,7 +1,7 @@
-const CACHE_NAME = "rpb-estimator-v1";
+const CACHE_NAME = "rpb-estimator-v2";
 const OFFLINE_URL = "/offline";
 const PRECACHE_URLS = [
-  "/",
+  "/login",
   OFFLINE_URL,
   "/manifest.webmanifest",
   "/icons/icon-192.png",
@@ -50,7 +50,7 @@ self.addEventListener("fetch", (event) => {
           return offlinePage;
         }
 
-        return caches.match("/");
+        return caches.match("/login");
       }),
     );
     return;

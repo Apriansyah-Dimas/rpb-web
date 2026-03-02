@@ -1,7 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSupabaseSession } from "@/lib/supabase/middleware";
 
-const PUBLIC_PATHS = new Set(["/login"]);
+const PUBLIC_PATHS = new Set([
+  "/login",
+  "/manifest.webmanifest",
+  "/sw.js",
+  "/offline",
+]);
 const PUBLIC_PREFIXES = ["/_next", "/favicon.ico"];
 
 const isPublicPath = (pathname: string): boolean =>
