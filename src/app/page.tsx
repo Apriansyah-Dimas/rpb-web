@@ -349,7 +349,7 @@ export default function HomePage() {
                 aria-expanded={profileBreakdownOpen}
                 aria-controls="profile-breakdown"
               >
-                <span>Ringkasan</span>
+                <span>Detail</span>
                 {profileBreakdownOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </button>
             </div>
@@ -394,12 +394,12 @@ export default function HomePage() {
                 aria-expanded={konstruksiBreakdownOpen}
                 aria-controls="konstruksi-breakdown"
               >
-                <span>Ringkasan</span>
+                <span>Detail</span>
                 {konstruksiBreakdownOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </button>
             </div>
             <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <div className="rpb-price-pill inline-flex w-full items-center justify-between gap-4 px-5 py-3 text-sm font-semibold md:w-auto md:min-w-72">
+              <div className="rpb-price-pill inline-flex w-full items-center justify-between gap-4 px-5 py-3 text-sm font-semibold md:ml-auto md:w-auto md:min-w-72">
                 <span>Total Konstruksi</span>
                 <span className="text-base">{formatRupiah(konstruksiIdr)}</span>
               </div>
