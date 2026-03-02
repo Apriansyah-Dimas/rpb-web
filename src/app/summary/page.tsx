@@ -354,42 +354,105 @@ export default function SummaryPage() {
 
           <section className="rpb-section p-4 md:p-4">
             <h3 className="rpb-h-title mb-2 text-base font-semibold">Line Items</h3>
-            <table className="rpb-table w-full text-xs md:text-sm" style={{ tableLayout: "fixed" }}>
-              <thead>
-                <tr>
-                  <th style={{ width: "28px", padding: "6px 4px", textAlign: "center" }}>No</th>
-                  <th style={{ padding: "6px 4px" }}>Item</th>
-                  <th style={{ padding: "6px 4px" }}>Spec</th>
-                  <th style={{ width: "70px", padding: "6px 4px", textAlign: "center" }}>Qty</th>
-                  <th style={{ width: "84px", padding: "6px 4px", textAlign: "right" }}>Harga</th>
-                  <th style={{ width: "90px", padding: "6px 4px", textAlign: "right" }}>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lineItems.map((item, index) => {
-                  const isEditable = item.id.startsWith("stock-") || item.id.startsWith("custom-");
-                  const lineTotalIdr = item.qty * item.hargaIdr;
+            <div className="hidden md:block">
+              <table className="rpb-table w-full text-xs lg:text-sm" style={{ tableLayout: "fixed" }}>
+                <thead>
+                  <tr>
+                    <th style={{ width: "4%", textAlign: "center" }}>No</th>
+                    <th style={{ width: "31%" }}>Item</th>
+                    <th style={{ width: "18%" }}>Spec</th>
+                    <th style={{ width: "15%", textAlign: "center" }}>Qty</th>
+                    <th style={{ width: "16%", textAlign: "right" }}>Harga</th>
+                    <th style={{ width: "16%", textAlign: "right" }}>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lineItems.map((item, index) => {
+                    const isEditable =
+                      item.id.startsWith("stock-") || item.id.startsWith("custom-");
+                    const lineTotalIdr = item.qty * item.hargaIdr;
 
-                  return (
-                    <tr key={item.id}>
-                      <td style={{ padding: "6px 4px", textAlign: "center", verticalAlign: "top" }}>
-                        {index + 1}
-                      </td>
-                      <td style={{ padding: "6px 4px", verticalAlign: "top" }}>
-                        <p className="text-[11px] font-semibold leading-tight md:text-sm">
-                          {item.jenis}
+                    return (
+                      <tr key={item.id}>
+                        <td className="text-center align-top">{index + 1}</td>
+                        <td className="align-top">
+                          <p className="text-xs font-semibold leading-tight lg:text-sm">
+                            {item.jenis}
+                          </p>
+                          <p className="mt-0.5 text-[11px] leading-tight text-rpb-ink-soft lg:text-xs">
+                            {item.keterangan}
+                          </p>
+                        </td>
+                        <td className="align-top">
+                          <p className="text-[11px] leading-tight lg:text-xs">{item.jenisSpec}</p>
+                          <p className="mt-0.5 text-[11px] leading-tight text-rpb-ink-soft lg:text-xs">
+                            {item.satuan}
+                          </p>
+                        </td>
+                        <td className="align-top text-center">
+                          {isEditable ? (
+                            <div className="inline-flex items-center gap-1">
+                              <button
+                                type="button"
+                                className="rpb-btn-ghost inline-flex h-6 w-6 items-center justify-center"
+                                onClick={() => updateQty(item.id, item.qty - 1)}
+                                aria-label={`Kurangi qty ${item.jenisSpec}`}
+                              >
+                                <Minus size={11} />
+                              </button>
+                              <span className="min-w-5 text-center text-xs font-semibold">
+                                {item.qty}
+                              </span>
+                              <button
+                                type="button"
+                                className="rpb-btn-primary inline-flex h-6 w-6 items-center justify-center"
+                                onClick={() => updateQty(item.id, item.qty + 1)}
+                                aria-label={`Tambah qty ${item.jenisSpec}`}
+                              >
+                                <Plus size={11} />
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-xs font-semibold">{item.qty}</span>
+                          )}
+                        </td>
+                        <td className="align-top text-right text-[11px] break-words lg:text-xs">
+                          {formatRupiah(item.hargaIdr)}
+                        </td>
+                        <td className="align-top text-right text-[11px] font-semibold break-words lg:text-xs">
+                          {formatRupiah(lineTotalIdr)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="space-y-2 md:hidden">
+              {lineItems.map((item, index) => {
+                const isEditable = item.id.startsWith("stock-") || item.id.startsWith("custom-");
+                const lineTotalIdr = item.qty * item.hargaIdr;
+
+                return (
+                  <article
+                    key={item.id}
+                    className="rounded-xl border border-rpb-border bg-white px-3 py-2"
+                  >
+                    <div className="mb-1 flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-semibold leading-tight">
+                          {index + 1}. {item.jenis}
                         </p>
-                        <p className="mt-0.5 text-[10px] leading-tight text-rpb-ink-soft md:text-xs">
+                        <p className="text-[10px] leading-tight text-rpb-ink-soft">
                           {item.keterangan}
                         </p>
-                      </td>
-                      <td style={{ padding: "6px 4px", verticalAlign: "top" }}>
-                        <p className="text-[10px] leading-tight md:text-xs">{item.jenisSpec}</p>
-                        <p className="mt-0.5 text-[10px] leading-tight text-rpb-ink-soft md:text-xs">
-                          {item.satuan}
+                        <p className="mt-0.5 text-[10px] leading-tight text-rpb-ink-soft">
+                          {item.jenisSpec} | {item.satuan}
                         </p>
-                      </td>
-                      <td style={{ padding: "6px 4px", textAlign: "center", verticalAlign: "top" }}>
+                      </div>
+
+                      <div className="shrink-0">
                         {isEditable ? (
                           <div className="inline-flex items-center gap-1">
                             <button
@@ -400,7 +463,7 @@ export default function SummaryPage() {
                             >
                               <Minus size={11} />
                             </button>
-                            <span className="min-w-5 text-center text-[11px] font-semibold md:text-xs">
+                            <span className="min-w-4 text-center text-[11px] font-semibold">
                               {item.qty}
                             </span>
                             <button
@@ -413,36 +476,29 @@ export default function SummaryPage() {
                             </button>
                           </div>
                         ) : (
-                          <span className="text-[11px] font-semibold md:text-xs">{item.qty}</span>
+                          <span className="text-[11px] font-semibold">Qty {item.qty}</span>
                         )}
-                      </td>
-                      <td
-                        className="text-[10px] md:text-xs"
-                        style={{
-                          padding: "6px 4px",
-                          textAlign: "right",
-                          verticalAlign: "top",
-                          overflowWrap: "anywhere",
-                        }}
-                      >
-                        {formatRupiah(item.hargaIdr)}
-                      </td>
-                      <td
-                        className="text-[10px] font-semibold md:text-xs"
-                        style={{
-                          padding: "6px 4px",
-                          textAlign: "right",
-                          verticalAlign: "top",
-                          overflowWrap: "anywhere",
-                        }}
-                      >
-                        {formatRupiah(lineTotalIdr)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 border-t border-rpb-border pt-1.5 text-[10px]">
+                      <div>
+                        <p className="text-rpb-ink-soft">Harga</p>
+                        <p className="font-semibold leading-tight break-words">
+                          {formatRupiah(item.hargaIdr)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-rpb-ink-soft">Total</p>
+                        <p className="font-semibold leading-tight break-words">
+                          {formatRupiah(lineTotalIdr)}
+                        </p>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
 
             <div className="mt-3 grid gap-2 text-sm md:grid-cols-2">
               <div className="rpb-section p-4">
