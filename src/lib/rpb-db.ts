@@ -63,13 +63,13 @@ export const fetchRpbMasterData = async (supabase: SupabaseClient): Promise<RpbM
     await Promise.all([
       supabase
         .from("rpb_profile_items")
-        .select("*"),
+        .select("id, code, name, unit, sort_order, formula_expr, price_idr_30, price_idr_45, is_active"),
       supabase
         .from("rpb_konstruksi_items")
-        .select("*"),
+        .select("id, code, name, unit, sort_order, formula_expr, unit_price_idr, is_active"),
       supabase
         .from("rpb_other_items")
-        .select("*")
+        .select("id, name, category, model, unit, price_idr, is_active")
         .order("category", { ascending: true })
         .order("name", { ascending: true }),
     ]);
@@ -100,6 +100,11 @@ export const fetchCurrentUserRole = async (
 
   if (!user) {
     return null;
+  }
+
+  const metadataRole = user.user_metadata?.role;
+  if (metadataRole === "admin" || metadataRole === "user") {
+    return metadataRole;
   }
 
   const { data, error } = await supabase
