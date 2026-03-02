@@ -131,7 +131,7 @@ export default function QuotationPage() {
   const generateRpbTableHtml = () => {
     let rows = "";
     const cellBaseStyle =
-      "padding:4px 5px;border-bottom:1px solid #eceef8;font-size:9px;line-height:1.35;overflow-wrap:anywhere;word-break:break-word;";
+      "padding:4px 5px;border-bottom:1px solid #eceef8;font-size:8.5pt;line-height:1.3;overflow-wrap:anywhere;word-break:break-word;";
 
     const categories = [
       { key: "PROFILE", label: "Profile" },
@@ -189,39 +189,39 @@ export default function QuotationPage() {
         <table style="width:100%;table-layout:fixed;border-collapse:collapse;font-family:Arial,sans-serif;border:1px solid #d9dbef;border-radius:8px;overflow:hidden;">
           <thead>
             <tr style="background:#6365b9;">
-              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9px;width:24px;">No</th>
-              <th style="padding:5px 4px;color:#fff;text-align:left;font-size:9px;">Item</th>
-              <th style="padding:5px 4px;color:#fff;text-align:left;font-size:9px;">Spec</th>
-              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9px;width:44px;">Qty</th>
-              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9px;width:68px;">Harga</th>
-              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9px;width:68px;">Total</th>
+              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:24px;">No</th>
+              <th style="padding:5px 4px;color:#fff;text-align:left;font-size:9pt;">Item</th>
+              <th style="padding:5px 4px;color:#fff;text-align:left;font-size:9pt;">Spec</th>
+              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9pt;width:44px;">Qty</th>
+              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9pt;width:68px;">Harga</th>
+              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9pt;width:68px;">Total</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
           <tfoot>
             <tr>
-              <td colspan="5" style="padding:4px 5px;text-align:right;border-top:1px solid #d9dbef;font-size:9px;">Subtotal</td>
-              <td style="padding:4px 5px;text-align:right;border-top:1px solid #d9dbef;font-size:9px;font-weight:600;">${escapeHtml(formatRupiah(subtotalIdr))}</td>
+              <td colspan="5" style="padding:4px 5px;text-align:right;border-top:1px solid #d9dbef;font-size:9pt;">Subtotal</td>
+              <td style="padding:4px 5px;text-align:right;border-top:1px solid #d9dbef;font-size:9pt;font-weight:600;">${escapeHtml(formatRupiah(subtotalIdr))}</td>
             </tr>
             <tr>
-              <td colspan="5" style="padding:4px 5px;text-align:right;font-size:9px;color:#555;">Stock Return (${adjustments.stockReturn}%)</td>
-              <td style="padding:4px 5px;text-align:right;font-size:9px;">${escapeHtml(formatRupiah(stockReturnIdr))}</td>
+              <td colspan="5" style="padding:4px 5px;text-align:right;font-size:9pt;color:#555;">Stock Return (${adjustments.stockReturn}%)</td>
+              <td style="padding:4px 5px;text-align:right;font-size:9pt;">${escapeHtml(formatRupiah(stockReturnIdr))}</td>
             </tr>
             <tr>
-              <td colspan="5" style="padding:4px 5px;text-align:right;font-size:9px;color:#555;">Marketing Cost (${adjustments.marketingCost}%)</td>
-              <td style="padding:4px 5px;text-align:right;font-size:9px;">${escapeHtml(formatRupiah(marketingCostIdr))}</td>
+              <td colspan="5" style="padding:4px 5px;text-align:right;font-size:9pt;color:#555;">Marketing Cost (${adjustments.marketingCost}%)</td>
+              <td style="padding:4px 5px;text-align:right;font-size:9pt;">${escapeHtml(formatRupiah(marketingCostIdr))}</td>
             </tr>
             <tr>
-              <td colspan="5" style="padding:4px 5px;text-align:right;font-size:9px;color:#555;">Services (${adjustments.services}%)</td>
-              <td style="padding:4px 5px;text-align:right;font-size:9px;">${escapeHtml(formatRupiah(servicesIdr))}</td>
+              <td colspan="5" style="padding:4px 5px;text-align:right;font-size:9pt;color:#555;">Services (${adjustments.services}%)</td>
+              <td style="padding:4px 5px;text-align:right;font-size:9pt;">${escapeHtml(formatRupiah(servicesIdr))}</td>
             </tr>
             <tr>
-              <td colspan="5" style="padding:4px 5px;text-align:right;font-size:9px;color:#555;">Profit (${adjustments.profit}%)</td>
-              <td style="padding:4px 5px;text-align:right;font-size:9px;">${escapeHtml(formatRupiah(profitIdr))}</td>
+              <td colspan="5" style="padding:4px 5px;text-align:right;font-size:9pt;color:#555;">Profit (${adjustments.profit}%)</td>
+              <td style="padding:4px 5px;text-align:right;font-size:9pt;">${escapeHtml(formatRupiah(profitIdr))}</td>
             </tr>
             <tr style="background:#6365b9;">
-              <td colspan="5" style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:9px;">GRAND TOTAL</td>
-              <td style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:10px;">${escapeHtml(formatRupiah(grandTotalIdr))}</td>
+              <td colspan="5" style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:9pt;">GRAND TOTAL</td>
+              <td style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:10pt;">${escapeHtml(formatRupiah(grandTotalIdr))}</td>
             </tr>
           </tfoot>
         </table>
@@ -589,7 +589,8 @@ export default function QuotationPage() {
           </section>
 
           <section className="rpb-section rpb-paper-wrap p-2 sm:p-3">
-            <div className="rpb-doc-canvas">
+            <div className="rpb-quotation-stage">
+              <div className="rpb-doc-canvas rpb-quotation-canvas">
               <div
                 ref={editorRef}
                 contentEditable
@@ -598,6 +599,7 @@ export default function QuotationPage() {
                 className="rpb-plain-editor min-h-[72vh] outline-none"
                 data-placeholder="Ketik isi penawaran di sini, lalu klik 'Insert Tabel RPB' untuk memasukkan tabel harga otomatis..."
               />
+              </div>
             </div>
           </section>
 
@@ -612,10 +614,24 @@ export default function QuotationPage() {
       </div>
 
       <style>{`
+        .rpb-quotation-stage {
+          display: flex;
+          justify-content: center;
+          overflow-x: hidden;
+        }
+        .rpb-quotation-canvas {
+          width: min(100%, 210mm);
+          min-height: 297mm;
+          padding: 10mm;
+          border: 1px solid #e2e6f3;
+          border-radius: 0;
+          background: #fff;
+          box-shadow: 0 12px 30px rgba(33, 39, 89, 0.12);
+        }
         .rpb-plain-editor {
           color: #1f2340;
-          font-size: 13px;
-          line-height: 1.6;
+          font-size: 11pt;
+          line-height: 1.45;
           font-family: Arial, sans-serif;
         }
         .rpb-plain-editor:empty:before {
@@ -624,19 +640,19 @@ export default function QuotationPage() {
           pointer-events: none;
         }
         .rpb-plain-editor h1 {
-          font-size: 1.3rem;
+          font-size: 18pt;
           font-weight: 800;
           margin: 0.8rem 0 0.45rem;
           color: #1f2340;
         }
         .rpb-plain-editor h2 {
-          font-size: 1.1rem;
+          font-size: 16pt;
           font-weight: 700;
           margin: 0.75rem 0 0.35rem;
           color: #2d3173;
         }
         .rpb-plain-editor h3 {
-          font-size: 0.98rem;
+          font-size: 13pt;
           font-weight: 700;
           margin: 0.65rem 0 0.3rem;
           color: #4548a8;
@@ -652,22 +668,23 @@ export default function QuotationPage() {
         }
         .rpb-plain-editor th,
         .rpb-plain-editor td {
-          padding: 4px !important;
-          font-size: 9px !important;
+          padding: 5px !important;
+          font-size: 8.5pt !important;
           line-height: 1.3 !important;
           overflow-wrap: anywhere;
           word-break: break-word;
           white-space: normal;
         }
-        @media (min-width: 768px) {
-          .rpb-plain-editor {
-            font-size: 14px;
-            line-height: 1.7;
+        @media (max-width: 820px) {
+          .rpb-quotation-canvas {
+            min-height: auto;
+            padding: 7mm;
+            box-shadow: none;
           }
-          .rpb-plain-editor th,
-          .rpb-plain-editor td {
-            padding: 5px !important;
-            font-size: 10px !important;
+        }
+        @media (min-width: 821px) {
+          .rpb-plain-editor {
+            font-size: 11pt;
           }
         }
       `}</style>
