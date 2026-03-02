@@ -24,11 +24,11 @@ export function RpbPageFrame({
   return (
     <div className={`min-h-screen w-full bg-rpb-primary ${containerClassName}`.trim()}>
       <RpbAppHeader className={headerClassName} />
-      <div className="no-print pointer-events-none fixed top-[72px] right-0 left-0 z-[55] md:top-[82px]">
+      <div className="no-print pointer-events-none fixed top-[72px] right-0 left-0 z-[58] md:top-[82px]">
         <div className="h-5 rounded-t-[28px] bg-white md:h-6 md:rounded-t-[34px]" />
       </div>
-      <main className={`min-h-screen ${contentOffsetClass}`}>
-        <div className={`rpb-shell bg-white ${contentMinHeightClass} ${shellClassName}`.trim()}>
+      <main className={`relative z-0 min-h-screen ${contentOffsetClass}`}>
+        <div className={`rpb-shell relative z-0 -mt-px bg-white ${contentMinHeightClass} ${shellClassName}`.trim()}>
           <div className={`bg-white px-3 sm:px-8 md:px-28 lg:px-40 xl:px-52 2xl:px-64 ${bottomPaddingClass}`.trim()}>
             {children}
           </div>
