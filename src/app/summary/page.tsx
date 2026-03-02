@@ -506,12 +506,12 @@ export default function SummaryPage() {
       </div>
 
       {saveModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#15172b]/45 p-4 backdrop-blur-[2px]">
-          <div className="w-full max-w-lg overflow-hidden rounded-xl border border-rpb-border bg-white shadow-xl">
+        <div className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-[#15172b]/45 p-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] backdrop-blur-[2px] md:items-center md:pb-6">
+          <div className="flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-rpb-border bg-white shadow-xl">
             <div className="rpb-topbar px-5 py-4 text-white">
               <h3 className="rpb-h-title text-lg font-semibold">Save History</h3>
             </div>
-            <form className="space-y-4 p-5" onSubmit={handleSaveModalSubmit}>
+            <form className="space-y-4 overflow-y-auto p-5" onSubmit={handleSaveModalSubmit}>
               <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
                 Nama history (opsional)
                 <input

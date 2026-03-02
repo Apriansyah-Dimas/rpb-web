@@ -398,12 +398,12 @@ export default function HomePage() {
       </div>
 
       {modalItem ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#15172b]/45 p-4 backdrop-blur-[2px]">
-          <div className="w-full max-w-xl overflow-hidden rounded-xl border border-rpb-border bg-white shadow-xl">
+        <div className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-[#15172b]/45 p-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] backdrop-blur-[2px] md:items-center md:pb-6">
+          <div className="flex max-h-[calc(100dvh-2rem)] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-rpb-border bg-white shadow-xl">
             <div className="rpb-topbar px-5 py-4 text-white">
               <h3 className="rpb-h-title text-lg font-semibold">{modalItem.name}</h3>
             </div>
-            <div className="space-y-5 p-5">
+            <div className="space-y-5 overflow-y-auto p-5">
               <div className="rpb-section p-4">
                 <p className="mb-1 text-sm text-rpb-ink-soft">Price</p>
                 <p className="text-2xl font-semibold">
@@ -473,12 +473,12 @@ export default function HomePage() {
       ) : null}
 
       {customModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#15172b]/45 p-4 backdrop-blur-[2px]">
-          <div className="w-full max-w-xl overflow-hidden rounded-xl border border-rpb-border bg-white shadow-xl">
+        <div className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-[#15172b]/45 p-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] backdrop-blur-[2px] md:items-center md:pb-6">
+          <div className="flex max-h-[calc(100dvh-2rem)] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-rpb-border bg-white shadow-xl">
             <div className="rpb-topbar px-5 py-4 text-white">
               <h3 className="rpb-h-title text-lg font-semibold">Custom Item</h3>
             </div>
-            <div className="space-y-4 p-5">
+            <div className="space-y-4 overflow-y-auto p-5">
               <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
                 Jenis
                 <input
