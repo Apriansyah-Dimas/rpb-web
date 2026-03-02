@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { isInvalidAuthSessionError } from "@/lib/supabase/auth-errors";
 
 const getSafeNextPath = (value: string | null): string => {
   if (!value || !value.startsWith("/")) {
@@ -30,7 +31,14 @@ function LoginPageContent() {
     void (async () => {
       const {
         data: { user },
+        error,
       } = await supabase.auth.getUser();
+
+      if (isInvalidAuthSessionError(error)) {
+        await supabase.auth.signOut({ scope: "local" });
+        return;
+      }
+
       if (user) {
         router.replace(nextPath);
       }

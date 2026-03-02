@@ -1,6 +1,20 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { supabaseAnonKey, supabaseUrl } from "@/lib/supabase/env";
+import { isInvalidAuthSessionError } from "@/lib/supabase/auth-errors";
+
+const clearSupabaseAuthCookies = (request: NextRequest, response: NextResponse): void => {
+  request.cookies
+    .getAll()
+    .filter((cookie) => cookie.name.startsWith("sb-"))
+    .forEach((cookie) => {
+      request.cookies.delete(cookie.name);
+      response.cookies.set(cookie.name, "", {
+        maxAge: 0,
+        path: "/",
+      });
+    });
+};
 
 export const updateSupabaseSession = async (request: NextRequest) => {
   let response = NextResponse.next({
@@ -38,7 +52,11 @@ export const updateSupabaseSession = async (request: NextRequest) => {
     },
   });
 
-  await supabase.auth.getUser();
+  const { error } = await supabase.auth.getUser();
+
+  if (isInvalidAuthSessionError(error)) {
+    clearSupabaseAuthCookies(request, response);
+  }
 
   return response;
 };

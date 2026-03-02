@@ -4,6 +4,7 @@ import type { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { fetchCurrentUserRole } from "@/lib/rpb-db";
+import { isInvalidAuthSessionError } from "@/lib/supabase/auth-errors";
 import type { UserRole } from "@/types/rpb";
 
 interface AuthSessionState {
@@ -51,7 +52,23 @@ export const useAuthSession = (): AuthSessionState => {
           const supabase = getSupabaseBrowserClient();
           const {
             data: { user: nextUser },
+            error: userError,
           } = await supabase.auth.getUser();
+
+          if (isInvalidAuthSessionError(userError)) {
+            await supabase.auth.signOut({ scope: "local" });
+            authCache = {
+              hydrated: true,
+              user: null,
+              role: null,
+              fetchedAt: Date.now(),
+            };
+            return;
+          }
+
+          if (userError) {
+            throw userError;
+          }
 
           const resolvedUser = nextUser ?? null;
           let nextRole: UserRole | null = authCache.role;

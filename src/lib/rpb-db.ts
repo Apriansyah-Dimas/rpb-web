@@ -1,4 +1,5 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
+import { isInvalidAuthSessionError } from "@/lib/supabase/auth-errors";
 import type {
   KonstruksiMasterItem,
   OtherItem,
@@ -95,10 +96,24 @@ export const fetchCurrentUserRole = async (
   supabase: SupabaseClient,
   userOverride?: User | null,
 ): Promise<UserRole | null> => {
-  const user =
-    userOverride === undefined
-      ? (await supabase.auth.getUser()).data.user ?? null
-      : userOverride;
+  let user = userOverride ?? null;
+
+  if (userOverride === undefined) {
+    const {
+      data: { user: authUser },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (isInvalidAuthSessionError(error)) {
+      return null;
+    }
+
+    if (error) {
+      throw error;
+    }
+
+    user = authUser ?? null;
+  }
 
   if (!user) {
     return null;
