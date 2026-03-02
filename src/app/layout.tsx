@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import { RegisterServiceWorker } from "@/components/pwa/register-service-worker";
+import type { Metadata, Viewport } from "next";
 import { Manrope, Sora } from "next/font/google";
 import "./globals.css";
 
@@ -15,6 +16,41 @@ const displayFont = Sora({
 export const metadata: Metadata = {
   title: "RPB Estimator",
   description: "Estimator biaya RPB berbasis data Excel",
+  applicationName: "RPB Estimator",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      {
+        url: "/icons/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        url: "/icons/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
+    apple: [
+      {
+        url: "/icons/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "RPB Estimator",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#6465b9",
 };
 
 export default function RootLayout({
@@ -25,6 +61,7 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body className={`${bodyFont.variable} ${displayFont.variable} antialiased`}>
+        <RegisterServiceWorker />
         <div className="page-bg">{children}</div>
       </body>
     </html>
