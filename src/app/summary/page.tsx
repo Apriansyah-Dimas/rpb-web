@@ -10,8 +10,7 @@ import { saveSummaryHistory } from "@/lib/rpb-db";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useRpbStore } from "@/store/rpb-store";
 import { ArrowLeft, Download, FileText, History, Minus, Plus, Save } from "lucide-react";
-import autoTable, { type RowInput } from "jspdf-autotable";
-import jsPDF from "jspdf";
+import type { RowInput } from "jspdf-autotable";
 import Link from "next/link";
 import type { FocusEvent, FormEvent } from "react";
 import { useMemo, useState } from "react";
@@ -177,7 +176,12 @@ export default function SummaryPage() {
     await submitSaveState(saveTitleInput);
   };
 
-  const downloadPdf = () => {
+  const downloadPdf = async () => {
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
+
     const doc = new jsPDF({
       orientation: "portrait",
       unit: "mm",
@@ -633,7 +637,7 @@ export default function SummaryPage() {
               <button
                 type="button"
                 className="rpb-btn-primary inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
-                onClick={downloadPdf}
+                onClick={() => void downloadPdf()}
               >
                 <Download size={15} />
                 Download PDF

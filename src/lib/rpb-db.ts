@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type {
   KonstruksiMasterItem,
   OtherItem,
@@ -93,10 +93,12 @@ export const fetchRpbMasterData = async (supabase: SupabaseClient): Promise<RpbM
 
 export const fetchCurrentUserRole = async (
   supabase: SupabaseClient,
+  userOverride?: User | null,
 ): Promise<UserRole | null> => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user =
+    userOverride === undefined
+      ? (await supabase.auth.getUser()).data.user ?? null
+      : userOverride;
 
   if (!user) {
     return null;

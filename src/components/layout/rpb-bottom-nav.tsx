@@ -55,8 +55,8 @@ export function RpbBottomNav() {
 
   return (
     <nav className="no-print fixed right-0 bottom-0 left-0 z-50 border-t border-rpb-border bg-white/98 shadow-[0_-8px_24px_rgba(30,36,88,0.14)] backdrop-blur">
-      <div className="w-full px-12 pt-1.5 pb-[calc(0.45rem+env(safe-area-inset-bottom))] sm:px-16 md:px-28 lg:px-40 xl:px-52 2xl:px-64">
-        <div className="mx-auto grid w-full max-w-[560px] grid-cols-4 gap-2">
+      <div className="w-full px-5 pt-1.5 pb-[calc(0.45rem+env(safe-area-inset-bottom))] sm:px-10 md:px-28 lg:px-40 xl:px-52 2xl:px-64">
+        <div className="mx-auto grid w-full max-w-[460px] grid-cols-4 gap-1.5 sm:max-w-[560px] sm:gap-2">
           {items.map((item) => {
             const Icon = item.icon;
             const active = isPathActive(pathname, item.key);
@@ -65,10 +65,10 @@ export function RpbBottomNav() {
               <Link
                 key={item.key}
                 href={item.href}
-                className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-[11px] font-semibold transition md:min-h-12 md:text-xs ${
+                className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg bg-transparent px-1 text-[11px] font-semibold transition-colors md:min-h-12 md:text-xs active:bg-transparent focus:bg-transparent hover:bg-transparent [-webkit-tap-highlight-color:transparent] ${
                   active
-                    ? "bg-rpb-primary-soft text-rpb-primary"
-                    : "text-rpb-ink-soft hover:bg-[#f3f5ff]"
+                    ? "text-rpb-primary"
+                    : "text-rpb-ink-soft hover:text-rpb-primary"
                 }`}
                 aria-current={active ? "page" : undefined}
               >

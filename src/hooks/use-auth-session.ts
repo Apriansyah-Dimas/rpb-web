@@ -18,13 +18,22 @@ interface AuthCache {
   hydrated: boolean;
   user: User | null;
   role: UserRole | null;
+  fetchedAt: number;
 }
 
 let authCache: AuthCache = {
   hydrated: false,
   user: null,
   role: null,
+  fetchedAt: 0,
 };
+
+let refreshPromise: Promise<void> | null = null;
+
+const AUTH_CACHE_MAX_AGE_MS = 10 * 60 * 1000;
+
+const isCacheFresh = (): boolean =>
+  authCache.hydrated && Date.now() - authCache.fetchedAt <= AUTH_CACHE_MAX_AGE_MS;
 
 export const useAuthSession = (): AuthSessionState => {
   const [user, setUser] = useState<User | null>(authCache.user);
@@ -36,39 +45,73 @@ export const useAuthSession = (): AuthSessionState => {
       setLoading(true);
     }
 
-    const supabase = getSupabaseBrowserClient();
-    const {
-      data: { user: nextUser },
-    } = await supabase.auth.getUser();
+    if (!refreshPromise) {
+      refreshPromise = (async () => {
+        try {
+          const supabase = getSupabaseBrowserClient();
+          const {
+            data: { user: nextUser },
+          } = await supabase.auth.getUser();
 
-    const resolvedUser = nextUser ?? null;
-    setUser(resolvedUser);
-    authCache.user = resolvedUser;
+          const resolvedUser = nextUser ?? null;
+          let nextRole: UserRole | null = authCache.role;
 
-    if (nextUser) {
-      try {
-        const nextRole = await fetchCurrentUserRole(supabase);
-        setRole(nextRole);
-        authCache.role = nextRole;
-      } catch {
-        // Keep previous role if role lookup fails temporarily.
-      }
-    } else {
-      setRole(null);
-      authCache.role = null;
+          if (resolvedUser) {
+            try {
+              nextRole = await fetchCurrentUserRole(supabase, resolvedUser);
+            } catch {
+              // Keep previous role if role lookup fails temporarily.
+            }
+          } else {
+            nextRole = null;
+          }
+
+          authCache = {
+            hydrated: true,
+            user: resolvedUser,
+            role: nextRole,
+            fetchedAt: Date.now(),
+          };
+        } catch {
+          // Keep cache state and retry on the next mount/refresh.
+          authCache = {
+            ...authCache,
+            hydrated: true,
+            fetchedAt: 0,
+          };
+        }
+      })().finally(() => {
+        refreshPromise = null;
+      });
     }
 
-    authCache.hydrated = true;
+    await refreshPromise;
+    setUser(authCache.user);
+    setRole(authCache.role);
     setLoading(false);
   };
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
 
-    queueMicrotask(() => {
-      void refreshInternal(true);
-    });
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+    if (!isCacheFresh()) {
+      queueMicrotask(() => {
+        void refreshInternal(true);
+      });
+    }
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      const nextUser = session?.user ?? null;
+      authCache = {
+        hydrated: true,
+        user: nextUser,
+        role: nextUser ? authCache.role : null,
+        fetchedAt: 0,
+      };
+      setUser(nextUser);
+      if (!nextUser) {
+        setRole(null);
+      }
       void refreshInternal(true);
     });
 
@@ -84,6 +127,7 @@ export const useAuthSession = (): AuthSessionState => {
       hydrated: true,
       user: null,
       role: null,
+      fetchedAt: Date.now(),
     };
     setUser(null);
     setRole(null);

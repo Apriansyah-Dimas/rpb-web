@@ -15,7 +15,6 @@ import {
   Table2,
   Underline,
 } from "lucide-react";
-import jsPDF from "jspdf";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -256,6 +255,7 @@ export default function QuotationPage() {
         throw new Error("Konten quotation kosong.");
       }
 
+      const { default: jsPDF } = await import("jspdf");
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
