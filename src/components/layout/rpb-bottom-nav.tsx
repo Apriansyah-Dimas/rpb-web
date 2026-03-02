@@ -55,27 +55,29 @@ export function RpbBottomNav() {
 
   return (
     <nav className="no-print fixed right-0 bottom-0 left-0 z-50 border-t border-rpb-border bg-white/98 shadow-[0_-8px_24px_rgba(30,36,88,0.14)] backdrop-blur">
-      <div className="grid w-full grid-cols-4 gap-1 px-8 pt-1.5 pb-[calc(0.45rem+env(safe-area-inset-bottom))] sm:px-10 md:px-16 lg:px-24 xl:px-32">
-        {items.map((item) => {
-          const Icon = item.icon;
-          const active = isPathActive(pathname, item.key);
+      <div className="w-full px-10 pt-1.5 pb-[calc(0.45rem+env(safe-area-inset-bottom))] sm:px-12 md:px-20 lg:px-28 xl:px-36">
+        <div className="mx-auto grid w-full max-w-[560px] grid-cols-4 gap-2">
+          {items.map((item) => {
+            const Icon = item.icon;
+            const active = isPathActive(pathname, item.key);
 
-          return (
-            <Link
-              key={item.key}
-              href={item.href}
-              className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-[11px] font-semibold transition md:min-h-12 md:text-xs ${
-                active
-                  ? "bg-rpb-primary-soft text-rpb-primary"
-                  : "text-rpb-ink-soft hover:bg-[#f3f5ff]"
-              }`}
-              aria-current={active ? "page" : undefined}
-            >
-              <Icon size={17} />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={item.key}
+                href={item.href}
+                className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-[11px] font-semibold transition md:min-h-12 md:text-xs ${
+                  active
+                    ? "bg-rpb-primary-soft text-rpb-primary"
+                    : "text-rpb-ink-soft hover:bg-[#f3f5ff]"
+                }`}
+                aria-current={active ? "page" : undefined}
+              >
+                <Icon size={17} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );
