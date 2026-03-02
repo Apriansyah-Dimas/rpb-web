@@ -14,27 +14,51 @@ interface AuthSessionState {
   signOut: () => Promise<void>;
 }
 
-export const useAuthSession = (): AuthSessionState => {
-  const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<UserRole | null>(null);
-  const [loading, setLoading] = useState(true);
+interface AuthCache {
+  hydrated: boolean;
+  user: User | null;
+  role: UserRole | null;
+}
 
-  const refresh = async () => {
-    setLoading(true);
+let authCache: AuthCache = {
+  hydrated: false,
+  user: null,
+  role: null,
+};
+
+export const useAuthSession = (): AuthSessionState => {
+  const [user, setUser] = useState<User | null>(authCache.user);
+  const [role, setRole] = useState<UserRole | null>(authCache.role);
+  const [loading, setLoading] = useState(!authCache.hydrated);
+
+  const refreshInternal = async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+    }
+
     const supabase = getSupabaseBrowserClient();
     const {
       data: { user: nextUser },
     } = await supabase.auth.getUser();
-    setUser(nextUser ?? null);
+
+    const resolvedUser = nextUser ?? null;
+    setUser(resolvedUser);
+    authCache.user = resolvedUser;
+
     if (nextUser) {
       try {
-        setRole(await fetchCurrentUserRole(supabase));
+        const nextRole = await fetchCurrentUserRole(supabase);
+        setRole(nextRole);
+        authCache.role = nextRole;
       } catch {
-        setRole(null);
+        // Keep previous role if role lookup fails temporarily.
       }
     } else {
       setRole(null);
+      authCache.role = null;
     }
+
+    authCache.hydrated = true;
     setLoading(false);
   };
 
@@ -42,10 +66,10 @@ export const useAuthSession = (): AuthSessionState => {
     const supabase = getSupabaseBrowserClient();
 
     queueMicrotask(() => {
-      void refresh();
+      void refreshInternal(true);
     });
     const { data: listener } = supabase.auth.onAuthStateChange(() => {
-      void refresh();
+      void refreshInternal(true);
     });
 
     return () => {
@@ -56,7 +80,21 @@ export const useAuthSession = (): AuthSessionState => {
   const signOut = async () => {
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
+    authCache = {
+      hydrated: true,
+      user: null,
+      role: null,
+    };
+    setUser(null);
+    setRole(null);
+    setLoading(false);
   };
 
-  return { user, role, loading, refresh, signOut };
+  return {
+    user,
+    role,
+    loading,
+    refresh: () => refreshInternal(false),
+    signOut,
+  };
 };

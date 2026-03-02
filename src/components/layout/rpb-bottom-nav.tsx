@@ -55,7 +55,7 @@ export function RpbBottomNav() {
 
   return (
     <nav className="no-print fixed right-0 bottom-0 left-0 z-50 border-t border-rpb-border bg-white/98 shadow-[0_-8px_24px_rgba(30,36,88,0.14)] backdrop-blur">
-      <div className="w-full px-10 pt-1.5 pb-[calc(0.45rem+env(safe-area-inset-bottom))] sm:px-12 md:px-20 lg:px-28 xl:px-36">
+      <div className="w-full px-12 pt-1.5 pb-[calc(0.45rem+env(safe-area-inset-bottom))] sm:px-16 md:px-28 lg:px-40 xl:px-52 2xl:px-64">
         <div className="mx-auto grid w-full max-w-[560px] grid-cols-4 gap-2">
           {items.map((item) => {
             const Icon = item.icon;
