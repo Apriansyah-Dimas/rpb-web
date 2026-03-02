@@ -15,7 +15,6 @@ import {
   Table2,
   Underline,
 } from "lucide-react";
-import autoTable from "jspdf-autotable";
 import jsPDF from "jspdf";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -48,6 +47,7 @@ export default function QuotationPage() {
   const setQuotationContent = useRpbStore((state) => state.setQuotationContent);
 
   const editorRef = useRef<HTMLDivElement>(null);
+  const quotationCanvasRef = useRef<HTMLDivElement>(null);
   const hasInitializedRef = useRef(false);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
@@ -221,194 +221,72 @@ export default function QuotationPage() {
 
   const handleDownloadPdf = async () => {
     saveContent();
-    if (!editorRef.current || pdfBusy) {
+    if (!quotationCanvasRef.current || pdfBusy) {
       return;
     }
 
     setPdfBusy(true);
     setPdfError(null);
     try {
+      const activeElement = document.activeElement;
+      if (activeElement instanceof HTMLElement) {
+        activeElement.blur();
+      }
+
+      if ("fonts" in document) {
+        await document.fonts.ready;
+      }
+
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => resolve());
+      });
+
+      const { default: html2canvas } = await import("html2canvas");
+      const sourceCanvas = quotationCanvasRef.current;
+      const renderedCanvas = await html2canvas(sourceCanvas, {
+        backgroundColor: "#ffffff",
+        scale: Math.max(2, window.devicePixelRatio || 1),
+        useCORS: true,
+        logging: false,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+      });
+
+      if (renderedCanvas.width === 0 || renderedCanvas.height === 0) {
+        throw new Error("Konten quotation kosong.");
+      }
+
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
         format: "a4",
         compress: true,
       });
-
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 10;
-      const contentWidth = pageWidth - margin * 2;
-      const pageBottom = pageHeight - margin;
-      let cursorY = margin;
+      const imageData = renderedCanvas.toDataURL("image/png");
+      const imageWidthMm = pageWidth;
+      const imageHeightMm = (renderedCanvas.height * imageWidthMm) / renderedCanvas.width;
+      let remainingHeightMm = imageHeightMm;
+      let imageOffsetMm = 0;
 
-      const ensureSpace = (requiredHeight: number) => {
-        if (cursorY + requiredHeight <= pageBottom) {
-          return;
-        }
+      pdf.addImage(imageData, "PNG", 0, imageOffsetMm, imageWidthMm, imageHeightMm, undefined, "FAST");
+      remainingHeightMm -= pageHeight;
+
+      while (remainingHeightMm > 0) {
+        imageOffsetMm = remainingHeightMm - imageHeightMm;
         pdf.addPage();
-        cursorY = margin;
-      };
-
-      const toWrappedLines = (rawText: string) => {
-        const normalized = rawText.replace(/\u00a0/g, " ").trim();
-        if (!normalized) {
-          return [] as string[];
-        }
-
-        const segments = normalized.split(/\r?\n/);
-        const lines: string[] = [];
-        for (const segment of segments) {
-          const text = segment.trim();
-          if (!text) {
-            lines.push("");
-            continue;
-          }
-          lines.push(...pdf.splitTextToSize(text, contentWidth));
-        }
-        return lines;
-      };
-
-      const drawTextBlock = (
-        rawText: string,
-        options: { fontSize: number; fontStyle?: "normal" | "bold"; marginBottom: number },
-      ) => {
-        const lines = toWrappedLines(rawText);
-        if (lines.length === 0) {
-          cursorY += options.marginBottom;
-          return;
-        }
-
-        const lineHeight = Math.max(4, options.fontSize * 0.45);
-        ensureSpace(lines.length * lineHeight + options.marginBottom);
-        pdf.setFont("helvetica", options.fontStyle ?? "normal");
-        pdf.setFontSize(options.fontSize);
-        pdf.text(lines, margin, cursorY);
-        cursorY += lines.length * lineHeight + options.marginBottom;
-      };
-
-      const container = document.createElement("div");
-      container.innerHTML = editorRef.current.innerHTML;
-      const blocks = Array.from(container.children);
-      if (blocks.length === 0) {
-        throw new Error("Konten quotation kosong.");
-      }
-
-      for (const block of blocks) {
-        const tag = block.tagName.toLowerCase();
-        const tableElement =
-          tag === "table" ? (block as HTMLTableElement) : block.querySelector("table");
-
-        if (tableElement) {
-          let tableHead: string[] | null = null;
-          const tableRows: string[][] = [];
-
-          for (const row of Array.from(tableElement.querySelectorAll("tr"))) {
-            const cells = Array.from(row.children).filter((cell) => {
-              const cellTag = cell.tagName.toLowerCase();
-              return cellTag === "th" || cellTag === "td";
-            });
-            if (cells.length === 0) {
-              continue;
-            }
-
-            const rowValues = cells.map((cell) =>
-              ((cell as HTMLElement).innerText || cell.textContent || "")
-                .replace(/\u00a0/g, " ")
-                .replace(/\s+/g, " ")
-                .trim(),
-            );
-            const hasHeaderCell = cells.some((cell) => cell.tagName.toLowerCase() === "th");
-
-            if (!tableHead && hasHeaderCell) {
-              tableHead = rowValues;
-              continue;
-            }
-            tableRows.push(rowValues);
-          }
-
-          const maxColumns = Math.max(
-            tableHead?.length ?? 0,
-            ...tableRows.map((row) => row.length),
-            1,
-          );
-          const normalizeRow = (row: string[]) =>
-            Array.from({ length: maxColumns }, (_, index) => row[index] ?? "");
-          const normalizedHead = normalizeRow(
-            tableHead ??
-              Array.from({ length: maxColumns }, (_, index) => `Kolom ${index + 1}`),
-          );
-          const normalizedBody = tableRows.map(normalizeRow);
-          const sectionRows = new Set<number>();
-
-          normalizedBody.forEach((row, index) => {
-            if (row[0] && row.slice(1).every((cell) => !cell)) {
-              sectionRows.add(index);
-            }
-          });
-
-          ensureSpace(20);
-          autoTable(pdf, {
-            startY: cursorY,
-            head: [normalizedHead],
-            body: normalizedBody,
-            margin: { left: margin, right: margin },
-            theme: "grid",
-            styles: {
-              fontSize: 8.5,
-              cellPadding: 1.8,
-              lineColor: [217, 219, 239],
-              lineWidth: 0.1,
-            },
-            headStyles: {
-              fillColor: [99, 101, 185],
-              textColor: [255, 255, 255],
-              fontStyle: "bold",
-            },
-            didParseCell: (data) => {
-              if (data.section === "body" && sectionRows.has(data.row.index)) {
-                data.cell.styles.fontStyle = "bold";
-                data.cell.styles.fillColor = [255, 247, 204];
-                data.cell.styles.textColor = [59, 61, 121];
-              }
-              if (data.section === "head" || data.section === "body") {
-                if (data.column.index >= Math.max(0, maxColumns - 3)) {
-                  data.cell.styles.halign = "right";
-                }
-              }
-            },
-          });
-          cursorY =
-            ((pdf as jsPDF & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ??
-              cursorY) + 5;
-          continue;
-        }
-
-        const text = (block as HTMLElement).innerText || block.textContent || "";
-        if (tag === "h1") {
-          drawTextBlock(text, { fontSize: 18, fontStyle: "bold", marginBottom: 3 });
-          continue;
-        }
-        if (tag === "h2") {
-          drawTextBlock(text, { fontSize: 16, fontStyle: "bold", marginBottom: 3 });
-          continue;
-        }
-        if (tag === "h3") {
-          drawTextBlock(text, { fontSize: 13, fontStyle: "bold", marginBottom: 2.6 });
-          continue;
-        }
-        drawTextBlock(text, { fontSize: 11, marginBottom: 2.6 });
-      }
-
-      if (cursorY === margin) {
-        drawTextBlock(editorRef.current.textContent || "", {
-          fontSize: 11,
-          marginBottom: 2.6,
-        });
-      }
-
-      if (cursorY === margin) {
-        throw new Error("Konten quotation kosong.");
+        pdf.addImage(
+          imageData,
+          "PNG",
+          0,
+          imageOffsetMm,
+          imageWidthMm,
+          imageHeightMm,
+          undefined,
+          "FAST",
+        );
+        remainingHeightMm -= pageHeight;
       }
 
       const safeProjectName = (projectName || "quotation")
@@ -563,7 +441,7 @@ export default function QuotationPage() {
 
           <section className="rpb-section rpb-paper-wrap p-2 sm:p-3">
             <div className="rpb-quotation-stage">
-              <div className="rpb-doc-canvas rpb-quotation-canvas">
+              <div ref={quotationCanvasRef} className="rpb-doc-canvas rpb-quotation-canvas">
               <div
                 ref={editorRef}
                 contentEditable
