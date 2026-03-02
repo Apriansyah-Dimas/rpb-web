@@ -1,11 +1,22 @@
 "use client";
 
-import { Trash2, Upload } from "lucide-react";
+import { Download, FileUp, Trash2, Upload } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
-import { deleteSummaryHistory, fetchSummaryHistory } from "@/lib/rpb-db";
+import {
+  buildTemplateFileName,
+  buildTemplatePayloadFromHistory,
+  MAX_TEMPLATE_FILE_BYTES,
+  parseTemplateText,
+  stringifyTemplate,
+} from "@/lib/rpb-template";
+import {
+  deleteSummaryHistory,
+  fetchSummaryHistory,
+  saveSummaryHistory,
+} from "@/lib/rpb-db";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useRpbStore } from "@/store/rpb-store";
 import type { SavedSummaryRecord } from "@/types/rpb";
@@ -32,10 +43,13 @@ const formatDateTime = (value: string) => {
 export default function HistoryPage() {
   const router = useRouter();
   const loadSnapshot = useRpbStore((state) => state.loadSnapshot);
+  const templateInputRef = useRef<HTMLInputElement | null>(null);
   const [items, setItems] = useState<SavedSummaryRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [importBusy, setImportBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
   const refresh = async () => {
     setLoading(true);
@@ -58,6 +72,69 @@ export default function HistoryPage() {
   const handleUse = (record: SavedSummaryRecord) => {
     loadSnapshot(record.snapshot);
     router.push("/summary");
+  };
+
+  const handleExportTemplate = (record: SavedSummaryRecord) => {
+    setError(null);
+    setInfoMessage(null);
+
+    try {
+      const template = buildTemplatePayloadFromHistory(record);
+      const blob = new Blob([stringifyTemplate(template)], {
+        type: "application/json;charset=utf-8",
+      });
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download = buildTemplateFileName(template.name);
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(objectUrl);
+      setInfoMessage(`Template "${template.name}" berhasil diexport.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal export template.");
+    }
+  };
+
+  const handleUploadTemplate = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    if (file.size > MAX_TEMPLATE_FILE_BYTES) {
+      setError(
+        `Ukuran file terlalu besar. Maksimal ${Math.round(MAX_TEMPLATE_FILE_BYTES / 1024)} KB.`,
+      );
+      return;
+    }
+
+    setImportBusy(true);
+    setError(null);
+    setInfoMessage(null);
+
+    try {
+      const rawText = await file.text();
+      const template = parseTemplateText(rawText);
+      const supabase = getSupabaseBrowserClient();
+      const title = template.name || template.snapshot.projectName || "Imported Template";
+
+      await saveSummaryHistory(supabase, {
+        title,
+        customerName: template.snapshot.customerName,
+        projectName: template.snapshot.projectName,
+        snapshot: template.snapshot,
+      });
+      await refresh();
+      setInfoMessage(`Template "${title}" berhasil diimport ke history kamu.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal import template.");
+    } finally {
+      setImportBusy(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -88,19 +165,42 @@ export default function HistoryPage() {
             >
               Kembali ke Summary
             </Link>
-            <button
-              type="button"
-              className="rpb-btn-primary inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
-              onClick={() => void refresh()}
-              disabled={loading}
-            >
-              {loading ? "Memuat..." : "Refresh"}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                ref={templateInputRef}
+                type="file"
+                accept=".json,application/json"
+                className="hidden"
+                onChange={handleUploadTemplate}
+              />
+              <button
+                type="button"
+                className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+                onClick={() => templateInputRef.current?.click()}
+                disabled={importBusy}
+              >
+                <FileUp size={14} />
+                {importBusy ? "Import..." : "Upload Template"}
+              </button>
+              <button
+                type="button"
+                className="rpb-btn-primary inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+                onClick={() => void refresh()}
+                disabled={loading}
+              >
+                {loading ? "Memuat..." : "Refresh"}
+              </button>
+            </div>
           </div>
 
           {error ? (
             <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {error}
+            </div>
+          ) : null}
+          {infoMessage ? (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              {infoMessage}
             </div>
           ) : null}
 
@@ -136,6 +236,14 @@ export default function HistoryPage() {
                       >
                         <Upload size={14} />
                         Gunakan
+                      </button>
+                      <button
+                        type="button"
+                        className="rpb-btn-ghost inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold"
+                        onClick={() => handleExportTemplate(item)}
+                      >
+                        <Download size={14} />
+                        Export
                       </button>
                       <button
                         type="button"
