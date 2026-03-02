@@ -554,28 +554,31 @@ export default function SummaryPage() {
 
               <article className="rounded-xl border border-rpb-border bg-white px-3 py-2">
                 <p className="mb-1 text-[11px] font-semibold text-foreground">Ringkasan</p>
-                <div className="space-y-1 text-[10px]">
-                  {calculationRows.map((row) => (
-                    <div
-                      key={row.key}
-                      className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-md px-2 py-1 ${
-                        row.highlight
-                          ? "bg-[#6365b9] font-bold text-white"
-                          : "text-rpb-ink-soft"
-                      }`}
-                    >
-                      <span className="min-w-0 pr-2 text-right leading-tight break-words">
-                        {row.label}
-                      </span>
-                      <span
-                        className={`text-right whitespace-nowrap ${
-                          row.highlight ? "text-white" : "font-semibold text-foreground"
-                        }`}
-                      >
-                        {formatRupiah(row.value)}
-                      </span>
-                    </div>
-                  ))}
+                <div className="overflow-hidden rounded-md border border-rpb-border">
+                  <table className="w-full table-fixed text-[10px]">
+                    <tbody className="divide-y divide-rpb-border">
+                      {calculationRows.map((row) => (
+                        <tr key={row.key} className={row.highlight ? "bg-[#6365b9]" : "bg-[#fbfbff]"}>
+                          <td
+                            className={`px-2 py-1.5 text-right align-top leading-tight ${
+                              row.highlight ? "font-bold text-white" : "text-rpb-ink-soft"
+                            }`}
+                          >
+                            <span className="inline-block max-w-full break-words">
+                              {row.label}
+                            </span>
+                          </td>
+                          <td
+                            className={`w-[8rem] px-2 py-1.5 text-right align-top whitespace-nowrap ${
+                              row.highlight ? "font-bold text-white" : "font-semibold text-foreground"
+                            }`}
+                          >
+                            {formatRupiah(row.value)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </article>
             </div>

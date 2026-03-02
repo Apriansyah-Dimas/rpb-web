@@ -129,99 +129,72 @@ export default function QuotationPage() {
   };
 
   const generateRpbTableHtml = () => {
-    let rows = "";
-    const cellBaseStyle =
-      "padding:4px 5px;border-bottom:1px solid #eceef8;font-size:8.5pt;line-height:1.3;overflow-wrap:anywhere;word-break:break-word;";
+    const baseCellStyle =
+      "padding:4px 5px;border-bottom:1px solid #d9dbef;font-size:8.5pt;line-height:1.3;overflow-wrap:anywhere;word-break:break-word;";
 
-    const categories = [
-      { key: "PROFILE", label: "Profile" },
-      { key: "KONSTRUKSI", label: "Konstruksi" },
-    ] as const;
-
-    let no = 1;
-    for (const category of categories) {
-      const items = lineItems.filter((item) => item.jenis === category.key);
-      if (items.length === 0) {
-        continue;
-      }
-
-      rows += `
-        <tr style="background:#fff7cc;">
-          <td colspan="6" style="padding:6px 8px;font-weight:700;color:#3b3d79;font-size:10px;">${category.label}</td>
-        </tr>`;
-
-      for (const item of items) {
-        rows += `
+    const rows = lineItems
+      .map((item, index) => {
+        const lineTotalIdr = item.hargaIdr * item.qty;
+        return `
           <tr>
-            <td style="${cellBaseStyle}text-align:center;width:24px;">${no++}</td>
-            <td style="${cellBaseStyle}font-weight:600;">${escapeHtml(item.jenis)}<br/><span style="font-weight:400;color:#5b6186;">${escapeHtml(item.keterangan)}</span></td>
-            <td style="${cellBaseStyle}">${escapeHtml(item.jenisSpec)}<br/><span style="color:#6d739a;">${escapeHtml(item.satuan)}</span></td>
-            <td style="${cellBaseStyle}text-align:right;">${item.qty}</td>
-            <td style="${cellBaseStyle}text-align:right;">${escapeHtml(formatRupiah(item.hargaIdr))}</td>
-            <td style="${cellBaseStyle}text-align:right;font-weight:700;">${escapeHtml(formatRupiah(item.hargaIdr * item.qty))}</td>
+            <td style="${baseCellStyle}text-align:center;">${index + 1}</td>
+            <td style="${baseCellStyle}font-weight:600;">${escapeHtml(item.jenis)}</td>
+            <td style="${baseCellStyle}">${escapeHtml(item.keterangan)}</td>
+            <td style="${baseCellStyle}">${escapeHtml(item.satuan || "-")}</td>
+            <td style="${baseCellStyle}">${escapeHtml(item.jenisSpec || "-")}</td>
+            <td style="${baseCellStyle}text-align:center;">${item.qty}</td>
+            <td style="${baseCellStyle}text-align:right;white-space:nowrap;">${escapeHtml(formatRupiah(item.hargaIdr))}</td>
+            <td style="${baseCellStyle}text-align:right;font-weight:700;white-space:nowrap;">${escapeHtml(formatRupiah(lineTotalIdr))}</td>
           </tr>`;
-      }
-    }
-
-    const otherItems = lineItems.filter(
-      (item) => item.jenis !== "PROFILE" && item.jenis !== "KONSTRUKSI",
-    );
-    if (otherItems.length > 0) {
-      rows += `
-        <tr style="background:#fff7cc;">
-          <td colspan="6" style="padding:6px 8px;font-weight:700;color:#3b3d79;font-size:10px;">Other / Tambahan</td>
-        </tr>`;
-      for (const item of otherItems) {
-        rows += `
-          <tr>
-            <td style="${cellBaseStyle}text-align:center;width:24px;">${no++}</td>
-            <td style="${cellBaseStyle}font-weight:600;">${escapeHtml(item.jenis)}<br/><span style="font-weight:400;color:#5b6186;">${escapeHtml(item.keterangan)}</span></td>
-            <td style="${cellBaseStyle}">${escapeHtml(item.jenisSpec)}<br/><span style="color:#6d739a;">${escapeHtml(item.satuan)}</span></td>
-            <td style="${cellBaseStyle}text-align:right;">${item.qty}</td>
-            <td style="${cellBaseStyle}text-align:right;">${escapeHtml(formatRupiah(item.hargaIdr))}</td>
-            <td style="${cellBaseStyle}text-align:right;font-weight:700;">${escapeHtml(formatRupiah(item.hargaIdr * item.qty))}</td>
-          </tr>`;
-      }
-    }
+      })
+      .join("");
 
     return `
       <div style="margin:16px 0;">
         <table style="width:100%;table-layout:fixed;border-collapse:collapse;font-family:Arial,sans-serif;border:1px solid #d9dbef;border-radius:8px;overflow:hidden;">
           <thead>
             <tr style="background:#6365b9;">
-              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:24px;">No</th>
-              <th style="padding:5px 4px;color:#fff;text-align:left;font-size:9pt;">Item</th>
-              <th style="padding:5px 4px;color:#fff;text-align:left;font-size:9pt;">Spec</th>
-              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9pt;width:44px;">Qty</th>
-              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9pt;width:68px;">Harga</th>
-              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9pt;width:68px;">Total</th>
+              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:5%;">No</th>
+              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:13%;">Jenis</th>
+              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:22%;">Keterangan</th>
+              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:7%;">Satuan</th>
+              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:13%;">Jenis Spec</th>
+              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:11%;">Qty</th>
+              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9pt;width:14.5%;">Harga</th>
+              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9pt;width:14.5%;">Total</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
           <tfoot>
             <tr>
-              <td colspan="5" style="padding:4px 5px;text-align:right;border-top:1px solid #d9dbef;font-size:9pt;">Subtotal</td>
-              <td style="padding:4px 5px;text-align:right;border-top:1px solid #d9dbef;font-size:9pt;font-weight:600;">${escapeHtml(formatRupiah(subtotalIdr))}</td>
+              <td colspan="6" style="padding:4px 5px;background:#fbfbff;border-top:1px solid #d9dbef;"></td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;color:#555;">Subtotal</td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;font-weight:600;white-space:nowrap;">${escapeHtml(formatRupiah(subtotalIdr))}</td>
             </tr>
             <tr>
-              <td colspan="5" style="padding:4px 5px;text-align:right;font-size:9pt;color:#555;">Stock Return (${adjustments.stockReturn}%)</td>
-              <td style="padding:4px 5px;text-align:right;font-size:9pt;">${escapeHtml(formatRupiah(stockReturnIdr))}</td>
+              <td colspan="6" style="padding:4px 5px;background:#fbfbff;"></td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;color:#555;">Stock Return (${adjustments.stockReturn}%)</td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;white-space:nowrap;">${escapeHtml(formatRupiah(stockReturnIdr))}</td>
             </tr>
             <tr>
-              <td colspan="5" style="padding:4px 5px;text-align:right;font-size:9pt;color:#555;">Marketing Cost (${adjustments.marketingCost}%)</td>
-              <td style="padding:4px 5px;text-align:right;font-size:9pt;">${escapeHtml(formatRupiah(marketingCostIdr))}</td>
+              <td colspan="6" style="padding:4px 5px;background:#fbfbff;"></td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;color:#555;">Marketing Cost (${adjustments.marketingCost}%)</td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;white-space:nowrap;">${escapeHtml(formatRupiah(marketingCostIdr))}</td>
             </tr>
             <tr>
-              <td colspan="5" style="padding:4px 5px;text-align:right;font-size:9pt;color:#555;">Services (${adjustments.services}%)</td>
-              <td style="padding:4px 5px;text-align:right;font-size:9pt;">${escapeHtml(formatRupiah(servicesIdr))}</td>
+              <td colspan="6" style="padding:4px 5px;background:#fbfbff;"></td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;color:#555;">Services (${adjustments.services}%)</td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;white-space:nowrap;">${escapeHtml(formatRupiah(servicesIdr))}</td>
             </tr>
             <tr>
-              <td colspan="5" style="padding:4px 5px;text-align:right;font-size:9pt;color:#555;">Profit (${adjustments.profit}%)</td>
-              <td style="padding:4px 5px;text-align:right;font-size:9pt;">${escapeHtml(formatRupiah(profitIdr))}</td>
+              <td colspan="6" style="padding:4px 5px;background:#fbfbff;"></td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;color:#555;">Profit (${adjustments.profit}%)</td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;white-space:nowrap;">${escapeHtml(formatRupiah(profitIdr))}</td>
             </tr>
             <tr style="background:#6365b9;">
-              <td colspan="5" style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:9pt;">GRAND TOTAL</td>
-              <td style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:10pt;">${escapeHtml(formatRupiah(grandTotalIdr))}</td>
+              <td colspan="6" style="padding:5px;border-top:0;"></td>
+              <td style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:9pt;border-top:0;">GRAND TOTAL</td>
+              <td style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:10pt;white-space:nowrap;border-top:0;">${escapeHtml(formatRupiah(grandTotalIdr))}</td>
             </tr>
           </tfoot>
         </table>
