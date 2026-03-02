@@ -558,13 +558,15 @@ export default function SummaryPage() {
                   {calculationRows.map((row) => (
                     <div
                       key={row.key}
-                      className={`grid grid-cols-[1fr_auto] items-center gap-3 rounded-md px-2 py-1 ${
+                      className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-md px-2 py-1 ${
                         row.highlight
                           ? "bg-[#6365b9] font-bold text-white"
                           : "text-rpb-ink-soft"
                       }`}
                     >
-                      <span className="text-right">{row.label}</span>
+                      <span className="min-w-0 pr-2 text-right leading-tight break-words">
+                        {row.label}
+                      </span>
                       <span
                         className={`text-right whitespace-nowrap ${
                           row.highlight ? "text-white" : "font-semibold text-foreground"
