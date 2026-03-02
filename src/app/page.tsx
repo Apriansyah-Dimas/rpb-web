@@ -262,7 +262,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <section className="rpb-section p-4 md:p-4">
+          <section className="rpb-key-card p-4 md:p-5">
             <h2 className="rpb-h-title mb-2 text-base font-semibold md:text-lg">Profile</h2>
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft md:w-64">
@@ -287,7 +287,7 @@ export default function HomePage() {
             </div>
           </section>
 
-          <section className="rpb-section p-4 md:p-4">
+          <section className="rpb-key-card p-4 md:p-5">
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <h2 className="rpb-h-title text-base font-semibold md:text-lg">Konstruksi</h2>
               <div className="rpb-price-pill inline-flex w-full items-center justify-between gap-4 px-5 py-3 text-sm font-semibold md:w-auto md:min-w-72">

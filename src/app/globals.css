@@ -119,6 +119,13 @@ body {
   background: #fff;
 }
 
+.rpb-key-card {
+  border: 1px solid var(--rpb-border);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(56, 66, 142, 0.08);
+}
+
 .rpb-custom-card {
   border-color: #6365b9 !important;
   background: #6365b9 !important;
