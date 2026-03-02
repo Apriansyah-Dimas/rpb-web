@@ -23,8 +23,8 @@ export function RpbPageFrame({
     <div className={`min-h-screen w-full bg-rpb-primary ${containerClassName}`.trim()}>
       <RpbAppHeader className={headerClassName} />
       <main className="min-h-screen pt-[72px] md:pt-[82px]">
+        <div className="no-print h-5 rounded-t-[28px] bg-white md:h-6 md:rounded-t-[34px]" />
         <div className={`rpb-shell min-h-[calc(100vh-72px)] md:min-h-[calc(100vh-82px)] ${shellClassName}`.trim()}>
-          <div className="no-print h-5 rounded-t-[28px] bg-white md:h-6 md:rounded-t-[34px]" />
           <div className={`bg-white px-3 sm:px-8 md:px-28 lg:px-40 xl:px-52 2xl:px-64 ${bottomPaddingClass}`.trim()}>
             {children}
           </div>

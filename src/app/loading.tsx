@@ -5,8 +5,8 @@ export default function Loading() {
         <h1 className="rpb-h-title text-xl font-semibold md:text-2xl">RPB</h1>
       </div>
       <main className="min-h-screen pt-[72px] md:pt-[82px]">
+        <div className="h-5 rounded-t-[28px] bg-white md:h-6 md:rounded-t-[34px]" />
         <div className="rpb-shell min-h-[calc(100vh-72px)] md:min-h-[calc(100vh-82px)]">
-          <div className="h-5 rounded-t-[28px] bg-white md:h-6 md:rounded-t-[34px]" />
           <div className="bg-white px-3 sm:px-8 md:px-28 lg:px-40 xl:px-52 2xl:px-64">
             <div className="rpb-section p-4 text-sm text-rpb-ink-soft">
               Memuat halaman...
