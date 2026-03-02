@@ -384,36 +384,43 @@ export default function SummaryPage() {
                           </p>
                         </td>
                         <td className="align-top">
-                          <p className="text-[11px] leading-tight lg:text-xs">{item.jenisSpec}</p>
-                          <p className="mt-0.5 text-[11px] leading-tight text-rpb-ink-soft lg:text-xs">
-                            {item.satuan}
+                          <p className="text-[11px] leading-tight lg:text-xs">
+                            {item.jenisSpec || "-"}
                           </p>
                         </td>
                         <td className="align-top text-center">
                           {isEditable ? (
-                            <div className="inline-flex items-center gap-1">
-                              <button
-                                type="button"
-                                className="rpb-btn-ghost inline-flex h-6 w-6 items-center justify-center"
-                                onClick={() => updateQty(item.id, item.qty - 1)}
-                                aria-label={`Kurangi qty ${item.jenisSpec}`}
-                              >
-                                <Minus size={11} />
-                              </button>
-                              <span className="min-w-5 text-center text-xs font-semibold">
-                                {item.qty}
+                            <div className="inline-flex flex-col items-center gap-0.5">
+                              <div className="inline-flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  className="rpb-btn-ghost inline-flex h-6 w-6 items-center justify-center"
+                                  onClick={() => updateQty(item.id, item.qty - 1)}
+                                  aria-label={`Kurangi qty ${item.jenisSpec}`}
+                                >
+                                  <Minus size={11} />
+                                </button>
+                                <span className="min-w-5 text-center text-xs font-semibold">
+                                  {item.qty}
+                                </span>
+                                <button
+                                  type="button"
+                                  className="rpb-btn-primary inline-flex h-6 w-6 items-center justify-center"
+                                  onClick={() => updateQty(item.id, item.qty + 1)}
+                                  aria-label={`Tambah qty ${item.jenisSpec}`}
+                                >
+                                  <Plus size={11} />
+                                </button>
+                              </div>
+                              <span className="text-[10px] leading-tight text-rpb-ink-soft">
+                                {item.satuan}
                               </span>
-                              <button
-                                type="button"
-                                className="rpb-btn-primary inline-flex h-6 w-6 items-center justify-center"
-                                onClick={() => updateQty(item.id, item.qty + 1)}
-                                aria-label={`Tambah qty ${item.jenisSpec}`}
-                              >
-                                <Plus size={11} />
-                              </button>
                             </div>
                           ) : (
-                            <span className="text-xs font-semibold">{item.qty}</span>
+                            <div className="inline-flex flex-col items-center leading-tight">
+                              <span className="text-xs font-semibold">{item.qty}</span>
+                              <span className="text-[10px] text-rpb-ink-soft">{item.satuan}</span>
+                            </div>
                           )}
                         </td>
                         <td className="align-top text-right text-[11px] break-words lg:text-xs">
@@ -448,35 +455,40 @@ export default function SummaryPage() {
                           {item.keterangan}
                         </p>
                         <p className="mt-0.5 text-[10px] leading-tight text-rpb-ink-soft">
-                          {item.jenisSpec} | {item.satuan}
+                          {item.jenisSpec || "-"}
                         </p>
                       </div>
 
                       <div className="shrink-0">
                         {isEditable ? (
-                          <div className="inline-flex items-center gap-1">
-                            <button
-                              type="button"
-                              className="rpb-btn-ghost inline-flex h-6 w-6 items-center justify-center"
-                              onClick={() => updateQty(item.id, item.qty - 1)}
-                              aria-label={`Kurangi qty ${item.jenisSpec}`}
-                            >
-                              <Minus size={11} />
-                            </button>
-                            <span className="min-w-4 text-center text-[11px] font-semibold">
-                              {item.qty}
-                            </span>
-                            <button
-                              type="button"
-                              className="rpb-btn-primary inline-flex h-6 w-6 items-center justify-center"
-                              onClick={() => updateQty(item.id, item.qty + 1)}
-                              aria-label={`Tambah qty ${item.jenisSpec}`}
-                            >
-                              <Plus size={11} />
-                            </button>
+                          <div className="inline-flex flex-col items-center gap-0.5">
+                            <div className="inline-flex items-center gap-1">
+                              <button
+                                type="button"
+                                className="rpb-btn-ghost inline-flex h-6 w-6 items-center justify-center"
+                                onClick={() => updateQty(item.id, item.qty - 1)}
+                                aria-label={`Kurangi qty ${item.jenisSpec}`}
+                              >
+                                <Minus size={11} />
+                              </button>
+                              <span className="min-w-4 text-center text-[11px] font-semibold">
+                                {item.qty}
+                              </span>
+                              <button
+                                type="button"
+                                className="rpb-btn-primary inline-flex h-6 w-6 items-center justify-center"
+                                onClick={() => updateQty(item.id, item.qty + 1)}
+                                aria-label={`Tambah qty ${item.jenisSpec}`}
+                              >
+                                <Plus size={11} />
+                              </button>
+                            </div>
+                            <span className="text-[10px] text-rpb-ink-soft">{item.satuan}</span>
                           </div>
                         ) : (
-                          <span className="text-[11px] font-semibold">Qty {item.qty}</span>
+                          <span className="text-[11px] font-semibold">
+                            Qty {item.qty} {item.satuan}
+                          </span>
                         )}
                       </div>
                     </div>
