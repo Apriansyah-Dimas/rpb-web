@@ -209,7 +209,7 @@ export default function HomePage() {
 
   return (
     <RpbPageFrame shellClassName="rpb-compact">
-      <div className="space-y-4 p-5 md:space-y-3 md:px-10 md:py-6 lg:px-12">
+      <div className="space-y-4 p-3 sm:p-4 md:space-y-3 md:px-6 md:py-5">
           {masterLoading ? (
             <div className="rpb-section p-4 text-sm text-rpb-ink-soft">
               Memuat master data dari database...
@@ -335,7 +335,7 @@ export default function HomePage() {
               </label>
             </div>
 
-            <div className="max-h-[320px] overflow-y-auto pr-1 md:max-h-[360px]">
+            <div className="max-h-[300px] overflow-y-auto pr-1 md:max-h-[360px]">
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredOtherItems.map((item) => {
                   const currentQty = selectedOther[item.id] ?? 0;
@@ -399,7 +399,7 @@ export default function HomePage() {
 
       {modalItem ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#15172b]/45 p-4 backdrop-blur-[2px]">
-          <div className="rpb-shell w-full max-w-xl">
+          <div className="w-full max-w-xl overflow-hidden rounded-xl border border-rpb-border bg-white shadow-xl">
             <div className="rpb-topbar px-5 py-4 text-white">
               <h3 className="rpb-h-title text-lg font-semibold">{modalItem.name}</h3>
             </div>
@@ -474,7 +474,7 @@ export default function HomePage() {
 
       {customModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#15172b]/45 p-4 backdrop-blur-[2px]">
-          <div className="rpb-shell w-full max-w-xl">
+          <div className="w-full max-w-xl overflow-hidden rounded-xl border border-rpb-border bg-white shadow-xl">
             <div className="rpb-topbar px-5 py-4 text-white">
               <h3 className="rpb-h-title text-lg font-semibold">Custom Item</h3>
             </div>

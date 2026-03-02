@@ -507,7 +507,7 @@ export default function SummaryPage() {
 
       {saveModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#15172b]/45 p-4 backdrop-blur-[2px]">
-          <div className="rpb-shell w-full max-w-lg overflow-hidden">
+          <div className="w-full max-w-lg overflow-hidden rounded-xl border border-rpb-border bg-white shadow-xl">
             <div className="rpb-topbar px-5 py-4 text-white">
               <h3 className="rpb-h-title text-lg font-semibold">Save History</h3>
             </div>

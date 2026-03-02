@@ -7,7 +7,6 @@ interface RpbPageFrameProps {
   containerClassName?: string;
   shellClassName?: string;
   headerClassName?: string;
-  maxWidthClassName?: string;
   showBottomNav?: boolean;
 }
 
@@ -16,14 +15,13 @@ export function RpbPageFrame({
   containerClassName = "",
   shellClassName = "",
   headerClassName = "",
-  maxWidthClassName = "max-w-6xl",
   showBottomNav = true,
 }: RpbPageFrameProps) {
+  const bottomPaddingClass = showBottomNav ? "pb-24 md:pb-28" : "";
+
   return (
-    <div
-      className={`mx-auto min-h-screen w-full ${maxWidthClassName} p-4 pb-28 md:px-10 md:pt-5 md:pb-32 lg:px-12 ${containerClassName}`.trim()}
-    >
-      <main className={`rpb-shell overflow-hidden ${shellClassName}`.trim()}>
+    <div className={`min-h-screen w-full ${bottomPaddingClass} ${containerClassName}`.trim()}>
+      <main className={`rpb-shell min-h-screen overflow-hidden ${shellClassName}`.trim()}>
         <RpbAppHeader className={headerClassName} />
         {children}
       </main>

@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f7ff;
+  --background: #ffffff;
   --foreground: #1f2340;
   --rpb-primary: #6465b9;
   --rpb-primary-dark: #5556a1;
   --rpb-primary-soft: #eef0ff;
-  --rpb-border: #d9dbef;
+  --rpb-border: #dfe3f3;
   --rpb-surface: #ffffff;
   --rpb-ink-soft: #4e5275;
 }
@@ -25,6 +25,7 @@
 }
 
 body {
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-manrope), sans-serif;
@@ -32,34 +33,30 @@ body {
 
 .page-bg {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 5% 0%, rgba(100, 101, 185, 0.23), transparent 36%),
-    radial-gradient(circle at 95% 10%, rgba(100, 101, 185, 0.16), transparent 34%),
-    linear-gradient(170deg, #f8f8ff 0%, #eff2ff 100%);
+  background: #fff;
 }
 
 .rpb-shell {
-  border: 1px solid var(--rpb-border);
-  border-radius: 24px;
-  background: linear-gradient(180deg, #ffffff 0%, #f9faff 100%);
-  box-shadow:
-    0 30px 60px rgba(64, 72, 148, 0.12),
-    0 4px 12px rgba(64, 72, 148, 0.06);
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
 }
 
 .rpb-topbar {
-  background: linear-gradient(90deg, var(--rpb-primary) 0%, #797ac9 100%);
+  border-bottom: 1px solid rgba(223, 227, 243, 0.9);
+  background: linear-gradient(90deg, var(--rpb-primary) 0%, #7677c8 100%);
 }
 
 .rpb-h-title {
   font-family: var(--font-sora), sans-serif;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.025em;
 }
 
 .rpb-input {
   width: 100%;
   border: 1px solid var(--rpb-border);
-  border-radius: 14px;
+  border-radius: 10px;
   background: #fff;
   padding: 10px 12px;
   color: var(--foreground);
@@ -83,7 +80,7 @@ body {
 }
 
 .rpb-btn-primary {
-  border-radius: 14px;
+  border-radius: 10px;
   background: var(--rpb-primary);
   color: #fff;
   transition: background-color 120ms ease, transform 120ms ease;
@@ -96,16 +93,17 @@ body {
 
 .rpb-btn-ghost {
   border: 1px solid var(--rpb-border);
-  border-radius: 14px;
+  border-radius: 10px;
   background: #fff;
   color: var(--foreground);
 }
 
 .rpb-section {
-  border: 1px solid var(--rpb-border);
-  border-radius: 18px;
-  background: var(--rpb-surface);
-  box-shadow: 0 4px 14px rgba(66, 73, 154, 0.06);
+  border: 0;
+  border-top: 1px solid var(--rpb-border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .rpb-price-pill {
@@ -117,7 +115,7 @@ body {
 
 .rpb-grid-card {
   border: 1px solid var(--rpb-border);
-  border-radius: 16px;
+  border-radius: 10px;
   background: #fff;
 }
 
@@ -152,14 +150,14 @@ body {
 }
 
 .rpb-doc-canvas {
-  width: min(100%, 210mm);
-  min-height: 297mm;
-  max-width: 794px;
+  width: 100%;
+  min-height: 72vh;
+  max-width: none;
   margin: 0 auto;
   border: 0;
   border-radius: 0;
   background: #fff;
-  padding: 34px 38px;
+  padding: 12px;
   box-shadow: none;
 }
 
@@ -222,7 +220,11 @@ body {
   }
 
   .rpb-compact .rpb-section {
-    border-radius: 16px;
+    border-radius: 0;
+  }
+
+  .rpb-doc-canvas {
+    padding: 18px 24px;
   }
 }
 

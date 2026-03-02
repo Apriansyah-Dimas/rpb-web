@@ -5,7 +5,7 @@ import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
 export default async function AdminPage() {
   await requireAdmin();
   return (
-    <RpbPageFrame maxWidthClassName="max-w-[1400px]">
+    <RpbPageFrame>
       <AdminDashboard />
     </RpbPageFrame>
   );

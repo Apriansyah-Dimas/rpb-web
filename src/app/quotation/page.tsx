@@ -130,6 +130,8 @@ export default function QuotationPage() {
 
   const generateRpbTableHtml = () => {
     let rows = "";
+    const cellBaseStyle =
+      "padding:4px 5px;border-bottom:1px solid #eceef8;font-size:9px;line-height:1.35;overflow-wrap:anywhere;word-break:break-word;";
 
     const categories = [
       { key: "PROFILE", label: "Profile" },
@@ -145,20 +147,18 @@ export default function QuotationPage() {
 
       rows += `
         <tr style="background:#fff7cc;">
-          <td colspan="8" style="padding:8px 10px;font-weight:700;color:#3b3d79;font-size:12px;">${category.label}</td>
+          <td colspan="6" style="padding:6px 8px;font-weight:700;color:#3b3d79;font-size:10px;">${category.label}</td>
         </tr>`;
 
       for (const item of items) {
         rows += `
           <tr>
-            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;text-align:center;font-size:12px;">${no++}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;font-size:12px;">${escapeHtml(item.jenis)}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;font-size:12px;">${escapeHtml(item.keterangan)}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;font-size:12px;">${escapeHtml(item.satuan)}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;font-size:12px;">${escapeHtml(item.jenisSpec)}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;text-align:right;font-size:12px;">${item.qty}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;text-align:right;font-size:12px;">${escapeHtml(formatRupiah(item.hargaIdr))}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;text-align:right;font-size:12px;font-weight:600;">${escapeHtml(formatRupiah(item.hargaIdr * item.qty))}</td>
+            <td style="${cellBaseStyle}text-align:center;width:24px;">${no++}</td>
+            <td style="${cellBaseStyle}font-weight:600;">${escapeHtml(item.jenis)}<br/><span style="font-weight:400;color:#5b6186;">${escapeHtml(item.keterangan)}</span></td>
+            <td style="${cellBaseStyle}">${escapeHtml(item.jenisSpec)}<br/><span style="color:#6d739a;">${escapeHtml(item.satuan)}</span></td>
+            <td style="${cellBaseStyle}text-align:right;">${item.qty}</td>
+            <td style="${cellBaseStyle}text-align:right;">${escapeHtml(formatRupiah(item.hargaIdr))}</td>
+            <td style="${cellBaseStyle}text-align:right;font-weight:700;">${escapeHtml(formatRupiah(item.hargaIdr * item.qty))}</td>
           </tr>`;
       }
     }
@@ -169,63 +169,59 @@ export default function QuotationPage() {
     if (otherItems.length > 0) {
       rows += `
         <tr style="background:#fff7cc;">
-          <td colspan="8" style="padding:8px 10px;font-weight:700;color:#3b3d79;font-size:12px;">Other / Tambahan</td>
+          <td colspan="6" style="padding:6px 8px;font-weight:700;color:#3b3d79;font-size:10px;">Other / Tambahan</td>
         </tr>`;
       for (const item of otherItems) {
         rows += `
           <tr>
-            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;text-align:center;font-size:12px;">${no++}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;font-size:12px;">${escapeHtml(item.jenis)}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;font-size:12px;">${escapeHtml(item.keterangan)}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;font-size:12px;">${escapeHtml(item.satuan)}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;font-size:12px;">${escapeHtml(item.jenisSpec)}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;text-align:right;font-size:12px;">${item.qty}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;text-align:right;font-size:12px;">${escapeHtml(formatRupiah(item.hargaIdr))}</td>
-            <td style="padding:6px 8px;border-bottom:1px solid #eceef8;text-align:right;font-size:12px;font-weight:600;">${escapeHtml(formatRupiah(item.hargaIdr * item.qty))}</td>
+            <td style="${cellBaseStyle}text-align:center;width:24px;">${no++}</td>
+            <td style="${cellBaseStyle}font-weight:600;">${escapeHtml(item.jenis)}<br/><span style="font-weight:400;color:#5b6186;">${escapeHtml(item.keterangan)}</span></td>
+            <td style="${cellBaseStyle}">${escapeHtml(item.jenisSpec)}<br/><span style="color:#6d739a;">${escapeHtml(item.satuan)}</span></td>
+            <td style="${cellBaseStyle}text-align:right;">${item.qty}</td>
+            <td style="${cellBaseStyle}text-align:right;">${escapeHtml(formatRupiah(item.hargaIdr))}</td>
+            <td style="${cellBaseStyle}text-align:right;font-weight:700;">${escapeHtml(formatRupiah(item.hargaIdr * item.qty))}</td>
           </tr>`;
       }
     }
 
     return `
       <div style="margin:16px 0;">
-        <table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;border:1px solid #d9dbef;border-radius:8px;overflow:hidden;">
+        <table style="width:100%;table-layout:fixed;border-collapse:collapse;font-family:Arial,sans-serif;border:1px solid #d9dbef;border-radius:8px;overflow:hidden;">
           <thead>
             <tr style="background:#6365b9;">
-              <th style="padding:8px;color:#fff;text-align:center;font-size:11px;width:34px;">No</th>
-              <th style="padding:8px;color:#fff;text-align:left;font-size:11px;">Jenis</th>
-              <th style="padding:8px;color:#fff;text-align:left;font-size:11px;">Keterangan</th>
-              <th style="padding:8px;color:#fff;text-align:left;font-size:11px;">Satuan</th>
-              <th style="padding:8px;color:#fff;text-align:left;font-size:11px;">Jenis Spec</th>
-              <th style="padding:8px;color:#fff;text-align:right;font-size:11px;">Qty</th>
-              <th style="padding:8px;color:#fff;text-align:right;font-size:11px;">Harga</th>
-              <th style="padding:8px;color:#fff;text-align:right;font-size:11px;">Total</th>
+              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9px;width:24px;">No</th>
+              <th style="padding:5px 4px;color:#fff;text-align:left;font-size:9px;">Item</th>
+              <th style="padding:5px 4px;color:#fff;text-align:left;font-size:9px;">Spec</th>
+              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9px;width:44px;">Qty</th>
+              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9px;width:68px;">Harga</th>
+              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9px;width:68px;">Total</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
           <tfoot>
             <tr>
-              <td colspan="7" style="padding:6px 8px;text-align:right;border-top:1px solid #d9dbef;font-size:12px;">Subtotal</td>
-              <td style="padding:6px 8px;text-align:right;border-top:1px solid #d9dbef;font-size:12px;font-weight:600;">${escapeHtml(formatRupiah(subtotalIdr))}</td>
+              <td colspan="5" style="padding:4px 5px;text-align:right;border-top:1px solid #d9dbef;font-size:9px;">Subtotal</td>
+              <td style="padding:4px 5px;text-align:right;border-top:1px solid #d9dbef;font-size:9px;font-weight:600;">${escapeHtml(formatRupiah(subtotalIdr))}</td>
             </tr>
             <tr>
-              <td colspan="7" style="padding:4px 8px;text-align:right;font-size:12px;color:#555;">Stock Return (${adjustments.stockReturn}%)</td>
-              <td style="padding:4px 8px;text-align:right;font-size:12px;">${escapeHtml(formatRupiah(stockReturnIdr))}</td>
+              <td colspan="5" style="padding:4px 5px;text-align:right;font-size:9px;color:#555;">Stock Return (${adjustments.stockReturn}%)</td>
+              <td style="padding:4px 5px;text-align:right;font-size:9px;">${escapeHtml(formatRupiah(stockReturnIdr))}</td>
             </tr>
             <tr>
-              <td colspan="7" style="padding:4px 8px;text-align:right;font-size:12px;color:#555;">Marketing Cost (${adjustments.marketingCost}%)</td>
-              <td style="padding:4px 8px;text-align:right;font-size:12px;">${escapeHtml(formatRupiah(marketingCostIdr))}</td>
+              <td colspan="5" style="padding:4px 5px;text-align:right;font-size:9px;color:#555;">Marketing Cost (${adjustments.marketingCost}%)</td>
+              <td style="padding:4px 5px;text-align:right;font-size:9px;">${escapeHtml(formatRupiah(marketingCostIdr))}</td>
             </tr>
             <tr>
-              <td colspan="7" style="padding:4px 8px;text-align:right;font-size:12px;color:#555;">Services (${adjustments.services}%)</td>
-              <td style="padding:4px 8px;text-align:right;font-size:12px;">${escapeHtml(formatRupiah(servicesIdr))}</td>
+              <td colspan="5" style="padding:4px 5px;text-align:right;font-size:9px;color:#555;">Services (${adjustments.services}%)</td>
+              <td style="padding:4px 5px;text-align:right;font-size:9px;">${escapeHtml(formatRupiah(servicesIdr))}</td>
             </tr>
             <tr>
-              <td colspan="7" style="padding:4px 8px;text-align:right;font-size:12px;color:#555;">Profit (${adjustments.profit}%)</td>
-              <td style="padding:4px 8px;text-align:right;font-size:12px;">${escapeHtml(formatRupiah(profitIdr))}</td>
+              <td colspan="5" style="padding:4px 5px;text-align:right;font-size:9px;color:#555;">Profit (${adjustments.profit}%)</td>
+              <td style="padding:4px 5px;text-align:right;font-size:9px;">${escapeHtml(formatRupiah(profitIdr))}</td>
             </tr>
             <tr style="background:#6365b9;">
-              <td colspan="7" style="padding:8px;text-align:right;color:#fff;font-weight:800;font-size:12px;">GRAND TOTAL</td>
-              <td style="padding:8px;text-align:right;color:#fff;font-weight:800;font-size:13px;">${escapeHtml(formatRupiah(grandTotalIdr))}</td>
+              <td colspan="5" style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:9px;">GRAND TOTAL</td>
+              <td style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:10px;">${escapeHtml(formatRupiah(grandTotalIdr))}</td>
             </tr>
           </tfoot>
         </table>
@@ -456,12 +452,8 @@ export default function QuotationPage() {
   };
 
   return (
-    <RpbPageFrame
-      maxWidthClassName="max-w-7xl"
-      shellClassName="print-a4"
-      headerClassName="no-print"
-    >
-      <div className="space-y-4 p-4 md:p-6">
+    <RpbPageFrame shellClassName="print-a4" headerClassName="no-print">
+      <div className="space-y-3 p-2 sm:p-3 md:p-4">
           {masterLoading ? (
             <div className="rpb-section p-4 text-sm text-rpb-ink-soft">
               Memuat master data dari database...
@@ -478,11 +470,11 @@ export default function QuotationPage() {
             </div>
           ) : null}
 
-          <section className="rpb-section no-print p-3 md:p-4">
-            <div className="mb-3 flex flex-wrap items-center gap-2">
+          <section className="rpb-section no-print p-2 md:p-3">
+            <div className="mb-2 flex flex-wrap items-center gap-1.5">
               <select
                 defaultValue=""
-                className="rpb-input w-auto min-w-[130px] text-sm"
+                className="rpb-input w-auto min-w-[108px] text-xs sm:min-w-[130px] sm:text-sm"
                 onChange={(event) => {
                   if (event.target.value) {
                     execCmd("formatBlock", event.target.value);
@@ -501,7 +493,7 @@ export default function QuotationPage() {
 
               <button
                 type="button"
-                className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center"
+                className="rpb-btn-ghost inline-flex h-8 w-8 items-center justify-center sm:h-9 sm:w-9"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   execCmd("bold");
@@ -512,7 +504,7 @@ export default function QuotationPage() {
               </button>
               <button
                 type="button"
-                className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center"
+                className="rpb-btn-ghost inline-flex h-8 w-8 items-center justify-center sm:h-9 sm:w-9"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   execCmd("italic");
@@ -523,7 +515,7 @@ export default function QuotationPage() {
               </button>
               <button
                 type="button"
-                className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center"
+                className="rpb-btn-ghost inline-flex h-8 w-8 items-center justify-center sm:h-9 sm:w-9"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   execCmd("underline");
@@ -534,7 +526,7 @@ export default function QuotationPage() {
               </button>
               <button
                 type="button"
-                className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center"
+                className="rpb-btn-ghost inline-flex h-8 w-8 items-center justify-center sm:h-9 sm:w-9"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   execCmd("justifyLeft");
@@ -545,7 +537,7 @@ export default function QuotationPage() {
               </button>
               <button
                 type="button"
-                className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center"
+                className="rpb-btn-ghost inline-flex h-8 w-8 items-center justify-center sm:h-9 sm:w-9"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   execCmd("justifyCenter");
@@ -557,7 +549,7 @@ export default function QuotationPage() {
 
               <button
                 type="button"
-                className="rpb-btn-primary inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold"
+                className="rpb-btn-primary inline-flex items-center gap-1.5 px-2.5 py-2 text-xs font-semibold sm:gap-2 sm:px-3 sm:text-sm"
                 onClick={insertRpbTable}
                 disabled={masterLoading || lineItems.length === 0}
                 title={
@@ -565,13 +557,13 @@ export default function QuotationPage() {
                 }
               >
                 <Table2 size={15} />
-                Insert Tabel RPB
+                Insert Tabel
               </button>
 
-              <div className="ml-auto flex flex-wrap items-center gap-2">
+              <div className="ml-auto flex flex-wrap items-center gap-1.5">
                 <button
                   type="button"
-                  className="rpb-btn-ghost inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold"
+                  className="rpb-btn-ghost inline-flex items-center gap-1.5 px-2.5 py-2 text-xs font-semibold sm:gap-2 sm:px-3 sm:text-sm"
                   onClick={resetEditor}
                 >
                   <RotateCcw size={14} />
@@ -579,7 +571,7 @@ export default function QuotationPage() {
                 </button>
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#7c3aed] px-3 py-2 text-sm font-semibold text-white"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#7c3aed] px-2.5 py-2 text-xs font-semibold text-white sm:gap-2 sm:px-3 sm:text-sm"
                   onClick={() => void handleDownloadPdf()}
                   disabled={pdfBusy}
                 >
@@ -596,14 +588,14 @@ export default function QuotationPage() {
             ) : null}
           </section>
 
-          <section className="rpb-section rpb-paper-wrap p-4">
+          <section className="rpb-section rpb-paper-wrap p-2 sm:p-3">
             <div className="rpb-doc-canvas">
               <div
                 ref={editorRef}
                 contentEditable
                 suppressContentEditableWarning
                 onInput={saveContent}
-                className="rpb-plain-editor min-h-[920px] outline-none"
+                className="rpb-plain-editor min-h-[72vh] outline-none"
                 data-placeholder="Ketik isi penawaran di sini, lalu klik 'Insert Tabel RPB' untuk memasukkan tabel harga otomatis..."
               />
             </div>
@@ -622,8 +614,8 @@ export default function QuotationPage() {
       <style>{`
         .rpb-plain-editor {
           color: #1f2340;
-          font-size: 14px;
-          line-height: 1.8;
+          font-size: 13px;
+          line-height: 1.6;
           font-family: Arial, sans-serif;
         }
         .rpb-plain-editor:empty:before {
@@ -632,28 +624,51 @@ export default function QuotationPage() {
           pointer-events: none;
         }
         .rpb-plain-editor h1 {
-          font-size: 1.6rem;
+          font-size: 1.3rem;
           font-weight: 800;
-          margin: 1rem 0 0.5rem;
+          margin: 0.8rem 0 0.45rem;
           color: #1f2340;
         }
         .rpb-plain-editor h2 {
-          font-size: 1.25rem;
+          font-size: 1.1rem;
           font-weight: 700;
-          margin: 0.9rem 0 0.4rem;
+          margin: 0.75rem 0 0.35rem;
           color: #2d3173;
         }
         .rpb-plain-editor h3 {
-          font-size: 1.05rem;
+          font-size: 0.98rem;
           font-weight: 700;
-          margin: 0.75rem 0 0.35rem;
+          margin: 0.65rem 0 0.3rem;
           color: #4548a8;
         }
         .rpb-plain-editor p {
-          margin: 0.45rem 0;
+          margin: 0.4rem 0;
         }
         .rpb-plain-editor table {
-          max-width: 100%;
+          width: 100% !important;
+          max-width: 100% !important;
+          table-layout: fixed;
+          border-collapse: collapse;
+        }
+        .rpb-plain-editor th,
+        .rpb-plain-editor td {
+          padding: 4px !important;
+          font-size: 9px !important;
+          line-height: 1.3 !important;
+          overflow-wrap: anywhere;
+          word-break: break-word;
+          white-space: normal;
+        }
+        @media (min-width: 768px) {
+          .rpb-plain-editor {
+            font-size: 14px;
+            line-height: 1.7;
+          }
+          .rpb-plain-editor th,
+          .rpb-plain-editor td {
+            padding: 5px !important;
+            font-size: 10px !important;
+          }
         }
       `}</style>
     </RpbPageFrame>
