@@ -67,12 +67,12 @@ const parseDecimalInput = (value: string) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const sanitizeVariableKey = (value: string) =>
+const toVariableKey = (value: string) =>
   value
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9_\s]/g, "")
-    .replace(/\s+/g, "_");
+    .replace(/\s+/g, "")
+    .replace(/[^a-z0-9_]/g, "");
 
 const newOtherDefault = {
   name: "",
@@ -117,6 +117,8 @@ function VariableSettingsCard({
   onAdd: () => void;
 }) {
   const title = section === "profile" ? "Variable Setting Profile" : "Variable Setting Konstruksi";
+  const defaultRows = rows.filter((row) => row.isDefault);
+  const customRows = rows.filter((row) => !row.isDefault);
 
   return (
     <div className="mt-4 rounded-xl border border-rpb-border bg-white p-3">
@@ -132,31 +134,39 @@ function VariableSettingsCard({
         </button>
       </div>
 
-      <div className="space-y-2">
-        {rows.map((row) => {
+      <div className="rounded-lg border border-rpb-border bg-[#fcfcff] p-2.5">
+        <p className="text-xs font-semibold text-rpb-ink-soft">Variabel Default (read-only)</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {defaultRows.map((row) => (
+            <span
+              key={row.id}
+              className="inline-flex items-center rounded-full border border-rpb-border bg-white px-3 py-1 text-xs font-semibold text-foreground"
+            >
+              {row.label}
+            </span>
+          ))}
+        </div>
+        <p className="mt-2 text-[11px] text-rpb-ink-soft">
+          Diambil dari input user pada halaman utama.
+        </p>
+      </div>
+
+      <div className="mt-3 space-y-2">
+        {customRows.map((row) => {
           const rowBusyKey = `variable:${row.id}`;
           const deleteBusyKey = `variable:delete:${row.id}`;
-          const isDefault = row.isDefault;
 
           return (
             <div key={row.id} className="rounded-lg border border-rpb-border bg-[#fcfcff] p-2.5">
-              <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_150px_120px_auto]">
+              <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_120px_auto]">
                 <input
                   className="rpb-input"
                   placeholder="Nama Variabel"
                   value={row.label}
-                  disabled={isDefault}
                   onChange={(event) => {
                     const label = event.target.value;
-                    onChange(row.id, { label, key: sanitizeVariableKey(label) });
+                    onChange(row.id, { label, key: toVariableKey(label) });
                   }}
-                />
-                <input
-                  className="rpb-input"
-                  placeholder="key"
-                  value={row.key}
-                  disabled={isDefault}
-                  onChange={(event) => onChange(row.id, { key: sanitizeVariableKey(event.target.value) })}
                 />
                 <input
                   className="rpb-input"
@@ -174,25 +184,26 @@ function VariableSettingsCard({
                   >
                     {busy === rowBusyKey ? "..." : "Simpan"}
                   </button>
-                  {!isDefault ? (
-                    <button
-                      type="button"
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-600"
-                      onClick={() => void onDelete(row)}
-                      disabled={busy === deleteBusyKey}
-                      aria-label={`Hapus variabel ${row.label || row.key}`}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  ) : null}
+                  <button
+                    type="button"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-600"
+                    onClick={() => void onDelete(row)}
+                    disabled={busy === deleteBusyKey}
+                    aria-label={`Hapus variabel ${row.label || row.key}`}
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
               </div>
-              {isDefault ? (
-                <p className="mt-1 text-[11px] text-rpb-ink-soft">Default dari input user di halaman utama.</p>
-              ) : null}
+              <p className="mt-1 text-[11px] text-rpb-ink-soft">
+                Nama variabel tidak boleh mengandung spasi.
+              </p>
             </div>
           );
         })}
+        {customRows.length === 0 ? (
+          <p className="text-xs text-rpb-ink-soft">Belum ada variabel custom. Tambah lewat tombol `+ Variabel`.</p>
+        ) : null}
       </div>
     </div>
   );
@@ -280,8 +291,18 @@ export function AdminConfigPanel() {
   };
 
   const saveVariable = async (row: FormulaVariableSetting) => {
-    if (!row.key.trim() || !row.label.trim()) {
-      setMessage("Nama variabel dan key wajib diisi.");
+    const label = row.label.trim();
+    if (!label) {
+      setMessage("Nama variabel wajib diisi.");
+      return;
+    }
+    if (/\s/.test(label)) {
+      setMessage("Nama variabel tidak boleh mengandung spasi.");
+      return;
+    }
+    const normalizedKey = toVariableKey(label);
+    if (!normalizedKey) {
+      setMessage("Nama variabel harus berisi huruf/angka yang valid.");
       return;
     }
 
@@ -292,8 +313,8 @@ export function AdminConfigPanel() {
       await upsertFormulaVariableSetting(supabase, {
         id: row.id.startsWith("temp-") ? undefined : row.id,
         section: row.section,
-        key: sanitizeVariableKey(row.key),
-        label: row.label.trim(),
+        key: normalizedKey,
+        label,
         defaultValue: row.defaultValue,
         isDefault: row.isDefault,
         sortOrder: row.sortOrder,
@@ -451,7 +472,7 @@ export function AdminConfigPanel() {
             </button>
           </div>
 
-          <div className="space-y-2 md:hidden">
+          <div className="space-y-2">
             {profileRows.map((row) => (
               <article key={row.id} className="rounded-xl border border-rpb-border p-3">
                 <p className="text-xs text-rpb-ink-soft">{row.code}</p>
@@ -459,8 +480,8 @@ export function AdminConfigPanel() {
                 <p className="text-xs text-rpb-ink-soft">Unit: {row.unit}</p>
                 <label className="mt-2 block text-xs font-semibold text-rpb-ink-soft">
                   Formula Qty
-                  <input
-                    className="rpb-input mt-1"
+                  <textarea
+                    className="rpb-input mt-1 min-h-20 resize-y whitespace-pre-wrap break-words font-mono"
                     value={row.formulaExpr}
                     onChange={(event) =>
                       setProfileRows((list) =>
@@ -507,71 +528,6 @@ export function AdminConfigPanel() {
             ))}
           </div>
 
-          <div className="hidden overflow-x-auto md:block">
-            <table className="rpb-table min-w-[1180px] w-full text-sm">
-              <thead>
-                <tr>
-                  <th>Code</th>
-                  <th>Name</th>
-                  <th>Unit</th>
-                  <th>Formula Qty</th>
-                  <th>Harga 30 (Rp)</th>
-                  <th>Harga 45 (Rp)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {profileRows.map((row) => (
-                  <tr key={row.id}>
-                    <td>{row.code}</td>
-                    <td>{row.name}</td>
-                    <td>{row.unit}</td>
-                    <td>
-                      <input
-                        className="rpb-input min-w-[320px]"
-                        value={row.formulaExpr}
-                        onChange={(event) =>
-                          setProfileRows((list) =>
-                            list.map((item) => (item.id === row.id ? { ...item, formulaExpr: event.target.value } : item)),
-                          )
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="rpb-input min-w-[110px]"
-                        type="text"
-                        inputMode="numeric"
-                        value={formatIdrInput(row.priceIdr30)}
-                        onChange={(event) =>
-                          setProfileRows((list) =>
-                            list.map((item) =>
-                              item.id === row.id ? { ...item, priceIdr30: parseIdrInput(event.target.value) } : item,
-                            ),
-                          )
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="rpb-input min-w-[110px]"
-                        type="text"
-                        inputMode="numeric"
-                        value={formatIdrInput(row.priceIdr45)}
-                        onChange={(event) =>
-                          setProfileRows((list) =>
-                            list.map((item) =>
-                              item.id === row.id ? { ...item, priceIdr45: parseIdrInput(event.target.value) } : item,
-                            ),
-                          )
-                        }
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
           <FormulaHelpBox />
           <VariableSettingsCard
             section="profile"
@@ -601,7 +557,7 @@ export function AdminConfigPanel() {
             </button>
           </div>
 
-          <div className="space-y-2 md:hidden">
+          <div className="space-y-2">
             {konstruksiRows.map((row) => (
               <article key={row.id} className="rounded-xl border border-rpb-border p-3">
                 <p className="text-xs text-rpb-ink-soft">{row.code}</p>
@@ -609,8 +565,8 @@ export function AdminConfigPanel() {
                 <p className="text-xs text-rpb-ink-soft">Unit: {row.unit}</p>
                 <label className="mt-2 block text-xs font-semibold text-rpb-ink-soft">
                   Formula Qty
-                  <input
-                    className="rpb-input mt-1"
+                  <textarea
+                    className="rpb-input mt-1 min-h-20 resize-y whitespace-pre-wrap break-words font-mono"
                     value={row.formulaExpr}
                     onChange={(event) =>
                       setKonstruksiRows((list) =>
@@ -637,55 +593,6 @@ export function AdminConfigPanel() {
                 </label>
               </article>
             ))}
-          </div>
-
-          <div className="hidden overflow-x-auto md:block">
-            <table className="rpb-table min-w-[1080px] w-full text-sm">
-              <thead>
-                <tr>
-                  <th>Code</th>
-                  <th>Name</th>
-                  <th>Unit</th>
-                  <th>Formula Qty</th>
-                  <th>Harga Satuan (Rp)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {konstruksiRows.map((row) => (
-                  <tr key={row.id}>
-                    <td>{row.code}</td>
-                    <td>{row.name}</td>
-                    <td>{row.unit}</td>
-                    <td>
-                      <input
-                        className="rpb-input min-w-[360px]"
-                        value={row.formulaExpr}
-                        onChange={(event) =>
-                          setKonstruksiRows((list) =>
-                            list.map((item) => (item.id === row.id ? { ...item, formulaExpr: event.target.value } : item)),
-                          )
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="rpb-input min-w-[140px]"
-                        type="text"
-                        inputMode="numeric"
-                        value={formatIdrInput(row.unitPriceIdr)}
-                        onChange={(event) =>
-                          setKonstruksiRows((list) =>
-                            list.map((item) =>
-                              item.id === row.id ? { ...item, unitPriceIdr: parseIdrInput(event.target.value) } : item,
-                            ),
-                          )
-                        }
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
 
           <FormulaHelpBox />
@@ -754,7 +661,7 @@ export function AdminConfigPanel() {
             </div>
           </form>
 
-          <div className="space-y-2 md:hidden">
+          <div className="space-y-2">
             {otherRows.map((row) => (
               <article key={row.id} className="rounded-xl border border-rpb-border p-3">
                 <div className="grid gap-2 md:grid-cols-2">
@@ -826,102 +733,6 @@ export function AdminConfigPanel() {
                 </div>
               </article>
             ))}
-          </div>
-
-          <div className="hidden overflow-x-auto md:block">
-            <table className="rpb-table min-w-[980px] w-full text-sm">
-              <thead>
-                <tr>
-                  <th>Category</th>
-                  <th>Name</th>
-                  <th>Model</th>
-                  <th>Unit</th>
-                  <th>Harga (Rp)</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {otherRows.map((row) => (
-                  <tr key={row.id}>
-                    <td>
-                      <select
-                        className="rpb-input min-w-[120px]"
-                        value={row.category}
-                        onChange={(event) =>
-                          setOtherRows((list) =>
-                            list.map((item) =>
-                              item.id === row.id ? { ...item, category: event.target.value as StockCategory } : item,
-                            ),
-                          )
-                        }
-                      >
-                        <option value="Blower">Blower</option>
-                        <option value="Motor">Motor</option>
-                        <option value="Rotor">Rotor</option>
-                      </select>
-                    </td>
-                    <td>
-                      <input
-                        className="rpb-input min-w-[180px]"
-                        value={row.name}
-                        onChange={(event) =>
-                          setOtherRows((list) =>
-                            list.map((item) => (item.id === row.id ? { ...item, name: event.target.value } : item)),
-                          )
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="rpb-input min-w-[220px]"
-                        value={row.model}
-                        onChange={(event) =>
-                          setOtherRows((list) =>
-                            list.map((item) => (item.id === row.id ? { ...item, model: event.target.value } : item)),
-                          )
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="rpb-input min-w-[90px]"
-                        value={row.unit}
-                        onChange={(event) =>
-                          setOtherRows((list) =>
-                            list.map((item) => (item.id === row.id ? { ...item, unit: event.target.value } : item)),
-                          )
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="rpb-input min-w-[120px]"
-                        type="text"
-                        inputMode="numeric"
-                        value={formatIdrInput(row.priceIdr)}
-                        onChange={(event) =>
-                          setOtherRows((list) =>
-                            list.map((item) =>
-                              item.id === row.id ? { ...item, priceIdr: parseIdrInput(event.target.value) } : item,
-                            ),
-                          )
-                        }
-                      />
-                    </td>
-                    <td>
-                      <button
-                        type="button"
-                        className="rpb-btn-primary px-3 py-2 text-xs font-semibold"
-                        onClick={() => void saveOtherRow(row)}
-                        disabled={busy === `other:${row.id}`}
-                      >
-                        {busy === `other:${row.id}` ? "..." : "Simpan"}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </section>
       ) : null}
