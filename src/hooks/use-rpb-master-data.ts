@@ -19,8 +19,22 @@ interface MasterDataCachePayload {
   fetchedAt: number;
 }
 
-const MASTER_DATA_CACHE_KEY = "rpb-master-data-cache-v1";
+const MASTER_DATA_CACHE_KEY = "rpb-master-data-cache-v2";
 const MASTER_DATA_CACHE_MAX_AGE_MS = 5 * 60 * 1000;
+
+const normalizeMasterData = (value: unknown): RpbMasterData | null => {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const raw = value as Partial<RpbMasterData>;
+  return {
+    profileItems: Array.isArray(raw.profileItems) ? raw.profileItems : [],
+    konstruksiItems: Array.isArray(raw.konstruksiItems) ? raw.konstruksiItems : [],
+    otherItems: Array.isArray(raw.otherItems) ? raw.otherItems : [],
+    formulaVariables: Array.isArray(raw.formulaVariables) ? raw.formulaVariables : [],
+  };
+};
 
 let memoryCache: MasterDataCachePayload | null = null;
 
@@ -43,11 +57,15 @@ const readStorageCache = (): MasterDataCachePayload | null => {
     if (!parsed.data || typeof parsed.fetchedAt !== "number") {
       return null;
     }
+    const normalizedData = normalizeMasterData(parsed.data);
+    if (!normalizedData) {
+      return null;
+    }
 
     const role = parsed.role === "admin" || parsed.role === "user" ? parsed.role : null;
 
     return {
-      data: parsed.data as RpbMasterData,
+      data: normalizedData,
       role,
       fetchedAt: parsed.fetchedAt,
     };

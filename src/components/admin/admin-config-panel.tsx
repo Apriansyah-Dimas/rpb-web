@@ -213,10 +213,10 @@ export function AdminConfigPanel() {
     if (!data) {
       return;
     }
-    setProfileRows(data.profileItems.slice().sort((a, b) => a.sortOrder - b.sortOrder));
-    setKonstruksiRows(data.konstruksiItems.slice().sort((a, b) => a.sortOrder - b.sortOrder));
-    setOtherRows(data.otherItems.slice());
-    setVariableRows(data.formulaVariables.slice().sort((a, b) => a.sortOrder - b.sortOrder));
+    setProfileRows((data.profileItems ?? []).slice().sort((a, b) => a.sortOrder - b.sortOrder));
+    setKonstruksiRows((data.konstruksiItems ?? []).slice().sort((a, b) => a.sortOrder - b.sortOrder));
+    setOtherRows((data.otherItems ?? []).slice());
+    setVariableRows((data.formulaVariables ?? []).slice().sort((a, b) => a.sortOrder - b.sortOrder));
   }, [data]);
 
   const profileVariables = useMemo(
