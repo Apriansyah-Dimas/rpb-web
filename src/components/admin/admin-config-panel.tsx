@@ -34,17 +34,6 @@ const CONFIG_NAV_ITEMS: Array<{
   { key: "other", label: "Other", description: "Master item tambahan permanen" },
 ];
 
-const FORMULA_FUNCTIONS = [
-  "ROUND(x, digit)",
-  "CEIL(x)",
-  "FLOOR(x)",
-  "ABS(x)",
-  "MIN(a,b,...)",
-  "MAX(a,b,...)",
-  "PCT(base,persen)",
-  "PERSEN(base,persen)",
-];
-
 const IDR_INPUT_FORMATTER = new Intl.NumberFormat("id-ID", {
   maximumFractionDigits: 0,
 });
@@ -83,15 +72,36 @@ const newOtherDefault = {
 };
 
 function FormulaHelpBox() {
+  const functionDescriptions = [
+    { name: "ROUND(x, digit)", desc: "Membulatkan nilai ke jumlah desimal tertentu." },
+    { name: "CEIL(x)", desc: "Membulatkan ke atas ke bilangan bulat terdekat." },
+    { name: "FLOOR(x)", desc: "Membulatkan ke bawah ke bilangan bulat terdekat." },
+    { name: "ABS(x)", desc: "Mengubah nilai negatif menjadi positif." },
+    { name: "MIN(a,b,...)", desc: "Mengambil nilai paling kecil." },
+    { name: "MAX(a,b,...)", desc: "Mengambil nilai paling besar." },
+    { name: "PCT(base,persen)", desc: "Menghitung persentase dari nilai dasar." },
+    { name: "PERSEN(base,persen)", desc: "Sama seperti PCT, alias bahasa Indonesia." },
+  ];
+
   return (
     <div className="mt-3 rounded-xl border border-rpb-border bg-[#fbfbff] p-3 text-xs text-rpb-ink-soft">
       <p className="font-semibold text-foreground">Fungsi Formula yang didukung</p>
-      <p className="mt-1">Operator: +, -, *, /, ^, kurung, dan literal persen seperti 10%.</p>
-      <div className="mt-2 flex flex-wrap gap-1.5">
-        {FORMULA_FUNCTIONS.map((fn) => (
-          <span key={fn} className="rounded-md border border-rpb-border bg-white px-2 py-1 font-mono">
-            {fn}
-          </span>
+      <p className="mt-1">
+        Operator: <span className="font-mono">+, -, *, /, ^</span>, kurung, dan literal persen
+        seperti <span className="font-mono">10%</span>.
+      </p>
+      <p className="mt-1">
+        Variabel yang bisa dipakai: <span className="font-mono">width</span>,{" "}
+        <span className="font-mono">length</span>, <span className="font-mono">height</span>,{" "}
+        <span className="font-mono">panel_thickness</span>, dan kode item sebelumnya.
+      </p>
+      <div className="mt-2 space-y-1">
+        {functionDescriptions.map((item) => (
+          <p key={item.name}>
+            <span className="font-mono text-foreground">{item.name}</span>
+            {" - "}
+            {item.desc}
+          </p>
         ))}
       </div>
       <p className="mt-2 font-mono text-[11px]">Contoh: ROUND(((width * length) / 1000000), 2)</p>
