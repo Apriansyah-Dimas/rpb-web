@@ -23,6 +23,7 @@ const withFormulaAliases = (ctx: FormulaVariables) => ({
   ...ctx,
   p: Number(ctx.panel_thickness ?? 0),
   t: Number(ctx.panel_thickness ?? 0),
+  __length_var: Number(ctx.length ?? 0),
 });
 
 const preprocessPercentLiterals = (expression: string): string =>
@@ -30,6 +31,10 @@ const preprocessPercentLiterals = (expression: string): string =>
 
 const normalizeDecimalComma = (expression: string): string =>
   expression.replace(/(\d),(\d)/g, "$1.$2");
+
+// `length` is reserved by expr-eval internals; remap variable token to a safe alias.
+const remapReservedVariableTokens = (expression: string): string =>
+  expression.replace(/\blength\b(?!\s*\()/gi, "__length_var");
 
 const customFunctions = {
   ROUND: (value: number, digits = 0) => {
@@ -67,7 +72,9 @@ export const evaluateFormulaQuantity = (
   }
 
   try {
-    const expression = normalizeDecimalComma(preprocessPercentLiterals(formulaExpr.trim()));
+    const expression = remapReservedVariableTokens(
+      normalizeDecimalComma(preprocessPercentLiterals(formulaExpr.trim())),
+    );
     const compiled = parser.parse(expression);
     const value = compiled.evaluate(withFormulaAliases(context));
 
@@ -83,7 +90,9 @@ export const evaluateFormulaQuantity = (
 
 export const validateFormulaExpression = (formulaExpr: string): string | null => {
   try {
-    const expression = normalizeDecimalComma(preprocessPercentLiterals(formulaExpr.trim()));
+    const expression = remapReservedVariableTokens(
+      normalizeDecimalComma(preprocessPercentLiterals(formulaExpr.trim())),
+    );
     parser.parse(expression);
     return null;
   } catch (error) {
