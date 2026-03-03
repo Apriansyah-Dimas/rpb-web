@@ -740,7 +740,6 @@ export function AdminConfigPanel() {
             </div>
           </div>
 
-          <FormulaHelpBox />
           <VariableSettingsCard
             section="profile"
             rows={profileVariables}
@@ -753,6 +752,7 @@ export function AdminConfigPanel() {
             onSave={saveVariable}
             onDelete={deleteVariable}
           />
+          <FormulaHelpBox />
         </section>
       ) : null}
 
@@ -873,7 +873,6 @@ export function AdminConfigPanel() {
             </div>
           </div>
 
-          <FormulaHelpBox />
           <VariableSettingsCard
             section="konstruksi"
             rows={konstruksiVariables}
@@ -886,6 +885,7 @@ export function AdminConfigPanel() {
             onSave={saveVariable}
             onDelete={deleteVariable}
           />
+          <FormulaHelpBox />
         </section>
       ) : null}
 
