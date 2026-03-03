@@ -11,7 +11,7 @@ import {
   upsertOtherMasterItem,
   upsertProfileMasterItem,
 } from "@/lib/rpb-db";
-import { validateFormulaExpression } from "@/lib/rpb-formula";
+import { evaluateFormulaQuantity, validateFormulaExpression } from "@/lib/rpb-formula";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type {
   FormulaVariableSection,
@@ -53,6 +53,18 @@ const parseIdrInput = (value: string) => {
 const parseDecimalInput = (value: string) => {
   const parsed = Number.parseFloat(value.replace(",", "."));
   return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const formatQtyPreview = (value: number): string => {
+  if (!Number.isFinite(value)) {
+    return "0";
+  }
+
+  if (Number.isInteger(value)) {
+    return String(value);
+  }
+
+  return value.toLocaleString("id-ID", { maximumFractionDigits: 3 });
 };
 
 const OTHER_CATEGORY_DATALIST_ID = "other-category-options";
@@ -285,6 +297,32 @@ export function AdminConfigPanel() {
       ).sort((a, b) => a.localeCompare(b)),
     [otherRows],
   );
+  const profileQtyPreview = useMemo(() => {
+    const ctx: Record<string, number> = { panel_thickness: 30, panelThickness: 30 };
+    profileVariables.forEach((variable) => {
+      ctx[variable.key] = Number.isFinite(variable.defaultValue) ? variable.defaultValue : 0;
+    });
+
+    return profileRows.reduce<Record<string, number>>((acc, row) => {
+      const qty = evaluateFormulaQuantity(row.formulaExpr, ctx);
+      acc[row.id] = qty;
+      ctx[row.code] = qty;
+      return acc;
+    }, {});
+  }, [profileRows, profileVariables]);
+  const konstruksiQtyPreview = useMemo(() => {
+    const ctx: Record<string, number> = { panel_thickness: 30, panelThickness: 30 };
+    konstruksiVariables.forEach((variable) => {
+      ctx[variable.key] = Number.isFinite(variable.defaultValue) ? variable.defaultValue : 0;
+    });
+
+    return konstruksiRows.reduce<Record<string, number>>((acc, row) => {
+      const qty = evaluateFormulaQuantity(row.formulaExpr, ctx);
+      acc[row.id] = qty;
+      ctx[row.code] = qty;
+      return acc;
+    }, {});
+  }, [konstruksiRows, konstruksiVariables]);
 
   const saveAllProfile = async () => {
     for (const row of profileRows) {
@@ -525,16 +563,26 @@ export function AdminConfigPanel() {
                 <p className="text-sm font-semibold">{row.name}</p>
                 <p className="text-xs text-rpb-ink-soft">Unit: {row.unit}</p>
                 <label className="mt-2 block text-xs font-semibold text-rpb-ink-soft">
-                  Formula Qty
-                  <AutoSizeFormulaTextarea
-                    className="rpb-input mt-1 whitespace-pre-wrap break-words font-mono"
-                    value={row.formulaExpr}
-                    onChange={(event) =>
-                      setProfileRows((list) =>
-                        list.map((item) => (item.id === row.id ? { ...item, formulaExpr: event.target.value } : item)),
-                      )
-                    }
-                  />
+                  <span className="flex items-center justify-between gap-2">
+                    <span>Formula Qty</span>
+                    <span className="rounded-md border border-rpb-border bg-[#f6f7ff] px-2 py-0.5 font-mono text-[11px] text-foreground">
+                      Qty: {formatQtyPreview(profileQtyPreview[row.id] ?? 0)}
+                    </span>
+                  </span>
+                  <div className="mt-1 grid grid-cols-[minmax(0,1fr)_84px] gap-2">
+                    <AutoSizeFormulaTextarea
+                      className="rpb-input whitespace-pre-wrap break-words font-mono"
+                      value={row.formulaExpr}
+                      onChange={(event) =>
+                        setProfileRows((list) =>
+                          list.map((item) => (item.id === row.id ? { ...item, formulaExpr: event.target.value } : item)),
+                        )
+                      }
+                    />
+                    <div className="rpb-input flex items-center justify-center bg-[#f6f7ff] font-mono text-xs">
+                      {formatQtyPreview(profileQtyPreview[row.id] ?? 0)}
+                    </div>
+                  </div>
                 </label>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <label className="text-xs font-semibold text-rpb-ink-soft">
@@ -579,9 +627,9 @@ export function AdminConfigPanel() {
                 <thead className="bg-[#f6f7ff]">
                   <tr className="text-left text-xs font-semibold text-rpb-ink-soft">
                     <th className="w-[12%] px-3 py-2">Code</th>
-                    <th className="w-[19%] px-3 py-2">Name</th>
+                    <th className="w-[14%] px-3 py-2">Name</th>
                     <th className="w-[8%] px-3 py-2">Unit</th>
-                    <th className="w-[30%] px-3 py-2">Formula Qty</th>
+                    <th className="w-[35%] px-3 py-2">Formula Qty</th>
                     <th className="w-[15.5%] px-3 py-2">Harga 30</th>
                     <th className="w-[15.5%] px-3 py-2">Harga 45</th>
                   </tr>
@@ -593,15 +641,20 @@ export function AdminConfigPanel() {
                       <td className="px-3 py-2 break-words">{row.name}</td>
                       <td className="px-3 py-2 break-words">{row.unit}</td>
                       <td className="px-3 py-2">
-                        <AutoSizeFormulaTextarea
-                          className="rpb-input w-full whitespace-pre-wrap break-words font-mono text-xs"
-                          value={row.formulaExpr}
-                          onChange={(event) =>
-                            setProfileRows((list) =>
-                              list.map((item) => (item.id === row.id ? { ...item, formulaExpr: event.target.value } : item)),
-                            )
-                          }
-                        />
+                        <div className="grid grid-cols-[minmax(0,1fr)_84px] gap-2">
+                          <AutoSizeFormulaTextarea
+                            className="rpb-input w-full whitespace-pre-wrap break-words font-mono text-xs"
+                            value={row.formulaExpr}
+                            onChange={(event) =>
+                              setProfileRows((list) =>
+                                list.map((item) => (item.id === row.id ? { ...item, formulaExpr: event.target.value } : item)),
+                              )
+                            }
+                          />
+                          <div className="rpb-input flex items-center justify-center bg-[#f6f7ff] font-mono text-xs">
+                            {formatQtyPreview(profileQtyPreview[row.id] ?? 0)}
+                          </div>
+                        </div>
                       </td>
                       <td className="px-3 py-2">
                         <input
@@ -676,16 +729,26 @@ export function AdminConfigPanel() {
                 <p className="text-sm font-semibold">{row.name}</p>
                 <p className="text-xs text-rpb-ink-soft">Unit: {row.unit}</p>
                 <label className="mt-2 block text-xs font-semibold text-rpb-ink-soft">
-                  Formula Qty
-                  <AutoSizeFormulaTextarea
-                    className="rpb-input mt-1 whitespace-pre-wrap break-words font-mono"
-                    value={row.formulaExpr}
-                    onChange={(event) =>
-                      setKonstruksiRows((list) =>
-                        list.map((item) => (item.id === row.id ? { ...item, formulaExpr: event.target.value } : item)),
-                      )
-                    }
-                  />
+                  <span className="flex items-center justify-between gap-2">
+                    <span>Formula Qty</span>
+                    <span className="rounded-md border border-rpb-border bg-[#f6f7ff] px-2 py-0.5 font-mono text-[11px] text-foreground">
+                      Qty: {formatQtyPreview(konstruksiQtyPreview[row.id] ?? 0)}
+                    </span>
+                  </span>
+                  <div className="mt-1 grid grid-cols-[minmax(0,1fr)_84px] gap-2">
+                    <AutoSizeFormulaTextarea
+                      className="rpb-input whitespace-pre-wrap break-words font-mono"
+                      value={row.formulaExpr}
+                      onChange={(event) =>
+                        setKonstruksiRows((list) =>
+                          list.map((item) => (item.id === row.id ? { ...item, formulaExpr: event.target.value } : item)),
+                        )
+                      }
+                    />
+                    <div className="rpb-input flex items-center justify-center bg-[#f6f7ff] font-mono text-xs">
+                      {formatQtyPreview(konstruksiQtyPreview[row.id] ?? 0)}
+                    </div>
+                  </div>
                 </label>
                 <label className="mt-2 block text-xs font-semibold text-rpb-ink-soft">
                   Harga Satuan
@@ -712,9 +775,9 @@ export function AdminConfigPanel() {
                 <thead className="bg-[#f6f7ff]">
                   <tr className="text-left text-xs font-semibold text-rpb-ink-soft">
                     <th className="w-[12%] px-3 py-2">Code</th>
-                    <th className="w-[24%] px-3 py-2">Name</th>
+                    <th className="w-[18%] px-3 py-2">Name</th>
                     <th className="w-[10%] px-3 py-2">Unit</th>
-                    <th className="w-[30%] px-3 py-2">Formula Qty</th>
+                    <th className="w-[36%] px-3 py-2">Formula Qty</th>
                     <th className="w-[24%] px-3 py-2">Harga Satuan</th>
                   </tr>
                 </thead>
@@ -725,15 +788,20 @@ export function AdminConfigPanel() {
                       <td className="px-3 py-2 break-words">{row.name}</td>
                       <td className="px-3 py-2 break-words">{row.unit}</td>
                       <td className="px-3 py-2">
-                        <AutoSizeFormulaTextarea
-                          className="rpb-input w-full whitespace-pre-wrap break-words font-mono text-xs"
-                          value={row.formulaExpr}
-                          onChange={(event) =>
-                            setKonstruksiRows((list) =>
-                              list.map((item) => (item.id === row.id ? { ...item, formulaExpr: event.target.value } : item)),
-                            )
-                          }
-                        />
+                        <div className="grid grid-cols-[minmax(0,1fr)_84px] gap-2">
+                          <AutoSizeFormulaTextarea
+                            className="rpb-input w-full whitespace-pre-wrap break-words font-mono text-xs"
+                            value={row.formulaExpr}
+                            onChange={(event) =>
+                              setKonstruksiRows((list) =>
+                                list.map((item) => (item.id === row.id ? { ...item, formulaExpr: event.target.value } : item)),
+                              )
+                            }
+                          />
+                          <div className="rpb-input flex items-center justify-center bg-[#f6f7ff] font-mono text-xs">
+                            {formatQtyPreview(konstruksiQtyPreview[row.id] ?? 0)}
+                          </div>
+                        </div>
                       </td>
                       <td className="px-3 py-2">
                         <input
