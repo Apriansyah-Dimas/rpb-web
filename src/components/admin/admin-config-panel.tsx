@@ -535,9 +535,9 @@ export function AdminConfigPanel() {
                     <th className="w-[8%] px-3 py-2">Code</th>
                     <th className="w-[17%] px-3 py-2">Name</th>
                     <th className="w-[8%] px-3 py-2">Unit</th>
-                    <th className="w-[42%] px-3 py-2">Formula Qty</th>
-                    <th className="w-[12.5%] px-3 py-2">Harga 30</th>
-                    <th className="w-[12.5%] px-3 py-2">Harga 45</th>
+                    <th className="w-[34%] px-3 py-2">Formula Qty</th>
+                    <th className="w-[16.5%] px-3 py-2">Harga 30</th>
+                    <th className="w-[16.5%] px-3 py-2">Harga 45</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -668,8 +668,8 @@ export function AdminConfigPanel() {
                     <th className="w-[10%] px-3 py-2">Code</th>
                     <th className="w-[22%] px-3 py-2">Name</th>
                     <th className="w-[10%] px-3 py-2">Unit</th>
-                    <th className="w-[40%] px-3 py-2">Formula Qty</th>
-                    <th className="w-[18%] px-3 py-2">Harga Satuan</th>
+                    <th className="w-[34%] px-3 py-2">Formula Qty</th>
+                    <th className="w-[24%] px-3 py-2">Harga Satuan</th>
                   </tr>
                 </thead>
                 <tbody>
