@@ -515,6 +515,24 @@ export default function QuotationPage() {
     saveContent();
   };
 
+  const normalizeTableCellAlignment = () => {
+    const editor = editorRef.current;
+    if (!editor) {
+      return;
+    }
+
+    const cells = Array.from(editor.querySelectorAll("table th, table td"));
+    cells.forEach((cell) => {
+      if (!(cell instanceof HTMLElement)) {
+        return;
+      }
+      cell.style.verticalAlign = "middle";
+      cell.style.lineHeight = "1.25";
+      cell.style.paddingTop = "5px";
+      cell.style.paddingBottom = "5px";
+    });
+  };
+
   const resetEditor = () => {
     if (!editorRef.current) {
       return;
@@ -533,6 +551,10 @@ export default function QuotationPage() {
     setPdfBusy(true);
     setPdfError(null);
     try {
+      // Force table cell alignment for both newly inserted and previously existing tables.
+      normalizeTableCellAlignment();
+      saveContent();
+
       const activeElement = document.activeElement;
       if (activeElement instanceof HTMLElement) {
         activeElement.blur();
