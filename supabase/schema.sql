@@ -113,7 +113,7 @@ for each row execute function public.set_updated_at();
 create table if not exists public.rpb_other_items (
   id uuid primary key default gen_random_uuid(),
   name text not null,
-  category text not null check (category in ('Blower', 'Motor', 'Rotor')),
+  category text not null check (length(btrim(category)) > 0),
   model text not null default '-',
   unit text not null default 'pc',
   price_idr numeric(18, 2) not null default 0,

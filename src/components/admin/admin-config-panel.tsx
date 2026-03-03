@@ -1,6 +1,6 @@
 "use client";
 
-import type { FormEvent, TextareaHTMLAttributes } from "react";
+import type { TextareaHTMLAttributes } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
@@ -19,7 +19,6 @@ import type {
   KonstruksiMasterItem,
   OtherItem,
   ProfileMasterItem,
-  StockCategory,
 } from "@/types/rpb";
 
 type ConfigSection = "profile" | "konstruksi" | "other";
@@ -56,6 +55,8 @@ const parseDecimalInput = (value: string) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const OTHER_CATEGORY_DATALIST_ID = "other-category-options";
+
 const toVariableKey = (value: string) =>
   value
     .trim()
@@ -65,7 +66,7 @@ const toVariableKey = (value: string) =>
 
 const newOtherDefault = {
   name: "",
-  category: "Blower" as StockCategory,
+  category: "Other",
   model: "-",
   unit: "pc",
   priceIdr: 0,
@@ -249,6 +250,7 @@ export function AdminConfigPanel() {
   const [otherRows, setOtherRows] = useState<OtherItem[]>([]);
   const [variableRows, setVariableRows] = useState<FormulaVariableSetting[]>([]);
   const [newOther, setNewOther] = useState(newOtherDefault);
+  const [isOtherModalOpen, setIsOtherModalOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<ConfigSection>("profile");
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -271,6 +273,17 @@ export function AdminConfigPanel() {
     () =>
       variableRows.filter((row) => row.section === "konstruksi").sort((a, b) => a.sortOrder - b.sortOrder),
     [variableRows],
+  );
+  const otherCategoryOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          otherRows
+            .map((row) => row.category.trim())
+            .filter((category) => category.length > 0),
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
+    [otherRows],
   );
 
   const saveAllProfile = async () => {
@@ -425,8 +438,7 @@ export function AdminConfigPanel() {
     }
   };
 
-  const addOtherPermanent = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const addOtherPermanent = async () => {
     if (!newOther.name.trim()) {
       setMessage("Nama item other wajib diisi.");
       return;
@@ -438,12 +450,13 @@ export function AdminConfigPanel() {
       const supabase = getSupabaseBrowserClient();
       await upsertOtherMasterItem(supabase, {
         name: newOther.name.trim(),
-        category: newOther.category,
+        category: newOther.category.trim() || "Other",
         model: newOther.model.trim() || "-",
         unit: newOther.unit.trim() || "pc",
         priceIdr: Math.max(0, newOther.priceIdr),
       });
       setNewOther(newOtherDefault);
+      setIsOtherModalOpen(false);
       setMessage("Item other permanen berhasil ditambahkan.");
       await refresh();
     } catch (err) {
@@ -761,74 +774,41 @@ export function AdminConfigPanel() {
 
       {activeSection === "other" ? (
         <section className="rpb-section p-3 md:p-4">
-          <h2 className="rpb-h-title mb-3 text-base font-semibold">OTHER (permanen)</h2>
-          <form className="mb-4 grid gap-3 md:grid-cols-6" onSubmit={addOtherPermanent}>
-            <input
-              className="rpb-input md:col-span-2"
-              placeholder="Name"
-              value={newOther.name}
-              onChange={(event) => setNewOther((value) => ({ ...value, name: event.target.value }))}
-            />
-            <select
-              className="rpb-input"
-              value={newOther.category}
-              onChange={(event) => setNewOther((value) => ({ ...value, category: event.target.value as StockCategory }))}
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <h2 className="rpb-h-title text-base font-semibold">OTHER (permanen)</h2>
+            <button
+              type="button"
+              className="rpb-btn-primary inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold"
+              onClick={() => setIsOtherModalOpen(true)}
             >
-              <option value="Blower">Blower</option>
-              <option value="Motor">Motor</option>
-              <option value="Rotor">Rotor</option>
-            </select>
-            <input
-              className="rpb-input"
-              placeholder="Model"
-              value={newOther.model}
-              onChange={(event) => setNewOther((value) => ({ ...value, model: event.target.value }))}
-            />
-            <input
-              className="rpb-input"
-              placeholder="Unit"
-              value={newOther.unit}
-              onChange={(event) => setNewOther((value) => ({ ...value, unit: event.target.value }))}
-            />
-            <div className="flex gap-2">
-              <input
-                className="rpb-input"
-                type="text"
-                inputMode="numeric"
-                placeholder="Harga (Rp)"
-                value={formatIdrInput(newOther.priceIdr)}
-                onChange={(event) => setNewOther((value) => ({ ...value, priceIdr: parseIdrInput(event.target.value) }))}
-              />
-              <button
-                type="submit"
-                className="rpb-btn-primary inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold"
-                disabled={busy === "other:new"}
-              >
-                <Plus size={14} />
-                {busy === "other:new" ? "..." : "Tambah"}
-              </button>
-            </div>
-          </form>
+              <Plus size={14} />
+              Tambah Item
+            </button>
+          </div>
+
+          <datalist id={OTHER_CATEGORY_DATALIST_ID}>
+            {otherCategoryOptions.map((category) => (
+              <option key={category} value={category} />
+            ))}
+          </datalist>
 
           <div className="space-y-2 md:hidden">
             {otherRows.map((row) => (
               <article key={row.id} className="rounded-xl border border-rpb-border p-3">
                 <div className="grid gap-2 md:grid-cols-2">
-                  <select
+                  <input
                     className="rpb-input"
+                    list={OTHER_CATEGORY_DATALIST_ID}
+                    placeholder="Category"
                     value={row.category}
                     onChange={(event) =>
                       setOtherRows((list) =>
                         list.map((item) =>
-                          item.id === row.id ? { ...item, category: event.target.value as StockCategory } : item,
+                          item.id === row.id ? { ...item, category: event.target.value } : item,
                         ),
                       )
                     }
-                  >
-                    <option value="Blower">Blower</option>
-                    <option value="Motor">Motor</option>
-                    <option value="Rotor">Rotor</option>
-                  </select>
+                  />
                   <input
                     className="rpb-input"
                     value={row.name}
@@ -900,21 +880,19 @@ export function AdminConfigPanel() {
                   {otherRows.map((row) => (
                     <tr key={row.id} className="border-t border-rpb-border align-top">
                       <td className="px-3 py-2">
-                        <select
+                        <input
                           className="rpb-input w-full"
+                          list={OTHER_CATEGORY_DATALIST_ID}
+                          placeholder="Category"
                           value={row.category}
                           onChange={(event) =>
                             setOtherRows((list) =>
                               list.map((item) =>
-                                item.id === row.id ? { ...item, category: event.target.value as StockCategory } : item,
+                                item.id === row.id ? { ...item, category: event.target.value } : item,
                               ),
                             )
                           }
-                        >
-                          <option value="Blower">Blower</option>
-                          <option value="Motor">Motor</option>
-                          <option value="Rotor">Rotor</option>
-                        </select>
+                        />
                       </td>
                       <td className="px-3 py-2">
                         <input
@@ -980,6 +958,76 @@ export function AdminConfigPanel() {
               </table>
             </div>
           </div>
+
+          {isOtherModalOpen ? (
+            <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#15172b]/45 p-4 backdrop-blur-[2px]">
+              <div className="w-full max-w-4xl rounded-xl border border-rpb-border bg-white p-4 shadow-xl">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <h3 className="rpb-h-title text-base font-semibold">Tambah Item Other</h3>
+                  <button
+                    type="button"
+                    className="rpb-btn-ghost px-3 py-2 text-xs font-semibold"
+                    onClick={() => setIsOtherModalOpen(false)}
+                  >
+                    Tutup
+                  </button>
+                </div>
+                <form
+                  className="grid gap-3 md:grid-cols-6"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void addOtherPermanent();
+                  }}
+                >
+                  <input
+                    className="rpb-input md:col-span-2"
+                    placeholder="Name"
+                    value={newOther.name}
+                    onChange={(event) => setNewOther((value) => ({ ...value, name: event.target.value }))}
+                  />
+                  <input
+                    className="rpb-input"
+                    list={OTHER_CATEGORY_DATALIST_ID}
+                    placeholder="Category"
+                    value={newOther.category}
+                    onChange={(event) => setNewOther((value) => ({ ...value, category: event.target.value }))}
+                  />
+                  <input
+                    className="rpb-input"
+                    placeholder="Model"
+                    value={newOther.model}
+                    onChange={(event) => setNewOther((value) => ({ ...value, model: event.target.value }))}
+                  />
+                  <input
+                    className="rpb-input"
+                    placeholder="Unit"
+                    value={newOther.unit}
+                    onChange={(event) => setNewOther((value) => ({ ...value, unit: event.target.value }))}
+                  />
+                  <div className="flex gap-2">
+                    <input
+                      className="rpb-input"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="Harga (Rp)"
+                      value={formatIdrInput(newOther.priceIdr)}
+                      onChange={(event) =>
+                        setNewOther((value) => ({ ...value, priceIdr: parseIdrInput(event.target.value) }))
+                      }
+                    />
+                    <button
+                      type="submit"
+                      className="rpb-btn-primary inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold"
+                      disabled={busy === "other:new"}
+                    >
+                      <Plus size={14} />
+                      {busy === "other:new" ? "..." : "Tambah"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          ) : null}
         </section>
       ) : null}
     </div>

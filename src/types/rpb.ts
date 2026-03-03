@@ -1,6 +1,6 @@
 export type PanelThickness = 30 | 45;
 
-export type StockCategory = "Blower" | "Motor" | "Rotor";
+export type StockCategory = string;
 export type UserRole = "admin" | "user";
 
 export type DimensionKey = "length" | "width" | "height";

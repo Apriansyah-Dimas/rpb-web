@@ -55,7 +55,7 @@ const mapKonstruksiItem = (row: Record<string, unknown>): KonstruksiMasterItem =
 const mapOtherItem = (row: Record<string, unknown>): OtherItem => ({
   id: String(row.id ?? ""),
   name: String(row.name ?? ""),
-  category: (row.category === "Motor" || row.category === "Rotor" ? row.category : "Blower"),
+  category: String(row.category ?? "Other"),
   model: String(row.model ?? "-"),
   unit: String(row.unit ?? "pc"),
   priceIdr: toNumber(row.price_idr, toNumber(row.price_usd) * LEGACY_USD_TO_IDR),
