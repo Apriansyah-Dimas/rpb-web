@@ -1,6 +1,8 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { isInvalidAuthSessionError } from "@/lib/supabase/auth-errors";
 import type {
+  FormulaVariableSection,
+  FormulaVariableSetting,
   KonstruksiMasterItem,
   OtherItem,
   RpbDraftSnapshot,
@@ -59,8 +61,18 @@ const mapOtherItem = (row: Record<string, unknown>): OtherItem => ({
   priceIdr: toNumber(row.price_idr, toNumber(row.price_usd) * LEGACY_USD_TO_IDR),
 });
 
+const mapFormulaVariable = (row: Record<string, unknown>): FormulaVariableSetting => ({
+  id: String(row.id ?? ""),
+  section: row.section === "konstruksi" ? "konstruksi" : "profile",
+  key: String(row.key ?? ""),
+  label: String(row.label ?? ""),
+  defaultValue: toNumber(row.default_value),
+  isDefault: Boolean(row.is_default ?? false),
+  sortOrder: Number(row.sort_order ?? 0),
+});
+
 export const fetchRpbMasterData = async (supabase: SupabaseClient): Promise<RpbMasterData> => {
-  const [{ data: profileRows, error: profileError }, { data: konstruksiRows, error: konstruksiError }, { data: otherRows, error: otherError }] =
+  const [{ data: profileRows, error: profileError }, { data: konstruksiRows, error: konstruksiError }, { data: otherRows, error: otherError }, { data: variableRows, error: variableError }] =
     await Promise.all([
       supabase
         .from("rpb_profile_items")
@@ -73,6 +85,11 @@ export const fetchRpbMasterData = async (supabase: SupabaseClient): Promise<RpbM
         .select("id, name, category, model, unit, price_idr, is_active")
         .order("category", { ascending: true })
         .order("name", { ascending: true }),
+      supabase
+        .from("rpb_formula_variables")
+        .select("id, section, key, label, default_value, is_default, sort_order")
+        .order("section", { ascending: true })
+        .order("sort_order", { ascending: true }),
     ]);
 
   if (profileError) {
@@ -84,11 +101,15 @@ export const fetchRpbMasterData = async (supabase: SupabaseClient): Promise<RpbM
   if (otherError) {
     throw otherError;
   }
+  if (variableError) {
+    throw variableError;
+  }
 
   return {
     profileItems: ((profileRows ?? []) as Record<string, unknown>[]).map(mapProfileItem),
     konstruksiItems: ((konstruksiRows ?? []) as Record<string, unknown>[]).map(mapKonstruksiItem),
     otherItems: ((otherRows ?? []) as Record<string, unknown>[]).map(mapOtherItem),
+    formulaVariables: ((variableRows ?? []) as Record<string, unknown>[]).map(mapFormulaVariable),
   };
 };
 
@@ -272,6 +293,47 @@ export const upsertOtherMasterItem = async (
     : supabase.from("rpb_other_items").insert(payload);
 
   const { error } = await query;
+  if (error) {
+    throw error;
+  }
+};
+
+export const upsertFormulaVariableSetting = async (
+  supabase: SupabaseClient,
+  item: {
+    id?: string;
+    section: FormulaVariableSection;
+    key: string;
+    label: string;
+    defaultValue: number;
+    isDefault?: boolean;
+    sortOrder: number;
+  },
+): Promise<void> => {
+  const payload = {
+    section: item.section,
+    key: item.key,
+    label: item.label,
+    default_value: item.defaultValue,
+    is_default: item.isDefault ?? false,
+    sort_order: item.sortOrder,
+  };
+
+  const query = item.id
+    ? supabase.from("rpb_formula_variables").update(payload).eq("id", item.id)
+    : supabase.from("rpb_formula_variables").insert(payload);
+
+  const { error } = await query;
+  if (error) {
+    throw error;
+  }
+};
+
+export const deleteFormulaVariableSetting = async (
+  supabase: SupabaseClient,
+  id: string,
+): Promise<void> => {
+  const { error } = await supabase.from("rpb_formula_variables").delete().eq("id", id);
   if (error) {
     throw error;
   }

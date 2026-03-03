@@ -29,8 +29,8 @@ const ADMIN_NAV_ITEMS: BottomNavItem[] = [
   { key: "home", href: "/", label: "Beranda", icon: House },
   { key: "history", href: "/history", label: "History", icon: History },
   { key: "quotation", href: "/quotation", label: "Quotation", icon: FileText },
-  { key: "profile", href: "/profile", label: "Profile", icon: UserRound },
   { key: "admin", href: "/admin", label: "Admin", icon: Settings2 },
+  { key: "profile", href: "/profile", label: "Profile", icon: UserRound },
 ];
 
 const isPathActive = (pathname: string, key: BottomNavItem["key"]): boolean => {

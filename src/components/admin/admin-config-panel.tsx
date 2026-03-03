@@ -1,10 +1,12 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
 import {
+  deleteFormulaVariableSetting,
+  upsertFormulaVariableSetting,
   upsertKonstruksiMasterItem,
   upsertOtherMasterItem,
   upsertProfileMasterItem,
@@ -12,6 +14,8 @@ import {
 import { validateFormulaExpression } from "@/lib/rpb-formula";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type {
+  FormulaVariableSection,
+  FormulaVariableSetting,
   KonstruksiMasterItem,
   OtherItem,
   ProfileMasterItem,
@@ -25,21 +29,20 @@ const CONFIG_NAV_ITEMS: Array<{
   label: string;
   description: string;
 }> = [
-  {
-    key: "profile",
-    label: "Profile",
-    description: "Formula qty + harga panel 30/45",
-  },
-  {
-    key: "konstruksi",
-    label: "Konstruksi",
-    description: "Formula qty + harga satuan",
-  },
-  {
-    key: "other",
-    label: "Other",
-    description: "Master item tambahan permanen",
-  },
+  { key: "profile", label: "Profile", description: "Formula qty + harga panel 30/45" },
+  { key: "konstruksi", label: "Konstruksi", description: "Formula qty + harga satuan" },
+  { key: "other", label: "Other", description: "Master item tambahan permanen" },
+];
+
+const FORMULA_FUNCTIONS = [
+  "ROUND(x, digit)",
+  "CEIL(x)",
+  "FLOOR(x)",
+  "ABS(x)",
+  "MIN(a,b,...)",
+  "MAX(a,b,...)",
+  "PCT(base,persen)",
+  "PERSEN(base,persen)",
 ];
 
 const IDR_INPUT_FORMATTER = new Intl.NumberFormat("id-ID", {
@@ -59,6 +62,18 @@ const parseIdrInput = (value: string) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const parseDecimalInput = (value: string) => {
+  const parsed = Number.parseFloat(value.replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const sanitizeVariableKey = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_\s]/g, "")
+    .replace(/\s+/g, "_");
+
 const newOtherDefault = {
   name: "",
   category: "Blower" as StockCategory,
@@ -67,11 +82,128 @@ const newOtherDefault = {
   priceIdr: 0,
 };
 
+function FormulaHelpBox() {
+  return (
+    <div className="mt-3 rounded-xl border border-rpb-border bg-[#fbfbff] p-3 text-xs text-rpb-ink-soft">
+      <p className="font-semibold text-foreground">Fungsi Formula yang didukung</p>
+      <p className="mt-1">Operator: +, -, *, /, ^, kurung, dan literal persen seperti 10%.</p>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {FORMULA_FUNCTIONS.map((fn) => (
+          <span key={fn} className="rounded-md border border-rpb-border bg-white px-2 py-1 font-mono">
+            {fn}
+          </span>
+        ))}
+      </div>
+      <p className="mt-2 font-mono text-[11px]">Contoh: ROUND(((width * length) / 1000000), 2)</p>
+    </div>
+  );
+}
+
+function VariableSettingsCard({
+  section,
+  rows,
+  busy,
+  onChange,
+  onSave,
+  onDelete,
+  onAdd,
+}: {
+  section: FormulaVariableSection;
+  rows: FormulaVariableSetting[];
+  busy: string | null;
+  onChange: (id: string, patch: Partial<FormulaVariableSetting>) => void;
+  onSave: (row: FormulaVariableSetting) => Promise<void>;
+  onDelete: (row: FormulaVariableSetting) => Promise<void>;
+  onAdd: () => void;
+}) {
+  const title = section === "profile" ? "Variable Setting Profile" : "Variable Setting Konstruksi";
+
+  return (
+    <div className="mt-4 rounded-xl border border-rpb-border bg-white p-3">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        <button
+          type="button"
+          className="rpb-btn-ghost inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold"
+          onClick={onAdd}
+        >
+          <Plus size={14} />
+          Variabel
+        </button>
+      </div>
+
+      <div className="space-y-2">
+        {rows.map((row) => {
+          const rowBusyKey = `variable:${row.id}`;
+          const deleteBusyKey = `variable:delete:${row.id}`;
+          const isDefault = row.isDefault;
+
+          return (
+            <div key={row.id} className="rounded-lg border border-rpb-border bg-[#fcfcff] p-2.5">
+              <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_150px_120px_auto]">
+                <input
+                  className="rpb-input"
+                  placeholder="Nama Variabel"
+                  value={row.label}
+                  disabled={isDefault}
+                  onChange={(event) => {
+                    const label = event.target.value;
+                    onChange(row.id, { label, key: sanitizeVariableKey(label) });
+                  }}
+                />
+                <input
+                  className="rpb-input"
+                  placeholder="key"
+                  value={row.key}
+                  disabled={isDefault}
+                  onChange={(event) => onChange(row.id, { key: sanitizeVariableKey(event.target.value) })}
+                />
+                <input
+                  className="rpb-input"
+                  type="number"
+                  step="any"
+                  value={row.defaultValue}
+                  onChange={(event) => onChange(row.id, { defaultValue: parseDecimalInput(event.target.value) })}
+                />
+                <div className="flex items-center justify-end gap-1">
+                  <button
+                    type="button"
+                    className="rpb-btn-primary px-3 py-2 text-xs font-semibold"
+                    onClick={() => void onSave(row)}
+                    disabled={busy === rowBusyKey}
+                  >
+                    {busy === rowBusyKey ? "..." : "Simpan"}
+                  </button>
+                  {!isDefault ? (
+                    <button
+                      type="button"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-600"
+                      onClick={() => void onDelete(row)}
+                      disabled={busy === deleteBusyKey}
+                      aria-label={`Hapus variabel ${row.label || row.key}`}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+              {isDefault ? (
+                <p className="mt-1 text-[11px] text-rpb-ink-soft">Default dari input user di halaman utama.</p>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function AdminConfigPanel() {
   const { data, loading, error, refresh } = useRpbMasterData();
   const [profileRows, setProfileRows] = useState<ProfileMasterItem[]>([]);
   const [konstruksiRows, setKonstruksiRows] = useState<KonstruksiMasterItem[]>([]);
   const [otherRows, setOtherRows] = useState<OtherItem[]>([]);
+  const [variableRows, setVariableRows] = useState<FormulaVariableSetting[]>([]);
   const [newOther, setNewOther] = useState(newOtherDefault);
   const [activeSection, setActiveSection] = useState<ConfigSection>("profile");
   const [busy, setBusy] = useState<string | null>(null);
@@ -81,11 +213,21 @@ export function AdminConfigPanel() {
     if (!data) {
       return;
     }
-
     setProfileRows(data.profileItems.slice().sort((a, b) => a.sortOrder - b.sortOrder));
     setKonstruksiRows(data.konstruksiItems.slice().sort((a, b) => a.sortOrder - b.sortOrder));
     setOtherRows(data.otherItems.slice());
+    setVariableRows(data.formulaVariables.slice().sort((a, b) => a.sortOrder - b.sortOrder));
   }, [data]);
+
+  const profileVariables = useMemo(
+    () => variableRows.filter((row) => row.section === "profile").sort((a, b) => a.sortOrder - b.sortOrder),
+    [variableRows],
+  );
+  const konstruksiVariables = useMemo(
+    () =>
+      variableRows.filter((row) => row.section === "konstruksi").sort((a, b) => a.sortOrder - b.sortOrder),
+    [variableRows],
+  );
 
   const saveAllProfile = async () => {
     for (const row of profileRows) {
@@ -135,6 +277,76 @@ export function AdminConfigPanel() {
     } finally {
       setBusy(null);
     }
+  };
+
+  const saveVariable = async (row: FormulaVariableSetting) => {
+    if (!row.key.trim() || !row.label.trim()) {
+      setMessage("Nama variabel dan key wajib diisi.");
+      return;
+    }
+
+    setBusy(`variable:${row.id}`);
+    setMessage(null);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await upsertFormulaVariableSetting(supabase, {
+        id: row.id.startsWith("temp-") ? undefined : row.id,
+        section: row.section,
+        key: sanitizeVariableKey(row.key),
+        label: row.label.trim(),
+        defaultValue: row.defaultValue,
+        isDefault: row.isDefault,
+        sortOrder: row.sortOrder,
+      });
+      setMessage(`Variabel ${row.label} berhasil disimpan.`);
+      await refresh();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Gagal simpan variabel.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const deleteVariable = async (row: FormulaVariableSetting) => {
+    if (row.isDefault) {
+      setMessage("Variabel default tidak bisa dihapus.");
+      return;
+    }
+
+    if (row.id.startsWith("temp-")) {
+      setVariableRows((list) => list.filter((item) => item.id !== row.id));
+      return;
+    }
+
+    setBusy(`variable:delete:${row.id}`);
+    setMessage(null);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await deleteFormulaVariableSetting(supabase, row.id);
+      setMessage(`Variabel ${row.label} berhasil dihapus.`);
+      await refresh();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Gagal hapus variabel.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const addVariable = (section: FormulaVariableSection) => {
+    const nextOrder =
+      Math.max(0, ...variableRows.filter((row) => row.section === section).map((row) => row.sortOrder)) + 1;
+    setVariableRows((list) => [
+      ...list,
+      {
+        id: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        section,
+        key: "",
+        label: "",
+        defaultValue: 0,
+        isDefault: false,
+        sortOrder: nextOrder,
+      },
+    ]);
   };
 
   const saveOtherRow = async (row: OtherItem) => {
@@ -188,14 +400,10 @@ export function AdminConfigPanel() {
   };
 
   return (
-    <div className="space-y-4 p-4 md:p-6">
-      {loading ? (
-        <div className="rpb-section p-4 text-sm text-rpb-ink-soft">Memuat data master...</div>
-      ) : null}
+    <div className="space-y-4 p-3 md:p-6">
+      {loading ? <div className="rpb-section p-4 text-sm text-rpb-ink-soft">Memuat data master...</div> : null}
       {error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       ) : null}
       {message ? (
         <div className="rounded-xl border border-rpb-border bg-white px-4 py-3 text-sm text-rpb-ink-soft">
@@ -204,45 +412,102 @@ export function AdminConfigPanel() {
       ) : null}
 
       <nav className="rpb-section p-2">
-        <div className="grid gap-2 sm:grid-cols-3">
-          {CONFIG_NAV_ITEMS.map((item) => {
-            const isActive = activeSection === item.key;
-            return (
-              <button
-                key={item.key}
-                type="button"
-                className={`rounded-xl border px-3 py-2 text-left transition ${
-                  isActive
-                    ? "border-rpb-primary bg-rpb-primary text-white"
-                    : "border-rpb-border bg-white text-foreground hover:border-rpb-primary/40"
-                }`}
-                onClick={() => setActiveSection(item.key)}
-                aria-pressed={isActive}
-              >
-                <div className="text-sm font-semibold">{item.label}</div>
-                <div className={`text-[11px] ${isActive ? "text-white/85" : "text-rpb-ink-soft"}`}>
-                  {item.description}
-                </div>
-              </button>
-            );
-          })}
+        <div className="overflow-x-auto">
+          <div className="inline-flex min-w-full rounded-xl border border-rpb-border bg-[#f6f7ff] p-1">
+            {CONFIG_NAV_ITEMS.map((item) => {
+              const isActive = activeSection === item.key;
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={`flex-1 rounded-lg px-3 py-2 text-left transition ${
+                    isActive ? "bg-rpb-primary text-white" : "text-rpb-ink-soft hover:text-rpb-primary"
+                  }`}
+                  onClick={() => setActiveSection(item.key)}
+                  aria-pressed={isActive}
+                >
+                  <div className="text-sm font-semibold">{item.label}</div>
+                  <div className={`text-[11px] ${isActive ? "text-white/85" : "text-rpb-ink-soft"}`}>
+                    {item.description}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </nav>
 
       {activeSection === "profile" ? (
-        <section className="rpb-section p-4">
+        <section className="rpb-section p-3 md:p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="rpb-h-title text-base font-semibold">PROFILE (fixed items)</h2>
+            <h2 className="rpb-h-title text-base font-semibold">PROFILE</h2>
             <button
               type="button"
               className="rpb-btn-primary px-4 py-2 text-sm font-semibold"
               onClick={() => void saveAllProfile()}
               disabled={busy === "profile"}
             >
-              {busy === "profile" ? "Menyimpan..." : "Simpan Semua PROFILE"}
+              {busy === "profile" ? "Menyimpan..." : "Simpan Semua"}
             </button>
           </div>
-          <div className="overflow-x-auto">
+
+          <div className="space-y-2 md:hidden">
+            {profileRows.map((row) => (
+              <article key={row.id} className="rounded-xl border border-rpb-border p-3">
+                <p className="text-xs text-rpb-ink-soft">{row.code}</p>
+                <p className="text-sm font-semibold">{row.name}</p>
+                <p className="text-xs text-rpb-ink-soft">Unit: {row.unit}</p>
+                <label className="mt-2 block text-xs font-semibold text-rpb-ink-soft">
+                  Formula Qty
+                  <input
+                    className="rpb-input mt-1"
+                    value={row.formulaExpr}
+                    onChange={(event) =>
+                      setProfileRows((list) =>
+                        list.map((item) => (item.id === row.id ? { ...item, formulaExpr: event.target.value } : item)),
+                      )
+                    }
+                  />
+                </label>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <label className="text-xs font-semibold text-rpb-ink-soft">
+                    Harga 30
+                    <input
+                      className="rpb-input mt-1"
+                      type="text"
+                      inputMode="numeric"
+                      value={formatIdrInput(row.priceIdr30)}
+                      onChange={(event) =>
+                        setProfileRows((list) =>
+                          list.map((item) =>
+                            item.id === row.id ? { ...item, priceIdr30: parseIdrInput(event.target.value) } : item,
+                          ),
+                        )
+                      }
+                    />
+                  </label>
+                  <label className="text-xs font-semibold text-rpb-ink-soft">
+                    Harga 45
+                    <input
+                      className="rpb-input mt-1"
+                      type="text"
+                      inputMode="numeric"
+                      value={formatIdrInput(row.priceIdr45)}
+                      onChange={(event) =>
+                        setProfileRows((list) =>
+                          list.map((item) =>
+                            item.id === row.id ? { ...item, priceIdr45: parseIdrInput(event.target.value) } : item,
+                          ),
+                        )
+                      }
+                    />
+                  </label>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
             <table className="rpb-table min-w-[1180px] w-full text-sm">
               <thead>
                 <tr>
@@ -266,11 +531,7 @@ export function AdminConfigPanel() {
                         value={row.formulaExpr}
                         onChange={(event) =>
                           setProfileRows((list) =>
-                            list.map((item) =>
-                              item.id === row.id
-                                ? { ...item, formulaExpr: event.target.value }
-                                : item,
-                            ),
+                            list.map((item) => (item.id === row.id ? { ...item, formulaExpr: event.target.value } : item)),
                           )
                         }
                       />
@@ -284,9 +545,7 @@ export function AdminConfigPanel() {
                         onChange={(event) =>
                           setProfileRows((list) =>
                             list.map((item) =>
-                              item.id === row.id
-                                ? { ...item, priceIdr30: parseIdrInput(event.target.value) }
-                                : item,
+                              item.id === row.id ? { ...item, priceIdr30: parseIdrInput(event.target.value) } : item,
                             ),
                           )
                         }
@@ -301,9 +560,7 @@ export function AdminConfigPanel() {
                         onChange={(event) =>
                           setProfileRows((list) =>
                             list.map((item) =>
-                              item.id === row.id
-                                ? { ...item, priceIdr45: parseIdrInput(event.target.value) }
-                                : item,
+                              item.id === row.id ? { ...item, priceIdr45: parseIdrInput(event.target.value) } : item,
                             ),
                           )
                         }
@@ -314,27 +571,75 @@ export function AdminConfigPanel() {
               </tbody>
             </table>
           </div>
-          <p className="mt-2 text-xs text-rpb-ink-soft">
-            Support formula: operator matematika, kurung, `10%`, fungsi `ROUND`, `CEIL`,
-            `FLOOR`, `PCT/PERSEN`.
-          </p>
+
+          <FormulaHelpBox />
+          <VariableSettingsCard
+            section="profile"
+            rows={profileVariables}
+            busy={busy}
+            onAdd={() => addVariable("profile")}
+            onChange={(id, patch) =>
+              setVariableRows((list) => list.map((row) => (row.id === id ? { ...row, ...patch } : row)))
+            }
+            onSave={saveVariable}
+            onDelete={deleteVariable}
+          />
         </section>
       ) : null}
 
       {activeSection === "konstruksi" ? (
-        <section className="rpb-section p-4">
+        <section className="rpb-section p-3 md:p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="rpb-h-title text-base font-semibold">KONSTRUKSI (fixed items)</h2>
+            <h2 className="rpb-h-title text-base font-semibold">KONSTRUKSI</h2>
             <button
               type="button"
               className="rpb-btn-primary px-4 py-2 text-sm font-semibold"
               onClick={() => void saveAllKonstruksi()}
               disabled={busy === "konstruksi"}
             >
-              {busy === "konstruksi" ? "Menyimpan..." : "Simpan Semua KONSTRUKSI"}
+              {busy === "konstruksi" ? "Menyimpan..." : "Simpan Semua"}
             </button>
           </div>
-          <div className="overflow-x-auto">
+
+          <div className="space-y-2 md:hidden">
+            {konstruksiRows.map((row) => (
+              <article key={row.id} className="rounded-xl border border-rpb-border p-3">
+                <p className="text-xs text-rpb-ink-soft">{row.code}</p>
+                <p className="text-sm font-semibold">{row.name}</p>
+                <p className="text-xs text-rpb-ink-soft">Unit: {row.unit}</p>
+                <label className="mt-2 block text-xs font-semibold text-rpb-ink-soft">
+                  Formula Qty
+                  <input
+                    className="rpb-input mt-1"
+                    value={row.formulaExpr}
+                    onChange={(event) =>
+                      setKonstruksiRows((list) =>
+                        list.map((item) => (item.id === row.id ? { ...item, formulaExpr: event.target.value } : item)),
+                      )
+                    }
+                  />
+                </label>
+                <label className="mt-2 block text-xs font-semibold text-rpb-ink-soft">
+                  Harga Satuan
+                  <input
+                    className="rpb-input mt-1"
+                    type="text"
+                    inputMode="numeric"
+                    value={formatIdrInput(row.unitPriceIdr)}
+                    onChange={(event) =>
+                      setKonstruksiRows((list) =>
+                        list.map((item) =>
+                          item.id === row.id ? { ...item, unitPriceIdr: parseIdrInput(event.target.value) } : item,
+                        ),
+                      )
+                    }
+                  />
+                </label>
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
             <table className="rpb-table min-w-[1080px] w-full text-sm">
               <thead>
                 <tr>
@@ -357,11 +662,7 @@ export function AdminConfigPanel() {
                         value={row.formulaExpr}
                         onChange={(event) =>
                           setKonstruksiRows((list) =>
-                            list.map((item) =>
-                              item.id === row.id
-                                ? { ...item, formulaExpr: event.target.value }
-                                : item,
-                            ),
+                            list.map((item) => (item.id === row.id ? { ...item, formulaExpr: event.target.value } : item)),
                           )
                         }
                       />
@@ -375,9 +676,7 @@ export function AdminConfigPanel() {
                         onChange={(event) =>
                           setKonstruksiRows((list) =>
                             list.map((item) =>
-                              item.id === row.id
-                                ? { ...item, unitPriceIdr: parseIdrInput(event.target.value) }
-                                : item,
+                              item.id === row.id ? { ...item, unitPriceIdr: parseIdrInput(event.target.value) } : item,
                             ),
                           )
                         }
@@ -388,30 +687,36 @@ export function AdminConfigPanel() {
               </tbody>
             </table>
           </div>
+
+          <FormulaHelpBox />
+          <VariableSettingsCard
+            section="konstruksi"
+            rows={konstruksiVariables}
+            busy={busy}
+            onAdd={() => addVariable("konstruksi")}
+            onChange={(id, patch) =>
+              setVariableRows((list) => list.map((row) => (row.id === id ? { ...row, ...patch } : row)))
+            }
+            onSave={saveVariable}
+            onDelete={deleteVariable}
+          />
         </section>
       ) : null}
 
       {activeSection === "other" ? (
-        <section className="rpb-section p-4">
+        <section className="rpb-section p-3 md:p-4">
           <h2 className="rpb-h-title mb-3 text-base font-semibold">OTHER (permanen)</h2>
           <form className="mb-4 grid gap-3 md:grid-cols-6" onSubmit={addOtherPermanent}>
             <input
               className="rpb-input md:col-span-2"
               placeholder="Name"
               value={newOther.name}
-              onChange={(event) =>
-                setNewOther((value) => ({ ...value, name: event.target.value }))
-              }
+              onChange={(event) => setNewOther((value) => ({ ...value, name: event.target.value }))}
             />
             <select
               className="rpb-input"
               value={newOther.category}
-              onChange={(event) =>
-                setNewOther((value) => ({
-                  ...value,
-                  category: event.target.value as StockCategory,
-                }))
-              }
+              onChange={(event) => setNewOther((value) => ({ ...value, category: event.target.value as StockCategory }))}
             >
               <option value="Blower">Blower</option>
               <option value="Motor">Motor</option>
@@ -421,17 +726,13 @@ export function AdminConfigPanel() {
               className="rpb-input"
               placeholder="Model"
               value={newOther.model}
-              onChange={(event) =>
-                setNewOther((value) => ({ ...value, model: event.target.value }))
-              }
+              onChange={(event) => setNewOther((value) => ({ ...value, model: event.target.value }))}
             />
             <input
               className="rpb-input"
               placeholder="Unit"
               value={newOther.unit}
-              onChange={(event) =>
-                setNewOther((value) => ({ ...value, unit: event.target.value }))
-              }
+              onChange={(event) => setNewOther((value) => ({ ...value, unit: event.target.value }))}
             />
             <div className="flex gap-2">
               <input
@@ -440,12 +741,7 @@ export function AdminConfigPanel() {
                 inputMode="numeric"
                 placeholder="Harga (Rp)"
                 value={formatIdrInput(newOther.priceIdr)}
-                onChange={(event) =>
-                  setNewOther((value) => ({
-                    ...value,
-                    priceIdr: parseIdrInput(event.target.value),
-                  }))
-                }
+                onChange={(event) => setNewOther((value) => ({ ...value, priceIdr: parseIdrInput(event.target.value) }))}
               />
               <button
                 type="submit"
@@ -458,7 +754,81 @@ export function AdminConfigPanel() {
             </div>
           </form>
 
-          <div className="overflow-x-auto">
+          <div className="space-y-2 md:hidden">
+            {otherRows.map((row) => (
+              <article key={row.id} className="rounded-xl border border-rpb-border p-3">
+                <div className="grid gap-2 md:grid-cols-2">
+                  <select
+                    className="rpb-input"
+                    value={row.category}
+                    onChange={(event) =>
+                      setOtherRows((list) =>
+                        list.map((item) =>
+                          item.id === row.id ? { ...item, category: event.target.value as StockCategory } : item,
+                        ),
+                      )
+                    }
+                  >
+                    <option value="Blower">Blower</option>
+                    <option value="Motor">Motor</option>
+                    <option value="Rotor">Rotor</option>
+                  </select>
+                  <input
+                    className="rpb-input"
+                    value={row.name}
+                    onChange={(event) =>
+                      setOtherRows((list) =>
+                        list.map((item) => (item.id === row.id ? { ...item, name: event.target.value } : item)),
+                      )
+                    }
+                  />
+                  <input
+                    className="rpb-input"
+                    value={row.model}
+                    onChange={(event) =>
+                      setOtherRows((list) =>
+                        list.map((item) => (item.id === row.id ? { ...item, model: event.target.value } : item)),
+                      )
+                    }
+                  />
+                  <input
+                    className="rpb-input"
+                    value={row.unit}
+                    onChange={(event) =>
+                      setOtherRows((list) =>
+                        list.map((item) => (item.id === row.id ? { ...item, unit: event.target.value } : item)),
+                      )
+                    }
+                  />
+                </div>
+                <div className="mt-2 flex items-center gap-2">
+                  <input
+                    className="rpb-input"
+                    type="text"
+                    inputMode="numeric"
+                    value={formatIdrInput(row.priceIdr)}
+                    onChange={(event) =>
+                      setOtherRows((list) =>
+                        list.map((item) =>
+                          item.id === row.id ? { ...item, priceIdr: parseIdrInput(event.target.value) } : item,
+                        ),
+                      )
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="rpb-btn-primary px-3 py-2 text-xs font-semibold"
+                    onClick={() => void saveOtherRow(row)}
+                    disabled={busy === `other:${row.id}`}
+                  >
+                    {busy === `other:${row.id}` ? "..." : "Simpan"}
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
             <table className="rpb-table min-w-[980px] w-full text-sm">
               <thead>
                 <tr>
@@ -480,12 +850,7 @@ export function AdminConfigPanel() {
                         onChange={(event) =>
                           setOtherRows((list) =>
                             list.map((item) =>
-                              item.id === row.id
-                                ? {
-                                    ...item,
-                                    category: event.target.value as StockCategory,
-                                  }
-                                : item,
+                              item.id === row.id ? { ...item, category: event.target.value as StockCategory } : item,
                             ),
                           )
                         }
@@ -501,11 +866,7 @@ export function AdminConfigPanel() {
                         value={row.name}
                         onChange={(event) =>
                           setOtherRows((list) =>
-                            list.map((item) =>
-                              item.id === row.id
-                                ? { ...item, name: event.target.value }
-                                : item,
-                            ),
+                            list.map((item) => (item.id === row.id ? { ...item, name: event.target.value } : item)),
                           )
                         }
                       />
@@ -516,11 +877,7 @@ export function AdminConfigPanel() {
                         value={row.model}
                         onChange={(event) =>
                           setOtherRows((list) =>
-                            list.map((item) =>
-                              item.id === row.id
-                                ? { ...item, model: event.target.value }
-                                : item,
-                            ),
+                            list.map((item) => (item.id === row.id ? { ...item, model: event.target.value } : item)),
                           )
                         }
                       />
@@ -531,11 +888,7 @@ export function AdminConfigPanel() {
                         value={row.unit}
                         onChange={(event) =>
                           setOtherRows((list) =>
-                            list.map((item) =>
-                              item.id === row.id
-                                ? { ...item, unit: event.target.value }
-                                : item,
-                            ),
+                            list.map((item) => (item.id === row.id ? { ...item, unit: event.target.value } : item)),
                           )
                         }
                       />
@@ -549,9 +902,7 @@ export function AdminConfigPanel() {
                         onChange={(event) =>
                           setOtherRows((list) =>
                             list.map((item) =>
-                              item.id === row.id
-                                ? { ...item, priceIdr: parseIdrInput(event.target.value) }
-                                : item,
+                              item.id === row.id ? { ...item, priceIdr: parseIdrInput(event.target.value) } : item,
                             ),
                           )
                         }

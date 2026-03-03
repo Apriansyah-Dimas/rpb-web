@@ -17,7 +17,7 @@ export function RpbPageFrame({
   headerClassName = "",
   showBottomNav = true,
 }: RpbPageFrameProps) {
-  const bottomPaddingClass = showBottomNav ? "pb-24 md:pb-28" : "";
+  const bottomPaddingClass = showBottomNav ? "pb-16 md:pb-20" : "";
   const contentOffsetClass = "pt-[92px] md:pt-[106px]";
   const contentMinHeightClass = "min-h-[calc(100vh-92px)] md:min-h-[calc(100vh-106px)]";
 

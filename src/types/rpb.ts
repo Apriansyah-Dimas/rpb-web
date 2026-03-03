@@ -76,10 +76,23 @@ export interface KonstruksiMasterItem {
   isActive: boolean;
 }
 
+export type FormulaVariableSection = "profile" | "konstruksi";
+
+export interface FormulaVariableSetting {
+  id: string;
+  section: FormulaVariableSection;
+  key: string;
+  label: string;
+  defaultValue: number;
+  isDefault: boolean;
+  sortOrder: number;
+}
+
 export interface RpbMasterData {
   profileItems: ProfileMasterItem[];
   konstruksiItems: KonstruksiMasterItem[];
   otherItems: OtherItem[];
+  formulaVariables: FormulaVariableSetting[];
 }
 
 export interface RpbDraftSnapshot {
