@@ -76,6 +76,7 @@ export default function QuotationPage() {
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [downloadReady, setDownloadReady] = useState(false);
 
   const { lineItems } = useMemo(
     () =>
@@ -145,6 +146,7 @@ export default function QuotationPage() {
       return;
     }
     setQuotationContent(editorRef.current.innerHTML);
+    setDownloadReady((editorRef.current.textContent ?? "").trim().length > 0);
   };
 
   const execCmd = (command: string, value?: string) => {
@@ -544,7 +546,7 @@ export default function QuotationPage() {
 
   const handleDownloadPdf = async () => {
     saveContent();
-    if (!quotationCanvasRef.current || pdfBusy) {
+    if (!quotationCanvasRef.current || pdfBusy || !downloadReady) {
       return;
     }
 
@@ -593,29 +595,20 @@ export default function QuotationPage() {
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const imageData = renderedCanvas.toDataURL("image/png");
-      const imageWidthMm = pageWidth;
-      const imageHeightMm = (renderedCanvas.height * imageWidthMm) / renderedCanvas.width;
-      let remainingHeightMm = imageHeightMm;
-      let imageOffsetMm = 0;
+      const safeMarginMm = 6;
+      const contentWidthMm = pageWidth - safeMarginMm * 2;
+      const contentHeightMm = pageHeight - safeMarginMm * 2;
+      const imageRatio = renderedCanvas.width / renderedCanvas.height;
+      const contentRatio = contentWidthMm / contentHeightMm;
+      const imageWidthMm =
+        imageRatio > contentRatio ? contentWidthMm : contentHeightMm * imageRatio;
+      const imageHeightMm =
+        imageRatio > contentRatio ? contentWidthMm / imageRatio : contentHeightMm;
+      const x = (pageWidth - imageWidthMm) / 2;
+      const y = (pageHeight - imageHeightMm) / 2;
 
-      pdf.addImage(imageData, "PNG", 0, imageOffsetMm, imageWidthMm, imageHeightMm, undefined, "FAST");
-      remainingHeightMm -= pageHeight;
-
-      while (remainingHeightMm > 0) {
-        imageOffsetMm = remainingHeightMm - imageHeightMm;
-        pdf.addPage();
-        pdf.addImage(
-          imageData,
-          "PNG",
-          0,
-          imageOffsetMm,
-          imageWidthMm,
-          imageHeightMm,
-          undefined,
-          "FAST",
-        );
-        remainingHeightMm -= pageHeight;
-      }
+      // Force one-page export to avoid extra/blank second page.
+      pdf.addImage(imageData, "PNG", x, y, imageWidthMm, imageHeightMm, undefined, "FAST");
 
       const safeProjectName = (projectName || "quotation")
         .replace(/[^a-z0-9-_]+/gi, "-")
@@ -629,6 +622,10 @@ export default function QuotationPage() {
       setPdfBusy(false);
     }
   };
+
+  useEffect(() => {
+    setDownloadReady((editorRef.current?.textContent ?? "").trim().length > 0);
+  }, []);
 
   return (
     <RpbPageFrame shellClassName="print-a4" headerClassName="no-print">
@@ -914,7 +911,8 @@ export default function QuotationPage() {
                     type="button"
                     className="inline-flex items-center gap-1.5 rounded-xl bg-[#7c3aed] px-2.5 py-2 text-xs font-semibold text-white sm:gap-2 sm:px-3 sm:text-sm"
                     onClick={() => void handleDownloadPdf()}
-                    disabled={pdfBusy}
+                    disabled={pdfBusy || !downloadReady}
+                    title={downloadReady ? "Download PDF A4 (1 halaman)" : "Isi konten quotation terlebih dahulu."}
                   >
                     <Download size={14} />
                     {pdfBusy ? "Menyiapkan PDF..." : "Download PDF"}
