@@ -627,9 +627,9 @@ export default function QuotationPage() {
             </div>
           ) : null}
 
-          <section className="rpb-section no-print p-2 md:p-3">
+          <section className="rpb-section rpb-quotation-toolbar no-print p-2 md:p-3">
             <div className="mb-2 space-y-2">
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="rpb-toolbar-row flex flex-wrap items-center gap-1.5">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-rpb-ink-soft">
                   Font
                 </span>
@@ -673,7 +673,7 @@ export default function QuotationPage() {
                 </select>
               </div>
 
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="rpb-toolbar-row flex flex-wrap items-center gap-1.5">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-rpb-ink-soft">
                   Basic
                 </span>
@@ -723,7 +723,7 @@ export default function QuotationPage() {
                 </button>
               </div>
 
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="rpb-toolbar-row flex flex-wrap items-center gap-1.5">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-rpb-ink-soft">
                   Color
                 </span>
@@ -747,7 +747,7 @@ export default function QuotationPage() {
                 </label>
               </div>
 
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="rpb-toolbar-row flex flex-wrap items-center gap-1.5">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-rpb-ink-soft">
                   Effects
                 </span>
@@ -772,7 +772,7 @@ export default function QuotationPage() {
                 </select>
               </div>
 
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="rpb-toolbar-row flex flex-wrap items-center gap-1.5">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-rpb-ink-soft">
                   Paragraph
                 </span>
@@ -836,7 +836,7 @@ export default function QuotationPage() {
                 </select>
               </div>
 
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="rpb-toolbar-row flex flex-wrap items-center gap-1.5">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-rpb-ink-soft">
                   Insert
                 </span>
@@ -1004,6 +1004,20 @@ export default function QuotationPage() {
           word-break: break-word;
           white-space: normal;
         }
+        .rpb-quotation-toolbar {
+          border-top: 1px solid #dfe3f3;
+        }
+        .rpb-toolbar-row > span {
+          min-width: 68px;
+        }
+        .rpb-quotation-toolbar .rpb-input {
+          width: auto;
+          min-height: 36px;
+          padding: 7px 11px;
+        }
+        .rpb-quotation-toolbar select.rpb-input {
+          padding-right: 34px;
+        }
         .rpb-draggable-image {
           position: absolute;
           z-index: 7;
@@ -1059,6 +1073,13 @@ export default function QuotationPage() {
           pointer-events: auto;
         }
         @media (max-width: 820px) {
+          .rpb-toolbar-row > span {
+            min-width: 56px;
+          }
+          .rpb-quotation-toolbar .rpb-input {
+            min-height: 34px;
+            padding: 6px 10px;
+          }
           .rpb-quotation-stage {
             justify-content: flex-start;
           }
