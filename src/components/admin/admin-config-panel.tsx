@@ -1,7 +1,7 @@
 "use client";
 
-import type { FormEvent } from "react";
-import { useEffect, useMemo, useState } from "react";
+import type { FormEvent, TextareaHTMLAttributes } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
 import {
@@ -96,6 +96,29 @@ function FormulaHelpBox() {
       </div>
       <p className="mt-2 font-mono text-[11px]">Contoh: ROUND(((width * length) / 1000000), 2)</p>
     </div>
+  );
+}
+
+function AutoSizeFormulaTextarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const value = typeof props.value === "string" ? props.value : "";
+
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) {
+      return;
+    }
+    el.style.height = "auto";
+    el.style.height = `${Math.max(el.scrollHeight, 40)}px`;
+  }, [value]);
+
+  return (
+    <textarea
+      {...props}
+      ref={textareaRef}
+      rows={1}
+      className={`${props.className ?? ""} resize-none overflow-hidden`.trim()}
+    />
   );
 }
 
@@ -480,8 +503,8 @@ export function AdminConfigPanel() {
                 <p className="text-xs text-rpb-ink-soft">Unit: {row.unit}</p>
                 <label className="mt-2 block text-xs font-semibold text-rpb-ink-soft">
                   Formula Qty
-                  <textarea
-                    className="rpb-input mt-1 min-h-20 resize-y whitespace-pre-wrap break-words font-mono"
+                  <AutoSizeFormulaTextarea
+                    className="rpb-input mt-1 whitespace-pre-wrap break-words font-mono"
                     value={row.formulaExpr}
                     onChange={(event) =>
                       setProfileRows((list) =>
@@ -532,23 +555,23 @@ export function AdminConfigPanel() {
               <table className="w-full table-fixed text-sm">
                 <thead className="bg-[#f6f7ff]">
                   <tr className="text-left text-xs font-semibold text-rpb-ink-soft">
-                    <th className="w-[8%] px-3 py-2">Code</th>
-                    <th className="w-[17%] px-3 py-2">Name</th>
+                    <th className="w-[12%] px-3 py-2">Code</th>
+                    <th className="w-[19%] px-3 py-2">Name</th>
                     <th className="w-[8%] px-3 py-2">Unit</th>
-                    <th className="w-[34%] px-3 py-2">Formula Qty</th>
-                    <th className="w-[16.5%] px-3 py-2">Harga 30</th>
-                    <th className="w-[16.5%] px-3 py-2">Harga 45</th>
+                    <th className="w-[30%] px-3 py-2">Formula Qty</th>
+                    <th className="w-[15.5%] px-3 py-2">Harga 30</th>
+                    <th className="w-[15.5%] px-3 py-2">Harga 45</th>
                   </tr>
                 </thead>
                 <tbody>
                   {profileRows.map((row) => (
                     <tr key={row.id} className="border-t border-rpb-border align-top">
-                      <td className="px-3 py-2 text-xs text-rpb-ink-soft">{row.code}</td>
-                      <td className="px-3 py-2">{row.name}</td>
-                      <td className="px-3 py-2">{row.unit}</td>
+                      <td className="px-3 py-2 text-xs text-rpb-ink-soft break-all">{row.code}</td>
+                      <td className="px-3 py-2 break-words">{row.name}</td>
+                      <td className="px-3 py-2 break-words">{row.unit}</td>
                       <td className="px-3 py-2">
-                        <textarea
-                          className="rpb-input min-h-20 w-full resize-y whitespace-pre-wrap break-words font-mono text-xs"
+                        <AutoSizeFormulaTextarea
+                          className="rpb-input w-full whitespace-pre-wrap break-words font-mono text-xs"
                           value={row.formulaExpr}
                           onChange={(event) =>
                             setProfileRows((list) =>
@@ -631,8 +654,8 @@ export function AdminConfigPanel() {
                 <p className="text-xs text-rpb-ink-soft">Unit: {row.unit}</p>
                 <label className="mt-2 block text-xs font-semibold text-rpb-ink-soft">
                   Formula Qty
-                  <textarea
-                    className="rpb-input mt-1 min-h-20 resize-y whitespace-pre-wrap break-words font-mono"
+                  <AutoSizeFormulaTextarea
+                    className="rpb-input mt-1 whitespace-pre-wrap break-words font-mono"
                     value={row.formulaExpr}
                     onChange={(event) =>
                       setKonstruksiRows((list) =>
@@ -665,22 +688,22 @@ export function AdminConfigPanel() {
               <table className="w-full table-fixed text-sm">
                 <thead className="bg-[#f6f7ff]">
                   <tr className="text-left text-xs font-semibold text-rpb-ink-soft">
-                    <th className="w-[10%] px-3 py-2">Code</th>
-                    <th className="w-[22%] px-3 py-2">Name</th>
+                    <th className="w-[12%] px-3 py-2">Code</th>
+                    <th className="w-[24%] px-3 py-2">Name</th>
                     <th className="w-[10%] px-3 py-2">Unit</th>
-                    <th className="w-[34%] px-3 py-2">Formula Qty</th>
+                    <th className="w-[30%] px-3 py-2">Formula Qty</th>
                     <th className="w-[24%] px-3 py-2">Harga Satuan</th>
                   </tr>
                 </thead>
                 <tbody>
                   {konstruksiRows.map((row) => (
                     <tr key={row.id} className="border-t border-rpb-border align-top">
-                      <td className="px-3 py-2 text-xs text-rpb-ink-soft">{row.code}</td>
-                      <td className="px-3 py-2">{row.name}</td>
-                      <td className="px-3 py-2">{row.unit}</td>
+                      <td className="px-3 py-2 text-xs text-rpb-ink-soft break-all">{row.code}</td>
+                      <td className="px-3 py-2 break-words">{row.name}</td>
+                      <td className="px-3 py-2 break-words">{row.unit}</td>
                       <td className="px-3 py-2">
-                        <textarea
-                          className="rpb-input min-h-20 w-full resize-y whitespace-pre-wrap break-words font-mono text-xs"
+                        <AutoSizeFormulaTextarea
+                          className="rpb-input w-full whitespace-pre-wrap break-words font-mono text-xs"
                           value={row.formulaExpr}
                           onChange={(event) =>
                             setKonstruksiRows((list) =>
