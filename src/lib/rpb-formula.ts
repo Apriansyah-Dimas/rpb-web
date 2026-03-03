@@ -28,6 +28,9 @@ const withFormulaAliases = (ctx: FormulaVariables) => ({
 const preprocessPercentLiterals = (expression: string): string =>
   expression.replace(/(\d+(?:\.\d+)?)\s*%/g, "($1/100)");
 
+const normalizeDecimalComma = (expression: string): string =>
+  expression.replace(/(\d),(\d)/g, "$1.$2");
+
 const customFunctions = {
   ROUND: (value: number, digits = 0) => {
     const factor = 10 ** digits;
@@ -64,7 +67,7 @@ export const evaluateFormulaQuantity = (
   }
 
   try {
-    const expression = preprocessPercentLiterals(formulaExpr.trim());
+    const expression = normalizeDecimalComma(preprocessPercentLiterals(formulaExpr.trim()));
     const compiled = parser.parse(expression);
     const value = compiled.evaluate(withFormulaAliases(context));
 
@@ -80,7 +83,7 @@ export const evaluateFormulaQuantity = (
 
 export const validateFormulaExpression = (formulaExpr: string): string | null => {
   try {
-    const expression = preprocessPercentLiterals(formulaExpr.trim());
+    const expression = normalizeDecimalComma(preprocessPercentLiterals(formulaExpr.trim()));
     parser.parse(expression);
     return null;
   } catch (error) {
