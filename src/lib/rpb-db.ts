@@ -71,6 +71,21 @@ const mapFormulaVariable = (row: Record<string, unknown>): FormulaVariableSettin
   sortOrder: Number(row.sort_order ?? 0),
 });
 
+const isMissingFormulaVariablesTableError = (error: unknown): boolean => {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const maybeError = error as { code?: string; message?: string };
+  if (maybeError.code === "42P01") {
+    return true;
+  }
+
+  return typeof maybeError.message === "string"
+    ? maybeError.message.toLowerCase().includes("rpb_formula_variables")
+    : false;
+};
+
 export const fetchRpbMasterData = async (supabase: SupabaseClient): Promise<RpbMasterData> => {
   const [{ data: profileRows, error: profileError }, { data: konstruksiRows, error: konstruksiError }, { data: otherRows, error: otherError }, { data: variableRows, error: variableError }] =
     await Promise.all([
@@ -101,7 +116,7 @@ export const fetchRpbMasterData = async (supabase: SupabaseClient): Promise<RpbM
   if (otherError) {
     throw otherError;
   }
-  if (variableError) {
+  if (variableError && !isMissingFormulaVariablesTableError(variableError)) {
     throw variableError;
   }
 
@@ -109,7 +124,10 @@ export const fetchRpbMasterData = async (supabase: SupabaseClient): Promise<RpbM
     profileItems: ((profileRows ?? []) as Record<string, unknown>[]).map(mapProfileItem),
     konstruksiItems: ((konstruksiRows ?? []) as Record<string, unknown>[]).map(mapKonstruksiItem),
     otherItems: ((otherRows ?? []) as Record<string, unknown>[]).map(mapOtherItem),
-    formulaVariables: ((variableRows ?? []) as Record<string, unknown>[]).map(mapFormulaVariable),
+    formulaVariables:
+      variableError && isMissingFormulaVariablesTableError(variableError)
+        ? []
+        : ((variableRows ?? []) as Record<string, unknown>[]).map(mapFormulaVariable),
   };
 };
 
