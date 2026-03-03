@@ -73,6 +73,7 @@ export default function QuotationPage() {
     top: 0,
     width: 0,
   });
+  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
 
@@ -260,6 +261,7 @@ export default function QuotationPage() {
       const imageNode = document.createElement("div");
       imageNode.className = "rpb-draggable-image";
       imageNode.setAttribute("contenteditable", "false");
+      imageNode.dataset.imageId = `img-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       imageNode.style.left = "24px";
       imageNode.style.top = "24px";
       imageNode.style.width = "180px";
@@ -273,7 +275,14 @@ export default function QuotationPage() {
       resizeHandle.className = "rpb-image-resize-handle";
       resizeHandle.setAttribute("data-resize-handle", "true");
 
+      const removeHandle = document.createElement("button");
+      removeHandle.type = "button";
+      removeHandle.className = "rpb-image-remove-handle";
+      removeHandle.setAttribute("data-remove-handle", "true");
+      removeHandle.textContent = "x";
+
       imageNode.appendChild(image);
+      imageNode.appendChild(removeHandle);
       imageNode.appendChild(resizeHandle);
       editorRef.current.appendChild(imageNode);
       saveContent();
@@ -308,8 +317,25 @@ export default function QuotationPage() {
       const target = event.target as HTMLElement;
       const node = target.closest(".rpb-draggable-image") as HTMLDivElement | null;
       if (!node) {
+        setSelectedImageId(null);
+        editor
+          .querySelectorAll(".rpb-draggable-image.is-selected")
+          .forEach((el) => el.classList.remove("is-selected"));
         return;
       }
+      const removeButton = target.closest("[data-remove-handle='true']");
+      if (removeButton) {
+        event.preventDefault();
+        node.remove();
+        setSelectedImageId(null);
+        persistContent();
+        return;
+      }
+      editor
+        .querySelectorAll(".rpb-draggable-image.is-selected")
+        .forEach((el) => el.classList.remove("is-selected"));
+      node.classList.add("is-selected");
+      setSelectedImageId(node.dataset.imageId ?? null);
       event.preventDefault();
       const style = window.getComputedStyle(node);
       const left = Number.parseFloat(style.left || "0") || 0;
@@ -382,6 +408,30 @@ export default function QuotationPage() {
       window.removeEventListener("pointercancel", clearDrag);
     };
   }, [setQuotationContent]);
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor) {
+      return;
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.key !== "Delete" && event.key !== "Backspace") || !selectedImageId) {
+        return;
+      }
+      const node = editor.querySelector(`[data-image-id='${selectedImageId}']`);
+      if (!node) {
+        return;
+      }
+      event.preventDefault();
+      node.remove();
+      setSelectedImageId(null);
+      setQuotationContent(editor.innerHTML);
+    };
+    editor.addEventListener("keydown", onKeyDown);
+    return () => {
+      editor.removeEventListener("keydown", onKeyDown);
+    };
+  }, [selectedImageId, setQuotationContent]);
 
   const generateRpbTableHtml = () => {
     const baseCellStyle =
@@ -967,6 +1017,10 @@ export default function QuotationPage() {
         .rpb-draggable-image.is-active {
           border-color: #6365b9;
         }
+        .rpb-draggable-image.is-selected {
+          border-color: #6365b9;
+          box-shadow: 0 0 0 2px rgba(99, 101, 185, 0.16), 0 6px 18px rgba(31, 35, 64, 0.14);
+        }
         .rpb-draggable-image img {
           display: block;
           width: 100%;
@@ -985,6 +1039,23 @@ export default function QuotationPage() {
           background: #6365b9;
           box-shadow: 0 1px 8px rgba(22, 27, 70, 0.35);
           cursor: nwse-resize;
+          pointer-events: auto;
+        }
+        .rpb-image-remove-handle {
+          position: absolute;
+          right: -7px;
+          top: -7px;
+          width: 18px;
+          height: 18px;
+          border-radius: 999px;
+          border: 2px solid #fff;
+          background: #e5484d;
+          color: #fff;
+          font-size: 11px;
+          font-weight: 700;
+          line-height: 1;
+          cursor: pointer;
+          box-shadow: 0 1px 8px rgba(22, 27, 70, 0.35);
           pointer-events: auto;
         }
         @media (max-width: 820px) {
