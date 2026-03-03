@@ -472,7 +472,7 @@ export function AdminConfigPanel() {
             </button>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 md:hidden">
             {profileRows.map((row) => (
               <article key={row.id} className="rounded-xl border border-rpb-border p-3">
                 <p className="text-xs text-rpb-ink-soft">{row.code}</p>
@@ -527,6 +527,72 @@ export function AdminConfigPanel() {
               </article>
             ))}
           </div>
+          <div className="hidden md:block">
+            <div className="overflow-hidden rounded-xl border border-rpb-border">
+              <table className="w-full table-fixed text-sm">
+                <thead className="bg-[#f6f7ff]">
+                  <tr className="text-left text-xs font-semibold text-rpb-ink-soft">
+                    <th className="w-[8%] px-3 py-2">Code</th>
+                    <th className="w-[17%] px-3 py-2">Name</th>
+                    <th className="w-[8%] px-3 py-2">Unit</th>
+                    <th className="w-[42%] px-3 py-2">Formula Qty</th>
+                    <th className="w-[12.5%] px-3 py-2">Harga 30</th>
+                    <th className="w-[12.5%] px-3 py-2">Harga 45</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {profileRows.map((row) => (
+                    <tr key={row.id} className="border-t border-rpb-border align-top">
+                      <td className="px-3 py-2 text-xs text-rpb-ink-soft">{row.code}</td>
+                      <td className="px-3 py-2">{row.name}</td>
+                      <td className="px-3 py-2">{row.unit}</td>
+                      <td className="px-3 py-2">
+                        <textarea
+                          className="rpb-input min-h-20 w-full resize-y whitespace-pre-wrap break-words font-mono text-xs"
+                          value={row.formulaExpr}
+                          onChange={(event) =>
+                            setProfileRows((list) =>
+                              list.map((item) => (item.id === row.id ? { ...item, formulaExpr: event.target.value } : item)),
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          className="rpb-input w-full"
+                          type="text"
+                          inputMode="numeric"
+                          value={formatIdrInput(row.priceIdr30)}
+                          onChange={(event) =>
+                            setProfileRows((list) =>
+                              list.map((item) =>
+                                item.id === row.id ? { ...item, priceIdr30: parseIdrInput(event.target.value) } : item,
+                              ),
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          className="rpb-input w-full"
+                          type="text"
+                          inputMode="numeric"
+                          value={formatIdrInput(row.priceIdr45)}
+                          onChange={(event) =>
+                            setProfileRows((list) =>
+                              list.map((item) =>
+                                item.id === row.id ? { ...item, priceIdr45: parseIdrInput(event.target.value) } : item,
+                              ),
+                            )
+                          }
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
           <FormulaHelpBox />
           <VariableSettingsCard
@@ -557,7 +623,7 @@ export function AdminConfigPanel() {
             </button>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 md:hidden">
             {konstruksiRows.map((row) => (
               <article key={row.id} className="rounded-xl border border-rpb-border p-3">
                 <p className="text-xs text-rpb-ink-soft">{row.code}</p>
@@ -593,6 +659,56 @@ export function AdminConfigPanel() {
                 </label>
               </article>
             ))}
+          </div>
+          <div className="hidden md:block">
+            <div className="overflow-hidden rounded-xl border border-rpb-border">
+              <table className="w-full table-fixed text-sm">
+                <thead className="bg-[#f6f7ff]">
+                  <tr className="text-left text-xs font-semibold text-rpb-ink-soft">
+                    <th className="w-[10%] px-3 py-2">Code</th>
+                    <th className="w-[22%] px-3 py-2">Name</th>
+                    <th className="w-[10%] px-3 py-2">Unit</th>
+                    <th className="w-[40%] px-3 py-2">Formula Qty</th>
+                    <th className="w-[18%] px-3 py-2">Harga Satuan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {konstruksiRows.map((row) => (
+                    <tr key={row.id} className="border-t border-rpb-border align-top">
+                      <td className="px-3 py-2 text-xs text-rpb-ink-soft">{row.code}</td>
+                      <td className="px-3 py-2">{row.name}</td>
+                      <td className="px-3 py-2">{row.unit}</td>
+                      <td className="px-3 py-2">
+                        <textarea
+                          className="rpb-input min-h-20 w-full resize-y whitespace-pre-wrap break-words font-mono text-xs"
+                          value={row.formulaExpr}
+                          onChange={(event) =>
+                            setKonstruksiRows((list) =>
+                              list.map((item) => (item.id === row.id ? { ...item, formulaExpr: event.target.value } : item)),
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          className="rpb-input w-full"
+                          type="text"
+                          inputMode="numeric"
+                          value={formatIdrInput(row.unitPriceIdr)}
+                          onChange={(event) =>
+                            setKonstruksiRows((list) =>
+                              list.map((item) =>
+                                item.id === row.id ? { ...item, unitPriceIdr: parseIdrInput(event.target.value) } : item,
+                              ),
+                            )
+                          }
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <FormulaHelpBox />
@@ -661,7 +777,7 @@ export function AdminConfigPanel() {
             </div>
           </form>
 
-          <div className="space-y-2">
+          <div className="space-y-2 md:hidden">
             {otherRows.map((row) => (
               <article key={row.id} className="rounded-xl border border-rpb-border p-3">
                 <div className="grid gap-2 md:grid-cols-2">
@@ -733,6 +849,103 @@ export function AdminConfigPanel() {
                 </div>
               </article>
             ))}
+          </div>
+          <div className="hidden md:block">
+            <div className="overflow-hidden rounded-xl border border-rpb-border">
+              <table className="w-full table-fixed text-sm">
+                <thead className="bg-[#f6f7ff]">
+                  <tr className="text-left text-xs font-semibold text-rpb-ink-soft">
+                    <th className="w-[14%] px-3 py-2">Category</th>
+                    <th className="w-[22%] px-3 py-2">Name</th>
+                    <th className="w-[28%] px-3 py-2">Model</th>
+                    <th className="w-[10%] px-3 py-2">Unit</th>
+                    <th className="w-[14%] px-3 py-2">Harga</th>
+                    <th className="w-[12%] px-3 py-2">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {otherRows.map((row) => (
+                    <tr key={row.id} className="border-t border-rpb-border align-top">
+                      <td className="px-3 py-2">
+                        <select
+                          className="rpb-input w-full"
+                          value={row.category}
+                          onChange={(event) =>
+                            setOtherRows((list) =>
+                              list.map((item) =>
+                                item.id === row.id ? { ...item, category: event.target.value as StockCategory } : item,
+                              ),
+                            )
+                          }
+                        >
+                          <option value="Blower">Blower</option>
+                          <option value="Motor">Motor</option>
+                          <option value="Rotor">Rotor</option>
+                        </select>
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          className="rpb-input w-full"
+                          value={row.name}
+                          onChange={(event) =>
+                            setOtherRows((list) =>
+                              list.map((item) => (item.id === row.id ? { ...item, name: event.target.value } : item)),
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          className="rpb-input w-full"
+                          value={row.model}
+                          onChange={(event) =>
+                            setOtherRows((list) =>
+                              list.map((item) => (item.id === row.id ? { ...item, model: event.target.value } : item)),
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          className="rpb-input w-full"
+                          value={row.unit}
+                          onChange={(event) =>
+                            setOtherRows((list) =>
+                              list.map((item) => (item.id === row.id ? { ...item, unit: event.target.value } : item)),
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          className="rpb-input w-full"
+                          type="text"
+                          inputMode="numeric"
+                          value={formatIdrInput(row.priceIdr)}
+                          onChange={(event) =>
+                            setOtherRows((list) =>
+                              list.map((item) =>
+                                item.id === row.id ? { ...item, priceIdr: parseIdrInput(event.target.value) } : item,
+                              ),
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <button
+                          type="button"
+                          className="rpb-btn-primary w-full px-3 py-2 text-xs font-semibold"
+                          onClick={() => void saveOtherRow(row)}
+                          disabled={busy === `other:${row.id}`}
+                        >
+                          {busy === `other:${row.id}` ? "..." : "Simpan"}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
       ) : null}
