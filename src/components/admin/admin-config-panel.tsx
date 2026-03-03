@@ -310,8 +310,17 @@ export function AdminConfigPanel() {
     [dimensions.height, dimensions.length, dimensions.width],
   );
   const profileQtyPreview = useMemo(() => {
-    const ctx: Record<string, number> = { panel_thickness: 30, panelThickness: 30 };
+    const ctx: Record<string, number> = {
+      panel_thickness: 30,
+      panelThickness: 30,
+      width: defaultVariablePreviewValues.width,
+      length: defaultVariablePreviewValues.length,
+      height: defaultVariablePreviewValues.height,
+    };
     profileVariables.forEach((variable) => {
+      if (variable.isDefault && (variable.key === "width" || variable.key === "length" || variable.key === "height")) {
+        return;
+      }
       ctx[variable.key] = Number.isFinite(variable.defaultValue) ? variable.defaultValue : 0;
     });
 
@@ -321,10 +330,19 @@ export function AdminConfigPanel() {
       ctx[row.code] = qty;
       return acc;
     }, {});
-  }, [profileRows, profileVariables]);
+  }, [defaultVariablePreviewValues.height, defaultVariablePreviewValues.length, defaultVariablePreviewValues.width, profileRows, profileVariables]);
   const konstruksiQtyPreview = useMemo(() => {
-    const ctx: Record<string, number> = { panel_thickness: 30, panelThickness: 30 };
+    const ctx: Record<string, number> = {
+      panel_thickness: 30,
+      panelThickness: 30,
+      width: defaultVariablePreviewValues.width,
+      length: defaultVariablePreviewValues.length,
+      height: defaultVariablePreviewValues.height,
+    };
     konstruksiVariables.forEach((variable) => {
+      if (variable.isDefault && (variable.key === "width" || variable.key === "length" || variable.key === "height")) {
+        return;
+      }
       ctx[variable.key] = Number.isFinite(variable.defaultValue) ? variable.defaultValue : 0;
     });
 
@@ -334,7 +352,7 @@ export function AdminConfigPanel() {
       ctx[row.code] = qty;
       return acc;
     }, {});
-  }, [konstruksiRows, konstruksiVariables]);
+  }, [defaultVariablePreviewValues.height, defaultVariablePreviewValues.length, defaultVariablePreviewValues.width, konstruksiRows, konstruksiVariables]);
 
   const saveAllProfile = async () => {
     for (const row of profileRows) {
