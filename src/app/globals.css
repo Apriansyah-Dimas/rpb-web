@@ -143,13 +143,16 @@ body::-webkit-scrollbar {
 }
 
 .rpb-custom-card {
-  border-color: #6365b9 !important;
-  background: #6365b9 !important;
-  color: #fff !important;
+  border: 1.5px dashed rgba(99, 101, 185, 0.65) !important;
+  background: linear-gradient(180deg, #f8f9ff 0%, #f2f4ff 100%) !important;
+  color: #4f52a6 !important;
+  transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
 
 .rpb-custom-card:hover {
-  background: #5658a7 !important;
+  border-color: #6365b9 !important;
+  background: #edf0ff !important;
+  transform: translateY(-1px);
 }
 
 .rpb-table th,

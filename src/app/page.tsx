@@ -456,13 +456,17 @@ export default function HomePage() {
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 <button
                   type="button"
-                  className="rpb-grid-card rpb-custom-card flex min-h-[130px] items-center justify-center"
+                  className="rpb-grid-card rpb-custom-card flex min-h-[130px] flex-col items-center justify-center gap-2 p-3"
                   onClick={openCustomModal}
                   aria-label="Tambah custom item"
                 >
-                  <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-white/45 text-4xl leading-none">
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-current text-2xl leading-none">
                     +
                   </span>
+                  <div className="text-center">
+                    <p className="text-sm font-semibold">Tambah Custom Item</p>
+                    <p className="text-xs font-medium opacity-80">Klik untuk tambah</p>
+                  </div>
                 </button>
                 {filteredOtherItems.map((item) => {
                   const currentQty = selectedOther[item.id] ?? 0;
