@@ -435,7 +435,7 @@ export default function QuotationPage() {
 
   const generateRpbTableHtml = () => {
     const baseCellStyle =
-      "padding:4px 5px;border-bottom:1px solid #d9dbef;font-size:8.5pt;line-height:1.3;overflow-wrap:anywhere;word-break:break-word;";
+      "padding:4px 5px;border-bottom:1px solid #d9dbef;font-size:8.5pt;line-height:1.3;overflow-wrap:anywhere;word-break:break-word;vertical-align:middle;";
 
     const rows = lineItems
       .map((item, index) => {
@@ -460,46 +460,46 @@ export default function QuotationPage() {
           <thead>
             <tr style="background:#6365b9;">
               <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:5%;">No</th>
-              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:13%;">Jenis</th>
-              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:22%;">Keterangan</th>
-              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:7%;">Satuan</th>
-              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:13%;">Jenis Spec</th>
-              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:11%;">Qty</th>
-              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9pt;width:14.5%;">Harga</th>
-              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9pt;width:14.5%;">Total</th>
+              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:13%;vertical-align:middle;">Jenis</th>
+              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:22%;vertical-align:middle;">Keterangan</th>
+              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:7%;vertical-align:middle;">Satuan</th>
+              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:13%;vertical-align:middle;">Jenis Spec</th>
+              <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:11%;vertical-align:middle;">Qty</th>
+              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9pt;width:14.5%;vertical-align:middle;">Harga</th>
+              <th style="padding:5px 4px;color:#fff;text-align:right;font-size:9pt;width:14.5%;vertical-align:middle;">Total</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
           <tfoot>
             <tr>
-              <td colspan="6" style="padding:4px 5px;background:#fbfbff;border-top:1px solid #d9dbef;"></td>
-              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;color:#555;">Subtotal</td>
-              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;font-weight:600;white-space:nowrap;">${escapeHtml(formatRupiah(subtotalIdr))}</td>
+              <td colspan="6" style="padding:4px 5px;background:#fbfbff;border-top:1px solid #d9dbef;vertical-align:middle;"></td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;color:#555;vertical-align:middle;">Subtotal</td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;font-weight:600;white-space:nowrap;vertical-align:middle;">${escapeHtml(formatRupiah(subtotalIdr))}</td>
             </tr>
             <tr>
-              <td colspan="6" style="padding:4px 5px;background:#fbfbff;"></td>
-              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;color:#555;">Stock Return (${adjustments.stockReturn}%)</td>
-              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;white-space:nowrap;">${escapeHtml(formatRupiah(stockReturnIdr))}</td>
+              <td colspan="6" style="padding:4px 5px;background:#fbfbff;vertical-align:middle;"></td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;color:#555;vertical-align:middle;">Stock Return (${adjustments.stockReturn}%)</td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;white-space:nowrap;vertical-align:middle;">${escapeHtml(formatRupiah(stockReturnIdr))}</td>
             </tr>
             <tr>
-              <td colspan="6" style="padding:4px 5px;background:#fbfbff;"></td>
-              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;color:#555;">Marketing Cost (${adjustments.marketingCost}%)</td>
-              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;white-space:nowrap;">${escapeHtml(formatRupiah(marketingCostIdr))}</td>
+              <td colspan="6" style="padding:4px 5px;background:#fbfbff;vertical-align:middle;"></td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;color:#555;vertical-align:middle;">Marketing Cost (${adjustments.marketingCost}%)</td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;white-space:nowrap;vertical-align:middle;">${escapeHtml(formatRupiah(marketingCostIdr))}</td>
             </tr>
             <tr>
-              <td colspan="6" style="padding:4px 5px;background:#fbfbff;"></td>
-              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;color:#555;">Services (${adjustments.services}%)</td>
-              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;white-space:nowrap;">${escapeHtml(formatRupiah(servicesIdr))}</td>
+              <td colspan="6" style="padding:4px 5px;background:#fbfbff;vertical-align:middle;"></td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;color:#555;vertical-align:middle;">Services (${adjustments.services}%)</td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;white-space:nowrap;vertical-align:middle;">${escapeHtml(formatRupiah(servicesIdr))}</td>
             </tr>
             <tr>
-              <td colspan="6" style="padding:4px 5px;background:#fbfbff;"></td>
-              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;color:#555;">Profit (${adjustments.profit}%)</td>
-              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;white-space:nowrap;">${escapeHtml(formatRupiah(profitIdr))}</td>
+              <td colspan="6" style="padding:4px 5px;background:#fbfbff;vertical-align:middle;"></td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;color:#555;vertical-align:middle;">Profit (${adjustments.profit}%)</td>
+              <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;white-space:nowrap;vertical-align:middle;">${escapeHtml(formatRupiah(profitIdr))}</td>
             </tr>
             <tr style="background:#6365b9;">
-              <td colspan="6" style="padding:5px;border-top:0;"></td>
-              <td style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:9pt;border-top:0;">GRAND TOTAL</td>
-              <td style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:10pt;white-space:nowrap;border-top:0;">${escapeHtml(formatRupiah(grandTotalIdr))}</td>
+              <td colspan="6" style="padding:5px;border-top:0;vertical-align:middle;"></td>
+              <td style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:9pt;border-top:0;vertical-align:middle;">GRAND TOTAL</td>
+              <td style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:10pt;white-space:nowrap;border-top:0;vertical-align:middle;">${escapeHtml(formatRupiah(grandTotalIdr))}</td>
             </tr>
           </tfoot>
         </table>
@@ -998,6 +998,7 @@ export default function QuotationPage() {
           padding: 5px !important;
           font-size: 8.5pt !important;
           line-height: 1.3 !important;
+          vertical-align: middle !important;
           text-size-adjust: 100%;
           -webkit-text-size-adjust: 100%;
           overflow-wrap: anywhere;

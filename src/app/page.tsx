@@ -148,7 +148,6 @@ export default function HomePage() {
   const [customSatuan, setCustomSatuan] = useState("");
   const [customJenisSpec, setCustomJenisSpec] = useState("");
   const [customHargaIdr, setCustomHargaIdr] = useState(0);
-  const [customQty, setCustomQty] = useState(1);
   const [profileBreakdownOpen, setProfileBreakdownOpen] = useState(false);
   const [konstruksiBreakdownOpen, setKonstruksiBreakdownOpen] = useState(false);
 
@@ -244,7 +243,6 @@ export default function HomePage() {
     setCustomSatuan("");
     setCustomJenisSpec("");
     setCustomHargaIdr(0);
-    setCustomQty(1);
   };
 
   const closeCustomModal = () => {
@@ -262,8 +260,7 @@ export default function HomePage() {
       !keterangan ||
       !satuan ||
       !jenisSpec ||
-      customHargaIdr <= 0 ||
-      customQty <= 0
+      customHargaIdr <= 0
     ) {
       window.alert("Lengkapi semua field custom item dengan benar.");
       return;
@@ -275,7 +272,7 @@ export default function HomePage() {
       satuan,
       jenisSpec,
       hargaIdr: customHargaIdr,
-      qty: customQty,
+      qty: 1,
     });
     closeCustomModal();
   };
@@ -595,12 +592,12 @@ export default function HomePage() {
 
       {customModalOpen ? (
         <div className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-[#15172b]/45 p-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] backdrop-blur-[2px] md:items-center md:pb-6">
-          <div className="flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-rpb-border bg-white shadow-xl">
-            <div className="rpb-topbar px-5 py-3 text-white">
+          <div className="flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-rpb-border bg-[#f7f8fc] shadow-xl">
+            <div className="rpb-topbar px-6 py-4 text-white">
               <h3 className="rpb-h-title text-lg font-semibold">Custom Item</h3>
             </div>
-            <div className="space-y-3 overflow-y-auto p-4">
-              <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-5 overflow-y-auto p-5 md:p-6">
+              <div className="grid gap-4 md:grid-cols-2">
                 <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
                   Jenis
                   <input
@@ -619,7 +616,7 @@ export default function HomePage() {
                 </label>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-3">
                 <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
                   Satuan
                   <input
@@ -650,42 +647,14 @@ export default function HomePage() {
                 </label>
               </div>
 
-              <div className="grid items-end gap-3 md:grid-cols-[1fr_auto]">
-                <div>
-                  <p className="mb-2 text-sm font-semibold text-rpb-ink-soft">Quantity</p>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      className="rpb-btn-ghost h-10 w-10 text-xl"
-                      onClick={() => setCustomQty((qty) => Math.max(1, qty - 1))}
-                    >
-                      -
-                    </button>
-                    <input
-                      className="rpb-input text-center"
-                      type="number"
-                      min={1}
-                      step={1}
-                      value={customQty}
-                      onFocus={selectInputOnFocus}
-                      onChange={(event) =>
-                        setCustomQty(Math.max(1, Math.floor(parseNumberInput(event.target.value))))
-                      }
-                    />
-                    <button
-                      type="button"
-                      className="rpb-btn-primary h-10 w-10 text-xl font-semibold"
-                      onClick={() => setCustomQty((qty) => qty + 1)}
-                    >
-                      +
-                    </button>
-                  </div>
+              <div className="grid items-end gap-3 md:grid-cols-[minmax(0,1fr)_290px]">
+                <div className="text-xs text-rpb-ink-soft">
+                  Quantity untuk custom item sekarang otomatis <span className="font-semibold text-foreground">1</span>.
                 </div>
-
-                <div className="rpb-section px-4 py-2 md:min-w-48">
+                <div className="border-t border-rpb-border px-4 py-2">
                   <p className="text-xs text-rpb-ink-soft">Total price</p>
                   <p className="text-lg font-semibold">
-                    {formatRupiah(customHargaIdr * customQty)}
+                    {formatRupiah(customHargaIdr)}
                   </p>
                 </div>
               </div>

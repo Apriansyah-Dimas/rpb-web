@@ -982,50 +982,65 @@ export function AdminConfigPanel() {
                     void addOtherPermanent();
                   }}
                 >
-                  <input
-                    className="rpb-input md:col-span-2"
-                    placeholder="Name"
-                    value={newOther.name}
-                    onChange={(event) => setNewOther((value) => ({ ...value, name: event.target.value }))}
-                  />
-                  <input
-                    className="rpb-input"
-                    list={OTHER_CATEGORY_DATALIST_ID}
-                    placeholder="Category"
-                    value={newOther.category}
-                    onChange={(event) => setNewOther((value) => ({ ...value, category: event.target.value }))}
-                  />
-                  <input
-                    className="rpb-input"
-                    placeholder="Model"
-                    value={newOther.model}
-                    onChange={(event) => setNewOther((value) => ({ ...value, model: event.target.value }))}
-                  />
-                  <input
-                    className="rpb-input"
-                    placeholder="Unit"
-                    value={newOther.unit}
-                    onChange={(event) => setNewOther((value) => ({ ...value, unit: event.target.value }))}
-                  />
-                  <div className="flex gap-2 md:col-span-2">
+                  <label className="md:col-span-2">
+                    <span className="mb-1 block text-xs font-semibold text-rpb-ink-soft">Name</span>
                     <input
-                      className="rpb-input flex-1 min-w-0"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="Harga (Rp)"
-                      value={formatIdrInput(newOther.priceIdr)}
-                      onChange={(event) =>
-                        setNewOther((value) => ({ ...value, priceIdr: parseIdrInput(event.target.value) }))
-                      }
+                      className="rpb-input"
+                      placeholder="Name"
+                      value={newOther.name}
+                      onChange={(event) => setNewOther((value) => ({ ...value, name: event.target.value }))}
                     />
-                    <button
-                      type="submit"
-                      className="rpb-btn-primary inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold"
-                      disabled={busy === "other:new"}
-                    >
-                      <Plus size={14} />
-                      {busy === "other:new" ? "..." : "Tambah"}
-                    </button>
+                  </label>
+                  <label>
+                    <span className="mb-1 block text-xs font-semibold text-rpb-ink-soft">Category</span>
+                    <input
+                      className="rpb-input"
+                      list={OTHER_CATEGORY_DATALIST_ID}
+                      placeholder="Category"
+                      value={newOther.category}
+                      onChange={(event) => setNewOther((value) => ({ ...value, category: event.target.value }))}
+                    />
+                  </label>
+                  <label>
+                    <span className="mb-1 block text-xs font-semibold text-rpb-ink-soft">Model</span>
+                    <input
+                      className="rpb-input"
+                      placeholder="Model"
+                      value={newOther.model}
+                      onChange={(event) => setNewOther((value) => ({ ...value, model: event.target.value }))}
+                    />
+                  </label>
+                  <label>
+                    <span className="mb-1 block text-xs font-semibold text-rpb-ink-soft">Unit</span>
+                    <input
+                      className="rpb-input"
+                      placeholder="Unit"
+                      value={newOther.unit}
+                      onChange={(event) => setNewOther((value) => ({ ...value, unit: event.target.value }))}
+                    />
+                  </label>
+                  <div className="md:col-span-2">
+                    <span className="mb-1 block text-xs font-semibold text-rpb-ink-soft">Harga (Rp)</span>
+                    <div className="flex gap-2">
+                      <input
+                        className="rpb-input flex-1 min-w-0"
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Harga"
+                        value={formatIdrInput(newOther.priceIdr)}
+                        onChange={(event) =>
+                          setNewOther((value) => ({ ...value, priceIdr: parseIdrInput(event.target.value) }))
+                        }
+                      />
+                      <button
+                        type="submit"
+                        className="rpb-btn-primary inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold"
+                        disabled={busy === "other:new"}
+                      >
+                        <Plus size={14} />
+                        {busy === "other:new" ? "..." : "Tambah"}
+                      </button>
+                    </div>
                   </div>
                 </form>
               </div>
