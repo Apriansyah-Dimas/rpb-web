@@ -66,9 +66,9 @@ const toVariableKey = (value: string) =>
 
 const newOtherDefault = {
   name: "",
-  category: "Other",
-  model: "-",
-  unit: "pc",
+  category: "",
+  model: "",
+  unit: "",
   priceIdr: 0,
 };
 
@@ -779,7 +779,10 @@ export function AdminConfigPanel() {
             <button
               type="button"
               className="rpb-btn-primary inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold"
-              onClick={() => setIsOtherModalOpen(true)}
+              onClick={() => {
+                setNewOther(newOtherDefault);
+                setIsOtherModalOpen(true);
+              }}
             >
               <Plus size={14} />
               Tambah Item
@@ -973,7 +976,7 @@ export function AdminConfigPanel() {
                   </button>
                 </div>
                 <form
-                  className="grid gap-3 md:grid-cols-6"
+                  className="grid gap-3 md:grid-cols-7"
                   onSubmit={(event) => {
                     event.preventDefault();
                     void addOtherPermanent();
@@ -1004,9 +1007,9 @@ export function AdminConfigPanel() {
                     value={newOther.unit}
                     onChange={(event) => setNewOther((value) => ({ ...value, unit: event.target.value }))}
                   />
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 md:col-span-2">
                     <input
-                      className="rpb-input"
+                      className="rpb-input flex-1 min-w-0"
                       type="text"
                       inputMode="numeric"
                       placeholder="Harga (Rp)"
