@@ -12,6 +12,7 @@ import {
   upsertProfileMasterItem,
 } from "@/lib/rpb-db";
 import { evaluateFormulaQuantity, validateFormulaExpression } from "@/lib/rpb-formula";
+import { useRpbStore } from "@/store/rpb-store";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type {
   FormulaVariableSection,
@@ -148,6 +149,7 @@ function AutoSizeFormulaTextarea(props: TextareaHTMLAttributes<HTMLTextAreaEleme
 function VariableSettingsCard({
   section,
   rows,
+  previewValues,
   busy,
   onChange,
   onSave,
@@ -156,6 +158,7 @@ function VariableSettingsCard({
 }: {
   section: FormulaVariableSection;
   rows: FormulaVariableSetting[];
+  previewValues: Record<string, number>;
   busy: string | null;
   onChange: (id: string, patch: Partial<FormulaVariableSetting>) => void;
   onSave: (row: FormulaVariableSetting) => Promise<void>;
@@ -188,12 +191,12 @@ function VariableSettingsCard({
               key={row.id}
               className="inline-flex items-center rounded-full border border-rpb-border bg-white px-3 py-1 text-xs font-semibold text-foreground"
             >
-              {row.label}
+              {row.label}: {formatQtyPreview(previewValues[row.key] ?? row.defaultValue)}
             </span>
           ))}
         </div>
         <p className="mt-2 text-[11px] text-rpb-ink-soft">
-          Diambil dari input user pada halaman utama.
+          Diambil dari input user pada halaman beranda.
         </p>
       </div>
 
@@ -257,6 +260,7 @@ function VariableSettingsCard({
 
 export function AdminConfigPanel() {
   const { data, loading, error, refresh } = useRpbMasterData();
+  const dimensions = useRpbStore((state) => state.dimensions);
   const [profileRows, setProfileRows] = useState<ProfileMasterItem[]>([]);
   const [konstruksiRows, setKonstruksiRows] = useState<KonstruksiMasterItem[]>([]);
   const [otherRows, setOtherRows] = useState<OtherItem[]>([]);
@@ -296,6 +300,14 @@ export function AdminConfigPanel() {
         ),
       ).sort((a, b) => a.localeCompare(b)),
     [otherRows],
+  );
+  const defaultVariablePreviewValues = useMemo(
+    () => ({
+      width: Number.isFinite(dimensions.width) ? dimensions.width : 0,
+      length: Number.isFinite(dimensions.length) ? dimensions.length : 0,
+      height: Number.isFinite(dimensions.height) ? dimensions.height : 0,
+    }),
+    [dimensions.height, dimensions.length, dimensions.width],
   );
   const profileQtyPreview = useMemo(() => {
     const ctx: Record<string, number> = { panel_thickness: 30, panelThickness: 30 };
@@ -697,6 +709,7 @@ export function AdminConfigPanel() {
           <VariableSettingsCard
             section="profile"
             rows={profileVariables}
+            previewValues={defaultVariablePreviewValues}
             busy={busy}
             onAdd={() => addVariable("profile")}
             onChange={(id, patch) =>
@@ -829,6 +842,7 @@ export function AdminConfigPanel() {
           <VariableSettingsCard
             section="konstruksi"
             rows={konstruksiVariables}
+            previewValues={defaultVariablePreviewValues}
             busy={busy}
             onAdd={() => addVariable("konstruksi")}
             onChange={(id, patch) =>
