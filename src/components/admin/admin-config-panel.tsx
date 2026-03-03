@@ -318,7 +318,7 @@ export function AdminConfigPanel() {
       height: defaultVariablePreviewValues.height,
     };
     profileVariables.forEach((variable) => {
-      if (variable.isDefault && (variable.key === "width" || variable.key === "length" || variable.key === "height")) {
+      if (variable.key === "width" || variable.key === "length" || variable.key === "height") {
         return;
       }
       ctx[variable.key] = Number.isFinite(variable.defaultValue) ? variable.defaultValue : 0;
@@ -340,7 +340,7 @@ export function AdminConfigPanel() {
       height: defaultVariablePreviewValues.height,
     };
     konstruksiVariables.forEach((variable) => {
-      if (variable.isDefault && (variable.key === "width" || variable.key === "length" || variable.key === "height")) {
+      if (variable.key === "width" || variable.key === "length" || variable.key === "height") {
         return;
       }
       ctx[variable.key] = Number.isFinite(variable.defaultValue) ? variable.defaultValue : 0;
