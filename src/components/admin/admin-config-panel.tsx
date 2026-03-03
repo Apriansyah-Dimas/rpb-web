@@ -77,6 +77,19 @@ const toVariableKey = (value: string) =>
     .replace(/\s+/g, "")
     .replace(/[^a-z0-9_]/g, "");
 
+const RESERVED_FORMULA_KEYS = new Set([
+  "width",
+  "length",
+  "height",
+  "panel_thickness",
+  "panelthickness",
+  "p",
+  "t",
+]);
+
+const isReservedFormulaKey = (value: string): boolean =>
+  RESERVED_FORMULA_KEYS.has(value.trim().toLowerCase());
+
 const newOtherDefault = {
   name: "",
   category: "",
@@ -327,7 +340,9 @@ export function AdminConfigPanel() {
     return profileRows.reduce<Record<string, number>>((acc, row) => {
       const qty = evaluateFormulaQuantity(row.formulaExpr, ctx);
       acc[row.id] = qty;
-      ctx[row.code] = qty;
+      if (!isReservedFormulaKey(row.code)) {
+        ctx[row.code] = qty;
+      }
       return acc;
     }, {});
   }, [defaultVariablePreviewValues.height, defaultVariablePreviewValues.length, defaultVariablePreviewValues.width, profileRows, profileVariables]);
@@ -349,7 +364,9 @@ export function AdminConfigPanel() {
     return konstruksiRows.reduce<Record<string, number>>((acc, row) => {
       const qty = evaluateFormulaQuantity(row.formulaExpr, ctx);
       acc[row.id] = qty;
-      ctx[row.code] = qty;
+      if (!isReservedFormulaKey(row.code)) {
+        ctx[row.code] = qty;
+      }
       return acc;
     }, {});
   }, [defaultVariablePreviewValues.height, defaultVariablePreviewValues.length, defaultVariablePreviewValues.width, konstruksiRows, konstruksiVariables]);
