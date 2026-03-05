@@ -3,9 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #1f2340;
-  --rpb-primary: #008fd5;
-  --rpb-primary-dark: #007bb8;
-  --rpb-primary-soft: #e8f6ff;
+  --rpb-primary: #2e3192;
+  --rpb-primary-dark: #25287a;
+  --rpb-primary-soft: #eaebff;
   --rpb-border: #dfe3f3;
   --rpb-surface: #ffffff;
   --rpb-ink-soft: #4e5275;
@@ -56,12 +56,12 @@ body::-webkit-scrollbar {
 
 .rpb-topbar {
   border-bottom: 1px solid rgba(223, 227, 243, 0.9);
-  background: linear-gradient(90deg, var(--rpb-primary) 0%, #3aaedf 100%);
+  background: var(--rpb-primary);
 }
 
 .rpb-fixed-header {
   border-bottom: 0;
-  background: linear-gradient(90deg, var(--rpb-primary) 0%, #3aaedf 100%);
+  background: var(--rpb-primary);
 }
 
 .rpb-h-title {
@@ -82,7 +82,7 @@ body::-webkit-scrollbar {
 
 .rpb-input:focus {
   border-color: var(--rpb-primary);
-  box-shadow: 0 0 0 4px rgba(0, 143, 213, 0.16);
+  box-shadow: 0 0 0 4px rgba(46, 49, 146, 0.16);
 }
 
 .rpb-input-with-icon {
@@ -123,7 +123,7 @@ body::-webkit-scrollbar {
 }
 
 .rpb-price-pill {
-  border: 1px solid rgba(0, 143, 213, 0.24);
+  border: 1px solid rgba(46, 49, 146, 0.24);
   border-radius: 999px;
   background: var(--rpb-primary-soft);
   color: var(--rpb-primary-dark);
@@ -143,15 +143,15 @@ body::-webkit-scrollbar {
 }
 
 .rpb-custom-card {
-  border: 1.5px dashed rgba(0, 143, 213, 0.55) !important;
-  background: linear-gradient(180deg, #f4fbff 0%, #eaf7ff 100%) !important;
-  color: #0b6f9f !important;
+  border: 1.5px dashed rgba(46, 49, 146, 0.55) !important;
+  background: #f1f2ff !important;
+  color: #2e3192 !important;
   transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
 
 .rpb-custom-card:hover {
-  border-color: #008fd5 !important;
-  background: #e3f4ff !important;
+  border-color: #2e3192 !important;
+  background: #e6e8ff !important;
   transform: translateY(-1px);
 }
 
@@ -163,7 +163,7 @@ body::-webkit-scrollbar {
 }
 
 .rpb-table thead th {
-  background: #008fd5;
+  background: #2e3192;
   color: #fff;
   font-size: 12px;
   font-weight: 700;
@@ -224,7 +224,7 @@ body::-webkit-scrollbar {
 }
 
 .rpb-editor-content .tiptap th {
-  background: #008fd5;
+  background: #2e3192;
   color: #fff;
   font-weight: 700;
   font-size: 11px;

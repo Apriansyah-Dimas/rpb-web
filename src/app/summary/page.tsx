@@ -218,7 +218,7 @@ export default function SummaryPage() {
     ]);
     const tableFoot: RowInput[] = calculationRows.map((row) => {
       const fillColor = row.highlight
-        ? ([0, 143, 213] as [number, number, number])
+        ? ([46, 49, 146] as [number, number, number])
         : ([245, 251, 255] as [number, number, number]);
       const textColor = row.highlight
         ? ([255, 255, 255] as [number, number, number])
@@ -276,7 +276,7 @@ export default function SummaryPage() {
         lineWidth: 0.15,
       },
       headStyles: {
-        fillColor: [0, 143, 213],
+        fillColor: [46, 49, 146],
         textColor: [255, 255, 255],
         fontStyle: "bold",
       },
@@ -465,7 +465,7 @@ export default function SummaryPage() {
                 </tbody>
                 <tfoot>
                   {calculationRows.map((row) => (
-                    <tr key={row.key} className={row.highlight ? "bg-[#008fd5]" : ""}>
+                    <tr key={row.key} className={row.highlight ? "bg-[#2e3192]" : ""}>
                       <td
                         colSpan={6}
                         className={`${
@@ -577,7 +577,7 @@ export default function SummaryPage() {
                       <div
                         key={row.key}
                         className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-2.5 py-1.5 ${
-                          row.highlight ? "bg-[#008fd5]" : "bg-[#f5fbff]"
+                          row.highlight ? "bg-[#2e3192]" : "bg-[#f5fbff]"
                         }`}
                       >
                         <p

@@ -1037,7 +1037,7 @@ export function AdminConfigPanel() {
                   />
                   <button
                     type="button"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#008fd5] text-white"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#2e3192] text-white"
                     onClick={() => void saveOtherRow(row)}
                     disabled={busy === `other:${row.id}`}
                     aria-label={`Simpan item ${row.name}`}
@@ -1140,7 +1140,7 @@ export function AdminConfigPanel() {
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#008fd5] text-white"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#2e3192] text-white"
                             onClick={() => void saveOtherRow(row)}
                             disabled={busy === `other:${row.id}`}
                             aria-label={`Simpan item ${row.name}`}

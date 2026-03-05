@@ -460,7 +460,7 @@ export default function QuotationPage() {
       <div style="margin:16px 0;">
         <table style="width:100%;table-layout:fixed;border-collapse:collapse;font-family:Arial,sans-serif;border:1px solid #d9dbef;">
           <thead>
-            <tr style="background:#008fd5;">
+            <tr style="background:#2e3192;">
               <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:5%;">No</th>
               <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:13%;vertical-align:middle;">Jenis</th>
               <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:22%;vertical-align:middle;">Keterangan</th>
@@ -498,7 +498,7 @@ export default function QuotationPage() {
               <td style="padding:4px 5px;background:#f5fbff;text-align:right;font-size:9pt;color:#555;vertical-align:middle;">Profit (${adjustments.profit}%)</td>
               <td style="padding:4px 5px;background:#f5fbff;text-align:right;font-size:9pt;white-space:nowrap;vertical-align:middle;">${escapeHtml(formatRupiah(profitIdr))}</td>
             </tr>
-            <tr style="background:#008fd5;">
+            <tr style="background:#2e3192;">
               <td colspan="6" style="padding:5px;border-top:0;vertical-align:middle;"></td>
               <td style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:9pt;border-top:0;vertical-align:middle;">GRAND TOTAL</td>
               <td style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:10pt;white-space:nowrap;border-top:0;vertical-align:middle;">${escapeHtml(formatRupiah(grandTotalIdr))}</td>
@@ -909,7 +909,7 @@ export default function QuotationPage() {
                   </button>
                   <button
                     type="button"
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#008fd5] px-2.5 py-2 text-xs font-semibold text-white sm:gap-2 sm:px-3 sm:text-sm"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#2e3192] px-2.5 py-2 text-xs font-semibold text-white sm:gap-2 sm:px-3 sm:text-sm"
                     onClick={() => void handleDownloadPdf()}
                     disabled={pdfBusy || !downloadReady}
                     title={downloadReady ? "Download PDF A4 (1 halaman)" : "Isi konten quotation terlebih dahulu."}
@@ -1050,11 +1050,11 @@ export default function QuotationPage() {
           user-select: none;
         }
         .rpb-draggable-image.is-active {
-          border-color: #008fd5;
+          border-color: #2e3192;
         }
         .rpb-draggable-image.is-selected {
-          border-color: #008fd5;
-          box-shadow: 0 0 0 2px rgba(0, 143, 213, 0.16), 0 6px 18px rgba(31, 35, 64, 0.14);
+          border-color: #2e3192;
+          box-shadow: 0 0 0 2px rgba(46, 49, 146, 0.16), 0 6px 18px rgba(31, 35, 64, 0.14);
         }
         .rpb-draggable-image img {
           display: block;
@@ -1071,7 +1071,7 @@ export default function QuotationPage() {
           height: 14px;
           border-radius: 999px;
           border: 2px solid #fff;
-          background: #008fd5;
+          background: #2e3192;
           box-shadow: 0 1px 8px rgba(22, 27, 70, 0.35);
           cursor: nwse-resize;
           pointer-events: auto;
