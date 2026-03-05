@@ -11,7 +11,7 @@ export function RpbAppHeader({ className = "" }: { className?: string }) {
           src={logoRpbHeader}
           alt="Logo header RPB"
           priority
-          className="h-9 w-auto md:h-11"
+          className="h-12 w-auto md:h-14"
         />
       </div>
       <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-5 rounded-t-[28px] bg-white md:h-6 md:rounded-t-[34px]" />
