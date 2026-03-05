@@ -1,5 +1,5 @@
 import Image from "next/image";
-import logoRpbHeader from "@/app/logorpb-header.svg";
+import logoRpbHeader from "@/app/klimatek_stroke_putih_8px.png";
 
 export function RpbAppHeader({ className = "" }: { className?: string }) {
   return (
@@ -9,7 +9,7 @@ export function RpbAppHeader({ className = "" }: { className?: string }) {
       <div className="flex h-[72px] items-center justify-center px-4 md:h-[82px] md:px-6">
         <Image
           src={logoRpbHeader}
-          alt="Logo header RPB"
+          alt="Logo header Klimatek"
           priority
           className="h-12 w-auto md:h-14"
         />
