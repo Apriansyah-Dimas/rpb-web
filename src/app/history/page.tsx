@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
+import { useAuthSession } from "@/hooks/use-auth-session";
 import {
   buildTemplateFileName,
   buildTemplatePayloadFromHistory,
@@ -42,6 +43,7 @@ const formatDateTime = (value: string) => {
 
 export default function HistoryPage() {
   const router = useRouter();
+  const { role } = useAuthSession();
   const loadSnapshot = useRpbStore((state) => state.loadSnapshot);
   const templateInputRef = useRef<HTMLInputElement | null>(null);
   const [items, setItems] = useState<SavedSummaryRecord[]>([]);
@@ -203,14 +205,17 @@ export default function HistoryPage() {
               {infoMessage}
             </div>
           ) : null}
+          {role === "admin" ? (
+            <div className="rounded-xl border border-rpb-border bg-white px-4 py-3 text-sm text-rpb-ink-soft">
+              Mode admin: history yang tampil mencakup semua user.
+            </div>
+          ) : null}
 
           <section className="rpb-section p-4">
             {loading ? (
               <p className="text-sm text-rpb-ink-soft">Memuat history...</p>
             ) : items.length === 0 ? (
-              <p className="text-sm text-rpb-ink-soft">
-                Belum ada history tersimpan untuk akun ini.
-              </p>
+              <p className="text-sm text-rpb-ink-soft">Belum ada history tersimpan.</p>
             ) : (
               <div className="space-y-3">
                 {items.map((item) => (
