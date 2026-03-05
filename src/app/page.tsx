@@ -661,9 +661,8 @@ export default function HomePage() {
                     </button>
                     <input
                       className="rpb-input h-11 w-24 text-center"
-                      type="number"
-                      min={1}
-                      step={1}
+                      type="text"
+                      inputMode="numeric"
                       value={customQty}
                       onFocus={selectInputOnFocus}
                       onChange={(event) =>
