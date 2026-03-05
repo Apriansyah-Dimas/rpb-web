@@ -650,17 +650,35 @@ export default function HomePage() {
                 </label>
                 <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
                   Quantity
-                  <input
-                    className="rpb-input"
-                    type="number"
-                    min={1}
-                    step={1}
-                    value={customQty}
-                    onFocus={selectInputOnFocus}
-                    onChange={(event) =>
-                      setCustomQty(Math.max(1, Math.floor(parseNumberInput(event.target.value))))
-                    }
-                  />
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      className="rpb-btn-ghost h-11 w-11 text-xl"
+                      onClick={() => setCustomQty((qty) => Math.max(1, qty - 1))}
+                      aria-label="Kurangi quantity custom item"
+                    >
+                      -
+                    </button>
+                    <input
+                      className="rpb-input text-center"
+                      type="number"
+                      min={1}
+                      step={1}
+                      value={customQty}
+                      onFocus={selectInputOnFocus}
+                      onChange={(event) =>
+                        setCustomQty(Math.max(1, Math.floor(parseNumberInput(event.target.value))))
+                      }
+                    />
+                    <button
+                      type="button"
+                      className="rpb-btn-primary h-11 w-11 text-xl font-semibold"
+                      onClick={() => setCustomQty((qty) => qty + 1)}
+                      aria-label="Tambah quantity custom item"
+                    >
+                      +
+                    </button>
+                  </div>
                 </label>
               </div>
 

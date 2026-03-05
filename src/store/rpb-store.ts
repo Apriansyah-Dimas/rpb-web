@@ -18,10 +18,10 @@ const DEFAULT_DIMENSIONS = {
 const DEFAULT_PANEL_THICKNESS: PanelThickness = 30;
 
 const DEFAULT_ADJUSTMENTS: AdjustmentValues = {
-  stockReturn: 0,
-  marketingCost: 0,
-  services: 0,
-  profit: 0,
+  stockReturn: 3,
+  marketingCost: 3,
+  services: 3,
+  profit: 25,
 };
 
 interface RpbStore {
@@ -209,10 +209,14 @@ export const useRpbStore = create<RpbStore>()(
             }))
             .filter((item) => item.qty > 0),
           adjustments: {
-            stockReturn: safePercent(snapshot.adjustments?.stockReturn ?? 0),
-            marketingCost: safePercent(snapshot.adjustments?.marketingCost ?? 0),
-            services: safePercent(snapshot.adjustments?.services ?? 0),
-            profit: safePercent(snapshot.adjustments?.profit ?? 0),
+            stockReturn: safePercent(
+              snapshot.adjustments?.stockReturn ?? DEFAULT_ADJUSTMENTS.stockReturn,
+            ),
+            marketingCost: safePercent(
+              snapshot.adjustments?.marketingCost ?? DEFAULT_ADJUSTMENTS.marketingCost,
+            ),
+            services: safePercent(snapshot.adjustments?.services ?? DEFAULT_ADJUSTMENTS.services),
+            profit: safePercent(snapshot.adjustments?.profit ?? DEFAULT_ADJUSTMENTS.profit),
           },
         }),
       resetDraft: () =>
