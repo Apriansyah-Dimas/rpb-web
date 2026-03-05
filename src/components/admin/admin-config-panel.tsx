@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
 import {
+  deleteOtherMasterItem,
   deleteFormulaVariableSetting,
   upsertFormulaVariableSetting,
   upsertKonstruksiMasterItem,
@@ -551,6 +552,26 @@ export function AdminConfigPanel() {
     }
   };
 
+  const deleteOtherRow = async (row: OtherItem) => {
+    const confirmed = window.confirm(`Hapus item "${row.name}" dari master Other?`);
+    if (!confirmed) {
+      return;
+    }
+
+    setBusy(`other:delete:${row.id}`);
+    setMessage(null);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await deleteOtherMasterItem(supabase, row.id);
+      setMessage(`Item ${row.name} berhasil dihapus.`);
+      await refresh();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Gagal hapus item other.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
   return (
     <div className="space-y-4 p-3 md:p-6">
       {loading ? <div className="rpb-section p-4 text-sm text-rpb-ink-soft">Memuat data master...</div> : null}
@@ -979,6 +1000,15 @@ export function AdminConfigPanel() {
                   >
                     {busy === `other:${row.id}` ? "..." : "Simpan"}
                   </button>
+                  <button
+                    type="button"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-600"
+                    onClick={() => void deleteOtherRow(row)}
+                    disabled={busy === `other:delete:${row.id}`}
+                    aria-label={`Hapus item ${row.name}`}
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
               </article>
             ))}
@@ -1063,14 +1093,25 @@ export function AdminConfigPanel() {
                         />
                       </td>
                       <td className="px-3 py-2">
-                        <button
-                          type="button"
-                          className="rpb-btn-primary w-full px-3 py-2 text-xs font-semibold"
-                          onClick={() => void saveOtherRow(row)}
-                          disabled={busy === `other:${row.id}`}
-                        >
-                          {busy === `other:${row.id}` ? "..." : "Simpan"}
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            className="rpb-btn-primary flex-1 px-3 py-2 text-xs font-semibold"
+                            onClick={() => void saveOtherRow(row)}
+                            disabled={busy === `other:${row.id}`}
+                          >
+                            {busy === `other:${row.id}` ? "..." : "Simpan"}
+                          </button>
+                          <button
+                            type="button"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-600"
+                            onClick={() => void deleteOtherRow(row)}
+                            disabled={busy === `other:delete:${row.id}`}
+                            aria-label={`Hapus item ${row.name}`}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

@@ -316,6 +316,16 @@ export const upsertOtherMasterItem = async (
   }
 };
 
+export const deleteOtherMasterItem = async (
+  supabase: SupabaseClient,
+  id: string,
+): Promise<void> => {
+  const { error } = await supabase.from("rpb_other_items").delete().eq("id", id);
+  if (error) {
+    throw error;
+  }
+};
+
 export const upsertFormulaVariableSetting = async (
   supabase: SupabaseClient,
   item: {
