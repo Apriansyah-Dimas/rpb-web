@@ -107,6 +107,8 @@ export interface RpbDraftSnapshot {
 
 export interface SavedSummaryRecord {
   id: string;
+  userId: string;
+  createdByEmail: string;
   title: string;
   customerName: string;
   projectName: string;

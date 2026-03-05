@@ -221,6 +221,9 @@ export default function HistoryPage() {
                         Customer: {item.customerName || "-"} | Project: {item.projectName || "-"}
                       </p>
                       <p className="text-xs text-rpb-ink-soft">
+                        Dibuat oleh: {item.createdByEmail || "-"}
+                      </p>
+                      <p className="text-xs text-rpb-ink-soft">
                         Update: {formatDateTime(item.updatedAt)}
                       </p>
                     </div>

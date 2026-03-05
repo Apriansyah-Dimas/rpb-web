@@ -193,15 +193,20 @@ export const saveSummaryHistory = async (
       project_name: payload.projectName,
       snapshot_json: payload.snapshot,
     })
-    .select("id, title, customer_name, project_name, snapshot_json, created_at, updated_at")
+    .select(
+      "id, user_id, title, customer_name, project_name, snapshot_json, created_at, updated_at, creator:user_profiles!rpb_saved_summaries_user_id_fkey(email)",
+    )
     .single();
 
   if (error) {
     throw error;
   }
 
+  const creatorRaw = Array.isArray(data.creator) ? data.creator[0] : data.creator;
   return {
     id: String(data.id),
+    userId: String(data.user_id ?? ""),
+    createdByEmail: String(creatorRaw?.email ?? ""),
     title: String(data.title ?? "Untitled"),
     customerName: String(data.customer_name ?? ""),
     projectName: String(data.project_name ?? ""),
@@ -216,7 +221,9 @@ export const fetchSummaryHistory = async (
 ): Promise<SavedSummaryRecord[]> => {
   const { data, error } = await supabase
     .from("rpb_saved_summaries")
-    .select("id, title, customer_name, project_name, snapshot_json, created_at, updated_at")
+    .select(
+      "id, user_id, title, customer_name, project_name, snapshot_json, created_at, updated_at, creator:user_profiles!rpb_saved_summaries_user_id_fkey(email)",
+    )
     .order("updated_at", { ascending: false });
 
   if (error) {
@@ -225,6 +232,10 @@ export const fetchSummaryHistory = async (
 
   return (data ?? []).map((row) => ({
     id: String(row.id),
+    userId: String(row.user_id ?? ""),
+    createdByEmail: String(
+      (Array.isArray(row.creator) ? row.creator[0] : row.creator)?.email ?? "",
+    ),
     title: String(row.title ?? "Untitled"),
     customerName: String(row.customer_name ?? ""),
     projectName: String(row.project_name ?? ""),
