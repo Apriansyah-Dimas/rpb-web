@@ -1,5 +1,4 @@
 import type { MetadataRoute } from "next";
-import logoRpb from "./logorpb.svg";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -16,7 +15,7 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "id-ID",
     icons: [
       {
-        src: logoRpb.src,
+        src: "/icons/logorpb.svg",
         sizes: "any",
         type: "image/svg+xml",
       },

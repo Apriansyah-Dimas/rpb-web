@@ -1,11 +1,10 @@
-const CACHE_NAME = "rpb-estimator-v2";
+const CACHE_NAME = "rpb-estimator-v3";
 const OFFLINE_URL = "/offline";
 const PRECACHE_URLS = [
   "/login",
   OFFLINE_URL,
   "/manifest.webmanifest",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
+  "/icons/logorpb.svg",
 ];
 
 self.addEventListener("install", (event) => {

@@ -1,7 +1,6 @@
 import { RegisterServiceWorker } from "@/components/pwa/register-service-worker";
 import type { Metadata, Viewport } from "next";
 import { Manrope, Sora } from "next/font/google";
-import logoRpb from "./logorpb.svg";
 import "./globals.css";
 
 const bodyFont = Manrope({
@@ -22,13 +21,13 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: logoRpb.src,
+        url: "/icons/logorpb.svg",
         type: "image/svg+xml",
       },
     ],
     apple: [
       {
-        url: logoRpb.src,
+        url: "/icons/logorpb.svg",
         type: "image/svg+xml",
       },
     ],
