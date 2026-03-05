@@ -653,14 +653,14 @@ export default function HomePage() {
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
-                      className="rpb-btn-ghost h-11 w-11 text-xl"
+                      className="rpb-btn-ghost h-11 w-11 shrink-0 aspect-square text-xl"
                       onClick={() => setCustomQty((qty) => Math.max(1, qty - 1))}
                       aria-label="Kurangi quantity custom item"
                     >
                       -
                     </button>
                     <input
-                      className="rpb-input text-center"
+                      className="rpb-input w-24 text-center"
                       type="number"
                       min={1}
                       step={1}
@@ -672,7 +672,7 @@ export default function HomePage() {
                     />
                     <button
                       type="button"
-                      className="rpb-btn-primary h-11 w-11 text-xl font-semibold"
+                      className="rpb-btn-primary h-11 w-11 shrink-0 aspect-square text-xl font-semibold"
                       onClick={() => setCustomQty((qty) => qty + 1)}
                       aria-label="Tambah quantity custom item"
                     >
