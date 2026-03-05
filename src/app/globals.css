@@ -3,9 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #1f2340;
-  --rpb-primary: #2e3192;
-  --rpb-primary-dark: #25287a;
-  --rpb-primary-soft: #eaebff;
+  --rpb-primary: #008fd5;
+  --rpb-primary-dark: #2e3192;
+  --rpb-primary-soft: #6ccff6;
   --rpb-border: #dfe3f3;
   --rpb-surface: #ffffff;
   --rpb-ink-soft: #4e5275;
@@ -139,19 +139,19 @@ body::-webkit-scrollbar {
   border: 1px solid var(--rpb-border);
   border-radius: 14px;
   background: #fff;
-  box-shadow: 0 10px 24px rgba(0, 102, 153, 0.1);
+  box-shadow: 0 10px 24px rgba(46, 49, 146, 0.1);
 }
 
 .rpb-custom-card {
   border: 1.5px dashed rgba(46, 49, 146, 0.55) !important;
-  background: #f1f2ff !important;
+  background: #6ccff6 !important;
   color: #2e3192 !important;
   transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
 
 .rpb-custom-card:hover {
   border-color: #2e3192 !important;
-  background: #e6e8ff !important;
+  background: #6ccff6 !important;
   transform: translateY(-1px);
 }
 
