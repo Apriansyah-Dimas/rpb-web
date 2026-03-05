@@ -2,7 +2,7 @@
 
 import type { TextareaHTMLAttributes } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Save, Trash2 } from "lucide-react";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
 import {
   deleteOtherMasterItem,
@@ -994,11 +994,12 @@ export function AdminConfigPanel() {
                   />
                   <button
                     type="button"
-                    className="rpb-btn-primary px-3 py-2 text-xs font-semibold"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#6664c0] text-white"
                     onClick={() => void saveOtherRow(row)}
                     disabled={busy === `other:${row.id}`}
+                    aria-label={`Simpan item ${row.name}`}
                   >
-                    {busy === `other:${row.id}` ? "..." : "Simpan"}
+                    {busy === `other:${row.id}` ? "..." : <Save size={14} />}
                   </button>
                   <button
                     type="button"
@@ -1022,8 +1023,8 @@ export function AdminConfigPanel() {
                     <th className="w-[20%] px-3 py-2">Name</th>
                     <th className="w-[18%] px-3 py-2">Model</th>
                     <th className="w-[10%] px-3 py-2">Unit</th>
-                    <th className="w-[14%] px-3 py-2">Harga</th>
-                    <th className="w-[24%] px-3 py-2">Aksi</th>
+                    <th className="w-[22%] px-3 py-2">Harga</th>
+                    <th className="w-[16%] px-3 py-2">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1096,11 +1097,12 @@ export function AdminConfigPanel() {
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            className="rpb-btn-primary flex-1 px-3 py-2 text-xs font-semibold"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#6664c0] text-white"
                             onClick={() => void saveOtherRow(row)}
                             disabled={busy === `other:${row.id}`}
+                            aria-label={`Simpan item ${row.name}`}
                           >
-                            {busy === `other:${row.id}` ? "..." : "Simpan"}
+                            {busy === `other:${row.id}` ? "..." : <Save size={14} />}
                           </button>
                           <button
                             type="button"
