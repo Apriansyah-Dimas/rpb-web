@@ -471,14 +471,14 @@ export default function SummaryPage() {
                         className={`${
                           row.highlight
                             ? "border-t-0 text-white"
-                            : "bg-[#6ccff6]"
+                            : "bg-[#e9f4fa]"
                         }`}
                       />
                       <td
                         className={`text-right align-top leading-tight whitespace-normal break-words ${
                           row.highlight
                             ? "border-t-0 font-bold text-white"
-                            : "bg-[#6ccff6] text-rpb-ink-soft"
+                            : "bg-[#e9f4fa] text-rpb-ink-soft"
                         }`}
                       >
                         {row.label}
@@ -487,7 +487,7 @@ export default function SummaryPage() {
                         className={`text-right whitespace-nowrap ${
                           row.highlight
                             ? "border-t-0 font-bold text-white"
-                            : "bg-[#6ccff6] font-semibold text-foreground"
+                            : "bg-[#e9f4fa] font-semibold text-foreground"
                         }`}
                       >
                         {formatRupiah(row.value)}
@@ -577,7 +577,7 @@ export default function SummaryPage() {
                       <div
                         key={row.key}
                         className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-2.5 py-1.5 ${
-                          row.highlight ? "bg-[#2e3192]" : "bg-[#6ccff6]"
+                          row.highlight ? "bg-[#2e3192]" : "bg-[#e9f4fa]"
                         }`}
                       >
                         <p

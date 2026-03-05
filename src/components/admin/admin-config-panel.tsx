@@ -144,7 +144,7 @@ function FormulaHelpBox() {
   ];
 
   return (
-    <div className="mt-3 rounded-xl border border-rpb-border bg-[#6ccff6] p-3 text-xs text-rpb-ink-soft">
+    <div className="mt-3 rounded-xl border border-rpb-border bg-[#e9f4fa] p-3 text-xs text-rpb-ink-soft">
       <p className="font-semibold text-foreground">Fungsi Formula yang didukung</p>
       <p className="mt-1">
         Operator: <span className="font-mono">+, -, *, /, ^</span>, kurung, dan literal persen
@@ -157,7 +157,7 @@ function FormulaHelpBox() {
       </p>
       <div className="mt-2 overflow-x-auto rounded-lg border border-rpb-border bg-white">
         <table className="w-full min-w-[680px] table-fixed text-xs">
-          <thead className="bg-[#6ccff6]">
+          <thead className="bg-[#e9f4fa]">
             <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-rpb-ink-soft">
               <th className="w-[24%] px-3 py-2">Fungsi</th>
               <th className="w-[34%] px-3 py-2">Penjelasan</th>
@@ -240,7 +240,7 @@ function VariableSettingsCard({
         </button>
       </div>
 
-      <div className="rounded-lg border border-rpb-border bg-[#6ccff6] p-2.5">
+      <div className="rounded-lg border border-rpb-border bg-[#e9f4fa] p-2.5">
         <p className="text-xs font-semibold text-rpb-ink-soft">Variabel Default (read-only)</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {defaultRows.map((row) => (
@@ -263,7 +263,7 @@ function VariableSettingsCard({
           const deleteBusyKey = `variable:delete:${row.id}`;
 
           return (
-            <div key={row.id} className="rounded-lg border border-rpb-border bg-[#6ccff6] p-2.5">
+            <div key={row.id} className="rounded-lg border border-rpb-border bg-[#e9f4fa] p-2.5">
               <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_120px_auto]">
                 <input
                   className="rpb-input"
@@ -629,7 +629,7 @@ export function AdminConfigPanel() {
 
       <nav className="rpb-section p-2">
         <div className="overflow-x-auto">
-          <div className="inline-flex min-w-full rounded-xl border border-rpb-border bg-[#6ccff6] p-1">
+          <div className="inline-flex min-w-full rounded-xl border border-rpb-border bg-[#e9f4fa] p-1">
             {CONFIG_NAV_ITEMS.map((item) => {
               const isActive = activeSection === item.key;
               return (
@@ -676,7 +676,7 @@ export function AdminConfigPanel() {
                 <label className="mt-2 block text-xs font-semibold text-rpb-ink-soft">
                   <span className="flex items-center justify-between gap-2">
                     <span>Formula Qty</span>
-                    <span className="rounded-md border border-rpb-border bg-[#6ccff6] px-2 py-0.5 font-mono text-[11px] text-foreground">
+                    <span className="rounded-md border border-rpb-border bg-[#e9f4fa] px-2 py-0.5 font-mono text-[11px] text-foreground">
                       Qty: {formatQtyPreview(profileQtyPreview[row.id] ?? 0)}
                     </span>
                   </span>
@@ -690,7 +690,7 @@ export function AdminConfigPanel() {
                         )
                       }
                     />
-                    <div className="rpb-input flex items-center justify-center bg-[#6ccff6] font-mono text-xs">
+                    <div className="rpb-input flex items-center justify-center bg-[#e9f4fa] font-mono text-xs">
                       {formatQtyPreview(profileQtyPreview[row.id] ?? 0)}
                     </div>
                   </div>
@@ -735,7 +735,7 @@ export function AdminConfigPanel() {
           <div className="hidden md:block">
             <div className="overflow-hidden rounded-xl border border-rpb-border">
               <table className="w-full table-fixed text-sm">
-                <thead className="bg-[#6ccff6]">
+                <thead className="bg-[#e9f4fa]">
                   <tr className="text-left text-xs font-semibold text-rpb-ink-soft">
                     <th className="w-[12%] px-3 py-2">Code</th>
                     <th className="w-[14%] px-3 py-2">Name</th>
@@ -762,7 +762,7 @@ export function AdminConfigPanel() {
                               )
                             }
                           />
-                          <div className="rpb-input flex items-center justify-center bg-[#6ccff6] font-mono text-xs">
+                          <div className="rpb-input flex items-center justify-center bg-[#e9f4fa] font-mono text-xs">
                             {formatQtyPreview(profileQtyPreview[row.id] ?? 0)}
                           </div>
                         </div>
@@ -843,7 +843,7 @@ export function AdminConfigPanel() {
                 <label className="mt-2 block text-xs font-semibold text-rpb-ink-soft">
                   <span className="flex items-center justify-between gap-2">
                     <span>Formula Qty</span>
-                    <span className="rounded-md border border-rpb-border bg-[#6ccff6] px-2 py-0.5 font-mono text-[11px] text-foreground">
+                    <span className="rounded-md border border-rpb-border bg-[#e9f4fa] px-2 py-0.5 font-mono text-[11px] text-foreground">
                       Qty: {formatQtyPreview(konstruksiQtyPreview[row.id] ?? 0)}
                     </span>
                   </span>
@@ -857,7 +857,7 @@ export function AdminConfigPanel() {
                         )
                       }
                     />
-                    <div className="rpb-input flex items-center justify-center bg-[#6ccff6] font-mono text-xs">
+                    <div className="rpb-input flex items-center justify-center bg-[#e9f4fa] font-mono text-xs">
                       {formatQtyPreview(konstruksiQtyPreview[row.id] ?? 0)}
                     </div>
                   </div>
@@ -884,7 +884,7 @@ export function AdminConfigPanel() {
           <div className="hidden md:block">
             <div className="overflow-hidden rounded-xl border border-rpb-border">
               <table className="w-full table-fixed text-sm">
-                <thead className="bg-[#6ccff6]">
+                <thead className="bg-[#e9f4fa]">
                   <tr className="text-left text-xs font-semibold text-rpb-ink-soft">
                     <th className="w-[12%] px-3 py-2">Code</th>
                     <th className="w-[18%] px-3 py-2">Name</th>
@@ -910,7 +910,7 @@ export function AdminConfigPanel() {
                               )
                             }
                           />
-                          <div className="rpb-input flex items-center justify-center bg-[#6ccff6] font-mono text-xs">
+                          <div className="rpb-input flex items-center justify-center bg-[#e9f4fa] font-mono text-xs">
                             {formatQtyPreview(konstruksiQtyPreview[row.id] ?? 0)}
                           </div>
                         </div>
@@ -1060,7 +1060,7 @@ export function AdminConfigPanel() {
           <div className="hidden md:block">
             <div className="overflow-hidden rounded-xl border border-rpb-border">
               <table className="w-full table-fixed text-sm">
-                <thead className="bg-[#6ccff6]">
+                <thead className="bg-[#e9f4fa]">
                   <tr className="text-left text-xs font-semibold text-rpb-ink-soft">
                     <th className="w-[14%] px-3 py-2">Category</th>
                     <th className="w-[22%] px-3 py-2">Name</th>

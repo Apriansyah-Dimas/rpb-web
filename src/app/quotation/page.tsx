@@ -474,29 +474,29 @@ export default function QuotationPage() {
           <tbody>${rows}</tbody>
           <tfoot>
             <tr>
-              <td colspan="6" style="padding:4px 5px;background:#6ccff6;border-top:1px solid #d9dbef;vertical-align:middle;"></td>
-              <td style="padding:4px 5px;background:#6ccff6;text-align:right;font-size:9pt;color:#555;vertical-align:middle;">Subtotal</td>
-              <td style="padding:4px 5px;background:#6ccff6;text-align:right;font-size:9pt;font-weight:600;white-space:nowrap;vertical-align:middle;">${escapeHtml(formatRupiah(subtotalIdr))}</td>
+              <td colspan="6" style="padding:4px 5px;background:#e9f4fa;border-top:1px solid #d9dbef;vertical-align:middle;"></td>
+              <td style="padding:4px 5px;background:#e9f4fa;text-align:right;font-size:9pt;color:#555;vertical-align:middle;">Subtotal</td>
+              <td style="padding:4px 5px;background:#e9f4fa;text-align:right;font-size:9pt;font-weight:600;white-space:nowrap;vertical-align:middle;">${escapeHtml(formatRupiah(subtotalIdr))}</td>
             </tr>
             <tr>
-              <td colspan="6" style="padding:4px 5px;background:#6ccff6;vertical-align:middle;"></td>
-              <td style="padding:4px 5px;background:#6ccff6;text-align:right;font-size:9pt;color:#555;vertical-align:middle;">Stock Return (${adjustments.stockReturn}%)</td>
-              <td style="padding:4px 5px;background:#6ccff6;text-align:right;font-size:9pt;white-space:nowrap;vertical-align:middle;">${escapeHtml(formatRupiah(stockReturnIdr))}</td>
+              <td colspan="6" style="padding:4px 5px;background:#e9f4fa;vertical-align:middle;"></td>
+              <td style="padding:4px 5px;background:#e9f4fa;text-align:right;font-size:9pt;color:#555;vertical-align:middle;">Stock Return (${adjustments.stockReturn}%)</td>
+              <td style="padding:4px 5px;background:#e9f4fa;text-align:right;font-size:9pt;white-space:nowrap;vertical-align:middle;">${escapeHtml(formatRupiah(stockReturnIdr))}</td>
             </tr>
             <tr>
-              <td colspan="6" style="padding:4px 5px;background:#6ccff6;vertical-align:middle;"></td>
-              <td style="padding:4px 5px;background:#6ccff6;text-align:right;font-size:9pt;color:#555;vertical-align:middle;">Marketing Cost (${adjustments.marketingCost}%)</td>
-              <td style="padding:4px 5px;background:#6ccff6;text-align:right;font-size:9pt;white-space:nowrap;vertical-align:middle;">${escapeHtml(formatRupiah(marketingCostIdr))}</td>
+              <td colspan="6" style="padding:4px 5px;background:#e9f4fa;vertical-align:middle;"></td>
+              <td style="padding:4px 5px;background:#e9f4fa;text-align:right;font-size:9pt;color:#555;vertical-align:middle;">Marketing Cost (${adjustments.marketingCost}%)</td>
+              <td style="padding:4px 5px;background:#e9f4fa;text-align:right;font-size:9pt;white-space:nowrap;vertical-align:middle;">${escapeHtml(formatRupiah(marketingCostIdr))}</td>
             </tr>
             <tr>
-              <td colspan="6" style="padding:4px 5px;background:#6ccff6;vertical-align:middle;"></td>
-              <td style="padding:4px 5px;background:#6ccff6;text-align:right;font-size:9pt;color:#555;vertical-align:middle;">Services (${adjustments.services}%)</td>
-              <td style="padding:4px 5px;background:#6ccff6;text-align:right;font-size:9pt;white-space:nowrap;vertical-align:middle;">${escapeHtml(formatRupiah(servicesIdr))}</td>
+              <td colspan="6" style="padding:4px 5px;background:#e9f4fa;vertical-align:middle;"></td>
+              <td style="padding:4px 5px;background:#e9f4fa;text-align:right;font-size:9pt;color:#555;vertical-align:middle;">Services (${adjustments.services}%)</td>
+              <td style="padding:4px 5px;background:#e9f4fa;text-align:right;font-size:9pt;white-space:nowrap;vertical-align:middle;">${escapeHtml(formatRupiah(servicesIdr))}</td>
             </tr>
             <tr>
-              <td colspan="6" style="padding:4px 5px;background:#6ccff6;vertical-align:middle;"></td>
-              <td style="padding:4px 5px;background:#6ccff6;text-align:right;font-size:9pt;color:#555;vertical-align:middle;">Profit (${adjustments.profit}%)</td>
-              <td style="padding:4px 5px;background:#6ccff6;text-align:right;font-size:9pt;white-space:nowrap;vertical-align:middle;">${escapeHtml(formatRupiah(profitIdr))}</td>
+              <td colspan="6" style="padding:4px 5px;background:#e9f4fa;vertical-align:middle;"></td>
+              <td style="padding:4px 5px;background:#e9f4fa;text-align:right;font-size:9pt;color:#555;vertical-align:middle;">Profit (${adjustments.profit}%)</td>
+              <td style="padding:4px 5px;background:#e9f4fa;text-align:right;font-size:9pt;white-space:nowrap;vertical-align:middle;">${escapeHtml(formatRupiah(profitIdr))}</td>
             </tr>
             <tr style="background:#2e3192;">
               <td colspan="6" style="padding:5px;border-top:0;vertical-align:middle;"></td>
@@ -1042,7 +1042,7 @@ export default function QuotationPage() {
         .rpb-draggable-image {
           position: absolute;
           z-index: 7;
-          border: 1px dashed #6ccff6;
+          border: 1px dashed #e9f4fa;
           background: #fff;
           box-shadow: 0 6px 18px rgba(31, 35, 64, 0.14);
           cursor: move;

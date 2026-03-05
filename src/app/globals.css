@@ -5,7 +5,7 @@
   --foreground: #1f2340;
   --rpb-primary: #2e3192;
   --rpb-primary-dark: #2e3192;
-  --rpb-primary-soft: #6ccff6;
+  --rpb-primary-soft: #e9f4fa;
   --rpb-border: #dfe3f3;
   --rpb-surface: #ffffff;
   --rpb-ink-soft: #4e5275;
@@ -144,14 +144,14 @@ body::-webkit-scrollbar {
 
 .rpb-custom-card {
   border: 1.5px dashed rgba(46, 49, 146, 0.55) !important;
-  background: #6ccff6 !important;
+  background: #e9f4fa !important;
   color: #2e3192 !important;
   transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
 
 .rpb-custom-card:hover {
   border-color: #2e3192 !important;
-  background: #6ccff6 !important;
+  background: #e9f4fa !important;
   transform: translateY(-1px);
 }
 
