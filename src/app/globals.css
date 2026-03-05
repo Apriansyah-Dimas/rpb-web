@@ -150,7 +150,7 @@ body::-webkit-scrollbar {
 }
 
 .rpb-custom-card:hover {
-  border-color: #6365b9 !important;
+  border-color: #008fd5 !important;
   background: #edf0ff !important;
   transform: translateY(-1px);
 }
@@ -163,7 +163,7 @@ body::-webkit-scrollbar {
 }
 
 .rpb-table thead th {
-  background: #6365b9;
+  background: #008fd5;
   color: #fff;
   font-size: 12px;
   font-weight: 700;
@@ -224,7 +224,7 @@ body::-webkit-scrollbar {
 }
 
 .rpb-editor-content .tiptap th {
-  background: #6365b9;
+  background: #008fd5;
   color: #fff;
   font-weight: 700;
   font-size: 11px;

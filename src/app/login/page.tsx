@@ -342,7 +342,7 @@ function LoginPageContent() {
           --login-bg-color: #f5f3ef;
           --login-card-bg: rgba(255, 255, 255, 0.75);
           --login-card-border: rgba(0, 0, 0, 0.07);
-          --login-accent-primary: #6365b9;
+          --login-accent-primary: #008fd5;
           --login-accent-hover: #7577c4;
           --login-accent-focus-ring: rgba(99, 101, 185, 0.25);
           --login-text-main: #1a1a2e;

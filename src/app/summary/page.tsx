@@ -465,7 +465,7 @@ export default function SummaryPage() {
                 </tbody>
                 <tfoot>
                   {calculationRows.map((row) => (
-                    <tr key={row.key} className={row.highlight ? "bg-[#6365b9]" : ""}>
+                    <tr key={row.key} className={row.highlight ? "bg-[#008fd5]" : ""}>
                       <td
                         colSpan={6}
                         className={`${
@@ -577,7 +577,7 @@ export default function SummaryPage() {
                       <div
                         key={row.key}
                         className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-2.5 py-1.5 ${
-                          row.highlight ? "bg-[#6365b9]" : "bg-[#fbfbff]"
+                          row.highlight ? "bg-[#008fd5]" : "bg-[#fbfbff]"
                         }`}
                       >
                         <p

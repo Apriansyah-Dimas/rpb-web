@@ -460,7 +460,7 @@ export default function QuotationPage() {
       <div style="margin:16px 0;">
         <table style="width:100%;table-layout:fixed;border-collapse:collapse;font-family:Arial,sans-serif;border:1px solid #d9dbef;">
           <thead>
-            <tr style="background:#6365b9;">
+            <tr style="background:#008fd5;">
               <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:5%;">No</th>
               <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:13%;vertical-align:middle;">Jenis</th>
               <th style="padding:5px 4px;color:#fff;text-align:center;font-size:9pt;width:22%;vertical-align:middle;">Keterangan</th>
@@ -498,7 +498,7 @@ export default function QuotationPage() {
               <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;color:#555;vertical-align:middle;">Profit (${adjustments.profit}%)</td>
               <td style="padding:4px 5px;background:#fbfbff;text-align:right;font-size:9pt;white-space:nowrap;vertical-align:middle;">${escapeHtml(formatRupiah(profitIdr))}</td>
             </tr>
-            <tr style="background:#6365b9;">
+            <tr style="background:#008fd5;">
               <td colspan="6" style="padding:5px;border-top:0;vertical-align:middle;"></td>
               <td style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:9pt;border-top:0;vertical-align:middle;">GRAND TOTAL</td>
               <td style="padding:5px;text-align:right;color:#fff;font-weight:800;font-size:10pt;white-space:nowrap;border-top:0;vertical-align:middle;">${escapeHtml(formatRupiah(grandTotalIdr))}</td>
@@ -1050,10 +1050,10 @@ export default function QuotationPage() {
           user-select: none;
         }
         .rpb-draggable-image.is-active {
-          border-color: #6365b9;
+          border-color: #008fd5;
         }
         .rpb-draggable-image.is-selected {
-          border-color: #6365b9;
+          border-color: #008fd5;
           box-shadow: 0 0 0 2px rgba(99, 101, 185, 0.16), 0 6px 18px rgba(31, 35, 64, 0.14);
         }
         .rpb-draggable-image img {
@@ -1071,7 +1071,7 @@ export default function QuotationPage() {
           height: 14px;
           border-radius: 999px;
           border: 2px solid #fff;
-          background: #6365b9;
+          background: #008fd5;
           box-shadow: 0 1px 8px rgba(22, 27, 70, 0.35);
           cursor: nwse-resize;
           pointer-events: auto;
