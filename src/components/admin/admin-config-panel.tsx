@@ -101,14 +101,46 @@ const newOtherDefault = {
 
 function FormulaHelpBox() {
   const functionDescriptions = [
-    { name: "ROUND(x, digit)", desc: "Membulatkan nilai ke jumlah desimal tertentu." },
-    { name: "CEIL(x)", desc: "Membulatkan ke atas ke bilangan bulat terdekat." },
-    { name: "FLOOR(x)", desc: "Membulatkan ke bawah ke bilangan bulat terdekat." },
-    { name: "ABS(x)", desc: "Mengubah nilai negatif menjadi positif." },
-    { name: "MIN(a,b,...)", desc: "Mengambil nilai paling kecil." },
-    { name: "MAX(a,b,...)", desc: "Mengambil nilai paling besar." },
-    { name: "PCT(base,persen)", desc: "Menghitung persentase dari nilai dasar." },
-    { name: "PERSEN(base,persen)", desc: "Sama seperti PCT, alias bahasa Indonesia." },
+    {
+      name: "ROUND(x, digit)",
+      desc: "Membulatkan nilai ke jumlah desimal tertentu.",
+      usage: "ROUND((width * length) / 1000000, 2)",
+    },
+    {
+      name: "CEIL(x)",
+      desc: "Membulatkan ke atas ke bilangan bulat terdekat.",
+      usage: "CEIL((length / 1200) * 8)",
+    },
+    {
+      name: "FLOOR(x)",
+      desc: "Membulatkan ke bawah ke bilangan bulat terdekat.",
+      usage: "FLOOR((width + length) / 1000)",
+    },
+    {
+      name: "ABS(x)",
+      desc: "Mengubah nilai negatif menjadi positif.",
+      usage: "ABS(width - length)",
+    },
+    {
+      name: "MIN(a,b,...)",
+      desc: "Mengambil nilai paling kecil.",
+      usage: "MIN(width, length, height)",
+    },
+    {
+      name: "MAX(a,b,...)",
+      desc: "Mengambil nilai paling besar.",
+      usage: "MAX(width, length, height)",
+    },
+    {
+      name: "PCT(base,persen)",
+      desc: "Menghitung persentase dari nilai dasar.",
+      usage: "PCT(panel, 5)",
+    },
+    {
+      name: "PERSEN(base,persen)",
+      desc: "Sama seperti PCT, alias bahasa Indonesia.",
+      usage: "PERSEN(panel, 10)",
+    },
   ];
 
   return (
@@ -123,14 +155,25 @@ function FormulaHelpBox() {
         <span className="font-mono">length</span>, <span className="font-mono">height</span>,{" "}
         <span className="font-mono">panel_thickness</span>, dan kode item sebelumnya.
       </p>
-      <div className="mt-2 space-y-1">
-        {functionDescriptions.map((item) => (
-          <p key={item.name}>
-            <span className="font-mono text-foreground">{item.name}</span>
-            {" - "}
-            {item.desc}
-          </p>
-        ))}
+      <div className="mt-2 overflow-x-auto rounded-lg border border-rpb-border bg-white">
+        <table className="w-full min-w-[680px] table-fixed text-xs">
+          <thead className="bg-[#f6f7ff]">
+            <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-rpb-ink-soft">
+              <th className="w-[24%] px-3 py-2">Fungsi</th>
+              <th className="w-[34%] px-3 py-2">Penjelasan</th>
+              <th className="w-[42%] px-3 py-2">Cara Pakai</th>
+            </tr>
+          </thead>
+          <tbody>
+            {functionDescriptions.map((item) => (
+              <tr key={item.name} className="border-t border-rpb-border align-top">
+                <td className="px-3 py-2 font-mono text-foreground">{item.name}</td>
+                <td className="px-3 py-2">{item.desc}</td>
+                <td className="px-3 py-2 font-mono text-foreground">{item.usage}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
       <p className="mt-2 font-mono text-[11px]">Contoh: ROUND(((width * length) / 1000000), 2)</p>
     </div>

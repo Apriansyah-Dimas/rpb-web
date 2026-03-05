@@ -148,6 +148,7 @@ export default function HomePage() {
   const [customSatuan, setCustomSatuan] = useState("");
   const [customJenisSpec, setCustomJenisSpec] = useState("");
   const [customHargaIdr, setCustomHargaIdr] = useState(0);
+  const [customQty, setCustomQty] = useState(1);
   const [profileBreakdownOpen, setProfileBreakdownOpen] = useState(false);
   const [konstruksiBreakdownOpen, setKonstruksiBreakdownOpen] = useState(false);
 
@@ -243,6 +244,7 @@ export default function HomePage() {
     setCustomSatuan("");
     setCustomJenisSpec("");
     setCustomHargaIdr(0);
+    setCustomQty(1);
   };
 
   const closeCustomModal = () => {
@@ -260,7 +262,8 @@ export default function HomePage() {
       !keterangan ||
       !satuan ||
       !jenisSpec ||
-      customHargaIdr <= 0
+      customHargaIdr <= 0 ||
+      customQty <= 0
     ) {
       window.alert("Lengkapi semua field custom item dengan benar.");
       return;
@@ -272,7 +275,7 @@ export default function HomePage() {
       satuan,
       jenisSpec,
       hargaIdr: customHargaIdr,
-      qty: 1,
+      qty: customQty,
     });
     closeCustomModal();
   };
@@ -616,7 +619,7 @@ export default function HomePage() {
                 </label>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-4">
                 <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
                   Satuan
                   <input
@@ -645,16 +648,30 @@ export default function HomePage() {
                     onChange={(event) => setCustomHargaIdr(parseNumberInput(event.target.value))}
                   />
                 </label>
+                <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+                  Quantity
+                  <input
+                    className="rpb-input"
+                    type="number"
+                    min={1}
+                    step={1}
+                    value={customQty}
+                    onFocus={selectInputOnFocus}
+                    onChange={(event) =>
+                      setCustomQty(Math.max(1, Math.floor(parseNumberInput(event.target.value))))
+                    }
+                  />
+                </label>
               </div>
 
               <div className="grid items-end gap-3 md:grid-cols-[minmax(0,1fr)_290px]">
                 <div className="text-xs text-rpb-ink-soft">
-                  Quantity untuk custom item sekarang otomatis <span className="font-semibold text-foreground">1</span>.
+                  Quantity custom item bisa diatur sesuai kebutuhan.
                 </div>
                 <div className="border-t border-rpb-border px-4 py-2">
                   <p className="text-xs text-rpb-ink-soft">Total price</p>
                   <p className="text-lg font-semibold">
-                    {formatRupiah(customHargaIdr)}
+                    {formatRupiah(customHargaIdr * customQty)}
                   </p>
                 </div>
               </div>
