@@ -218,8 +218,8 @@ export default function SummaryPage() {
     ]);
     const tableFoot: RowInput[] = calculationRows.map((row) => {
       const fillColor = row.highlight
-        ? ([99, 101, 185] as [number, number, number])
-        : ([251, 251, 255] as [number, number, number]);
+        ? ([0, 143, 213] as [number, number, number])
+        : ([245, 251, 255] as [number, number, number]);
       const textColor = row.highlight
         ? ([255, 255, 255] as [number, number, number])
         : ([75, 82, 122] as [number, number, number]);
@@ -276,7 +276,7 @@ export default function SummaryPage() {
         lineWidth: 0.15,
       },
       headStyles: {
-        fillColor: [99, 101, 185],
+        fillColor: [0, 143, 213],
         textColor: [255, 255, 255],
         fontStyle: "bold",
       },
@@ -471,14 +471,14 @@ export default function SummaryPage() {
                         className={`${
                           row.highlight
                             ? "border-t-0 text-white"
-                            : "bg-[#fbfbff]"
+                            : "bg-[#f5fbff]"
                         }`}
                       />
                       <td
                         className={`text-right align-top leading-tight whitespace-normal break-words ${
                           row.highlight
                             ? "border-t-0 font-bold text-white"
-                            : "bg-[#fbfbff] text-rpb-ink-soft"
+                            : "bg-[#f5fbff] text-rpb-ink-soft"
                         }`}
                       >
                         {row.label}
@@ -487,7 +487,7 @@ export default function SummaryPage() {
                         className={`text-right whitespace-nowrap ${
                           row.highlight
                             ? "border-t-0 font-bold text-white"
-                            : "bg-[#fbfbff] font-semibold text-foreground"
+                            : "bg-[#f5fbff] font-semibold text-foreground"
                         }`}
                       >
                         {formatRupiah(row.value)}
@@ -577,7 +577,7 @@ export default function SummaryPage() {
                       <div
                         key={row.key}
                         className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-2.5 py-1.5 ${
-                          row.highlight ? "bg-[#008fd5]" : "bg-[#fbfbff]"
+                          row.highlight ? "bg-[#008fd5]" : "bg-[#f5fbff]"
                         }`}
                       >
                         <p

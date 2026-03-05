@@ -3,9 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #1f2340;
-  --rpb-primary: #6465b9;
-  --rpb-primary-dark: #5556a1;
-  --rpb-primary-soft: #eef0ff;
+  --rpb-primary: #008fd5;
+  --rpb-primary-dark: #007bb8;
+  --rpb-primary-soft: #e8f6ff;
   --rpb-border: #dfe3f3;
   --rpb-surface: #ffffff;
   --rpb-ink-soft: #4e5275;
@@ -56,12 +56,12 @@ body::-webkit-scrollbar {
 
 .rpb-topbar {
   border-bottom: 1px solid rgba(223, 227, 243, 0.9);
-  background: linear-gradient(90deg, var(--rpb-primary) 0%, #7677c8 100%);
+  background: linear-gradient(90deg, var(--rpb-primary) 0%, #3aaedf 100%);
 }
 
 .rpb-fixed-header {
   border-bottom: 0;
-  background: linear-gradient(90deg, var(--rpb-primary) 0%, #7677c8 100%);
+  background: linear-gradient(90deg, var(--rpb-primary) 0%, #3aaedf 100%);
 }
 
 .rpb-h-title {
@@ -82,7 +82,7 @@ body::-webkit-scrollbar {
 
 .rpb-input:focus {
   border-color: var(--rpb-primary);
-  box-shadow: 0 0 0 4px rgba(100, 101, 185, 0.16);
+  box-shadow: 0 0 0 4px rgba(0, 143, 213, 0.16);
 }
 
 .rpb-input-with-icon {
@@ -123,7 +123,7 @@ body::-webkit-scrollbar {
 }
 
 .rpb-price-pill {
-  border: 1px solid rgba(100, 101, 185, 0.24);
+  border: 1px solid rgba(0, 143, 213, 0.24);
   border-radius: 999px;
   background: var(--rpb-primary-soft);
   color: var(--rpb-primary-dark);
@@ -139,19 +139,19 @@ body::-webkit-scrollbar {
   border: 1px solid var(--rpb-border);
   border-radius: 14px;
   background: #fff;
-  box-shadow: 0 10px 24px rgba(56, 66, 142, 0.08);
+  box-shadow: 0 10px 24px rgba(0, 102, 153, 0.1);
 }
 
 .rpb-custom-card {
-  border: 1.5px dashed rgba(99, 101, 185, 0.65) !important;
-  background: linear-gradient(180deg, #f8f9ff 0%, #f2f4ff 100%) !important;
-  color: #4f52a6 !important;
+  border: 1.5px dashed rgba(0, 143, 213, 0.55) !important;
+  background: linear-gradient(180deg, #f4fbff 0%, #eaf7ff 100%) !important;
+  color: #0b6f9f !important;
   transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
 
 .rpb-custom-card:hover {
   border-color: #008fd5 !important;
-  background: #edf0ff !important;
+  background: #e3f4ff !important;
   transform: translateY(-1px);
 }
 
