@@ -127,12 +127,14 @@ export default function HomePage() {
   const { data: masterData, loading: masterLoading, error: masterError } = useRpbMasterData();
   const customerName = useRpbStore((state) => state.customerName);
   const projectName = useRpbStore((state) => state.projectName);
+  const customerAddress = useRpbStore((state) => state.customerAddress);
   const dimensions = useRpbStore((state) => state.dimensions);
   const panelThickness = useRpbStore((state) => state.panelThickness);
   const selectedOther = useRpbStore((state) => state.selectedOther);
   const customOtherItems = useRpbStore((state) => state.customOtherItems);
   const setCustomerName = useRpbStore((state) => state.setCustomerName);
   const setProjectName = useRpbStore((state) => state.setProjectName);
+  const setCustomerAddress = useRpbStore((state) => state.setCustomerAddress);
   const setPanelThickness = useRpbStore((state) => state.setPanelThickness);
   const setDimension = useRpbStore((state) => state.setDimension);
   const addOtherQty = useRpbStore((state) => state.addOtherQty);
@@ -314,6 +316,15 @@ export default function HomePage() {
                 placeholder="Masukkan nama project"
                 value={projectName}
                 onChange={(event) => setProjectName(event.target.value)}
+              />
+            </label>
+            <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft md:col-span-2">
+              Customer Address
+              <input
+                className="rpb-input"
+                placeholder="Masukkan alamat customer"
+                value={customerAddress}
+                onChange={(event) => setCustomerAddress(event.target.value)}
               />
             </label>
           </div>

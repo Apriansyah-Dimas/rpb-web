@@ -44,6 +44,7 @@ export default function QuotationPage() {
   const { data: masterData, loading: masterLoading, error: masterError } = useRpbMasterData();
   const customerName = useRpbStore((state) => state.customerName);
   const projectName = useRpbStore((state) => state.projectName);
+  const customerAddress = useRpbStore((state) => state.customerAddress);
   const dimensions = useRpbStore((state) => state.dimensions);
   const panelThickness = useRpbStore((state) => state.panelThickness);
   const selectedOther = useRpbStore((state) => state.selectedOther);
@@ -120,6 +121,7 @@ export default function QuotationPage() {
       quotationContent.trim() ||
       `<h2>PENAWARAN HARGA</h2>
 <p><strong>Kepada:</strong> ${escapeHtml(customerName || "-")}<br/>
+<strong>Alamat:</strong> ${escapeHtml(customerAddress || "-")}<br/>
 <strong>Proyek:</strong> ${escapeHtml(projectName || "-")}<br/>
 <strong>Dimensi:</strong> ${dimensions.length} x ${dimensions.width} x ${dimensions.height} mm | Tebal Panel: ${panelThickness} mm<br/>
 <strong>Tanggal:</strong> ${escapeHtml(formatDate())}</p>
@@ -132,6 +134,7 @@ export default function QuotationPage() {
     hasInitializedRef.current = true;
   }, [
     customerName,
+    customerAddress,
     dimensions.height,
     dimensions.length,
     dimensions.width,

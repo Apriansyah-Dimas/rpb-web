@@ -220,6 +220,9 @@ export default function HistoryPage() {
                       <p className="text-sm text-rpb-ink-soft">
                         Customer: {item.customerName || "-"} | Project: {item.projectName || "-"}
                       </p>
+                      <p className="text-sm text-rpb-ink-soft">
+                        Address: {item.snapshot.customerAddress || "-"}
+                      </p>
                       <p className="text-xs text-rpb-ink-soft">
                         Dibuat oleh: {item.createdByEmail || "-"}
                       </p>

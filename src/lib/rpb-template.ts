@@ -102,6 +102,7 @@ export const normalizeRpbDraftSnapshot = (value: unknown): RpbDraftSnapshot => {
   return {
     customerName: normalizeText(value.customerName, "", 180),
     projectName: normalizeText(value.projectName, "", 180),
+    customerAddress: normalizeText(value.customerAddress, "", 240),
     dimensions: {
       length: toNonNegativeNumber(dimensions.length, DEFAULT_DIMENSIONS.length),
       width: toNonNegativeNumber(dimensions.width, DEFAULT_DIMENSIONS.width),

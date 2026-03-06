@@ -62,6 +62,7 @@ export default function SummaryPage() {
   const { data: masterData, loading: masterLoading, error: masterError } = useRpbMasterData();
   const customerName = useRpbStore((state) => state.customerName);
   const projectName = useRpbStore((state) => state.projectName);
+  const customerAddress = useRpbStore((state) => state.customerAddress);
   const dimensions = useRpbStore((state) => state.dimensions);
   const panelThickness = useRpbStore((state) => state.panelThickness);
   const selectedOther = useRpbStore((state) => state.selectedOther);
@@ -201,7 +202,8 @@ export default function SummaryPage() {
     doc.setFontSize(10);
     doc.text(`Customer Name : ${customerName || "-"}`, 14, 26);
     doc.text(`Project Name    : ${projectName || "-"}`, 14, 32);
-    doc.text(`Date                 : ${dateText}`, 14, 38);
+    doc.text(`Customer Address : ${customerAddress || "-"}`, 14, 38);
+    doc.text(`Date                 : ${dateText}`, 14, 44);
 
     const tableHead = [
       ["No", "Jenis", "Keterangan", "Satuan", "Jenis Spec", "Qty", "Harga", "Total"],
@@ -263,7 +265,7 @@ export default function SummaryPage() {
     });
 
     autoTable(doc, {
-      startY: 45,
+      startY: 51,
       head: tableHead,
       body: tableBody,
       foot: tableFoot,

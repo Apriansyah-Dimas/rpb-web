@@ -98,6 +98,7 @@ export interface RpbMasterData {
 export interface RpbDraftSnapshot {
   customerName: string;
   projectName: string;
+  customerAddress: string;
   dimensions: Dimensions;
   panelThickness: PanelThickness;
   selectedOther: Record<string, number>;

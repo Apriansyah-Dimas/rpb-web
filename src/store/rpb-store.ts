@@ -27,6 +27,7 @@ const DEFAULT_ADJUSTMENTS: AdjustmentValues = {
 interface RpbStore {
   customerName: string;
   projectName: string;
+  customerAddress: string;
   dimensions: {
     length: number;
     width: number;
@@ -39,6 +40,7 @@ interface RpbStore {
   quotationContent: string;
   setCustomerName: (value: string) => void;
   setProjectName: (value: string) => void;
+  setCustomerAddress: (value: string) => void;
   setDimension: (key: DimensionKey, value: number) => void;
   setPanelThickness: (value: PanelThickness) => void;
   addOtherQty: (itemId: string, qty: number) => void;
@@ -76,6 +78,7 @@ export const useRpbStore = create<RpbStore>()(
     (set, get) => ({
       customerName: "",
       projectName: "",
+      customerAddress: "",
       dimensions: DEFAULT_DIMENSIONS,
       panelThickness: DEFAULT_PANEL_THICKNESS,
       selectedOther: {},
@@ -84,6 +87,7 @@ export const useRpbStore = create<RpbStore>()(
       quotationContent: "",
       setCustomerName: (value) => set({ customerName: value }),
       setProjectName: (value) => set({ projectName: value }),
+      setCustomerAddress: (value) => set({ customerAddress: value }),
       setDimension: (key, value) =>
         set((state) => ({
           dimensions: {
@@ -174,6 +178,7 @@ export const useRpbStore = create<RpbStore>()(
         return {
           customerName: state.customerName,
           projectName: state.projectName,
+          customerAddress: state.customerAddress,
           dimensions: { ...state.dimensions },
           panelThickness: state.panelThickness,
           selectedOther: { ...state.selectedOther },
@@ -185,6 +190,7 @@ export const useRpbStore = create<RpbStore>()(
         set({
           customerName: snapshot.customerName ?? "",
           projectName: snapshot.projectName ?? "",
+          customerAddress: snapshot.customerAddress ?? "",
           dimensions: {
             length: safeNumber(snapshot.dimensions?.length ?? DEFAULT_DIMENSIONS.length),
             width: safeNumber(snapshot.dimensions?.width ?? DEFAULT_DIMENSIONS.width),
@@ -223,6 +229,7 @@ export const useRpbStore = create<RpbStore>()(
         set({
           customerName: "",
           projectName: "",
+          customerAddress: "",
           dimensions: { ...DEFAULT_DIMENSIONS },
           panelThickness: DEFAULT_PANEL_THICKNESS,
           selectedOther: {},
