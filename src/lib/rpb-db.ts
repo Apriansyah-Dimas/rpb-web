@@ -193,20 +193,17 @@ export const saveSummaryHistory = async (
       project_name: payload.projectName,
       snapshot_json: payload.snapshot,
     })
-    .select(
-      "id, user_id, title, customer_name, project_name, snapshot_json, created_at, updated_at, creator:user_profiles!rpb_saved_summaries_user_id_fkey(email)",
-    )
+    .select("id, user_id, title, customer_name, project_name, snapshot_json, created_at, updated_at")
     .single();
 
   if (error) {
     throw error;
   }
 
-  const creatorRaw = Array.isArray(data.creator) ? data.creator[0] : data.creator;
   return {
     id: String(data.id),
     userId: String(data.user_id ?? ""),
-    createdByEmail: String(creatorRaw?.email ?? ""),
+    createdByEmail: "",
     title: String(data.title ?? "Untitled"),
     customerName: String(data.customer_name ?? ""),
     projectName: String(data.project_name ?? ""),
@@ -221,21 +218,34 @@ export const fetchSummaryHistory = async (
 ): Promise<SavedSummaryRecord[]> => {
   const { data, error } = await supabase
     .from("rpb_saved_summaries")
-    .select(
-      "id, user_id, title, customer_name, project_name, snapshot_json, created_at, updated_at, creator:user_profiles!rpb_saved_summaries_user_id_fkey(email)",
-    )
+    .select("id, user_id, title, customer_name, project_name, snapshot_json, created_at, updated_at")
     .order("updated_at", { ascending: false });
 
   if (error) {
     throw error;
   }
 
+  const rows = data ?? [];
+  const userIds = Array.from(
+    new Set(rows.map((row) => String(row.user_id ?? "")).filter((value) => value.length > 0)),
+  );
+  const emailByUserId = new Map<string, string>();
+
+  if (userIds.length > 0) {
+    const { data: profileRows } = await supabase
+      .from("user_profiles")
+      .select("id, email")
+      .in("id", userIds);
+
+    for (const profile of profileRows ?? []) {
+      emailByUserId.set(String(profile.id ?? ""), String(profile.email ?? ""));
+    }
+  }
+
   return (data ?? []).map((row) => ({
     id: String(row.id),
     userId: String(row.user_id ?? ""),
-    createdByEmail: String(
-      (Array.isArray(row.creator) ? row.creator[0] : row.creator)?.email ?? "",
-    ),
+    createdByEmail: emailByUserId.get(String(row.user_id ?? "")) ?? "",
     title: String(row.title ?? "Untitled"),
     customerName: String(row.customer_name ?? ""),
     projectName: String(row.project_name ?? ""),
