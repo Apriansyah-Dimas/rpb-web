@@ -279,7 +279,7 @@ function LoginPageContent() {
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="��������"
+                    placeholder="Masukkan kata sandi"
                     autoComplete="current-password"
                     value={password}
                     onChange={(e) => {
@@ -667,3 +667,4 @@ export default function LoginPage() {
     </Suspense>
   );
 }
+
