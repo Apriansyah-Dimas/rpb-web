@@ -2,6 +2,11 @@
 
 import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
 import { useAuthSession } from "@/hooks/use-auth-session";
+import {
+  buildAdditionalInformationPreviewLines,
+  DEFAULT_ADDITIONAL_INFORMATION,
+  parseAdditionalInformationSections,
+} from "@/lib/quotation-content";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
 import { buildSummaryLineItems } from "@/lib/rpb-line-items";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -16,22 +21,6 @@ type QuotationForm = {
   discount: string;
   additionalInformation: string;
 };
-
-const DEFAULT_TERMS_CONDITION = [
-  "**Term and Condition:**",
-  "- The above price loco Jakarta on truck",
-  "- The above price Excluding OUTDOOR",
-  "- Price Excluded Installation",
-  "- The above price valid 15 Days from the date above",
-  "- Unit warranty 12 months after testing commissioning or 18 months after factory delivery whichever comes first.",
-  "- Time delivery: 8 - 10 weeks after DP",
-];
-
-const DEFAULT_TERMS_PAYMENT = ["", "**Term of Payment:**", "- 50% Down Payment DP", "- 50% Before Delivery"];
-const DEFAULT_ADDITIONAL_INFORMATION = [
-  ...DEFAULT_TERMS_CONDITION,
-  ...DEFAULT_TERMS_PAYMENT,
-].join("\n");
 
 const numberFormatter = new Intl.NumberFormat("id-ID", {
   maximumFractionDigits: 0,
@@ -53,21 +42,6 @@ function toDiscount(value: string): number {
   if (n < 0) n = 0;
   if (n > 1) n = 1;
   return n;
-}
-
-function parseLines(value: string, fallbackLines: string[]): string[] {
-  const lines = String(value ?? "")
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-  return lines.length > 0 ? lines : fallbackLines;
-}
-
-function splitAdditionalInformation(value: string): { conditionLines: string[]; paymentLines: string[] } {
-  const lines = String(value ?? "").replace(/\r\n/g, "\n").split("\n");
-  const conditionLines = lines.slice(0, 7);
-  const paymentLines = lines.slice(7, 9);
-  return { conditionLines, paymentLines };
 }
 
 function renderBoldInline(text: string) {
@@ -209,7 +183,9 @@ export default function QuotationPage() {
     const discountAmount = subtotal * discountRate;
     const ppn = (subtotal - discountAmount) * 0.11;
     const grandTotal = subtotal - discountAmount + ppn;
-    const additionalLines = String(form.additionalInformation ?? "").replace(/\r\n/g, "\n").split("\n");
+    const additionalInformationLines = buildAdditionalInformationPreviewLines(
+      form.additionalInformation,
+    );
 
     return {
       quantity,
@@ -219,7 +195,7 @@ export default function QuotationPage() {
       discountAmount,
       ppn,
       grandTotal,
-      additionalLines,
+      additionalInformationLines,
       contactPerson: [accountName, accountPhone].filter(Boolean).join(" / "),
     };
   }, [accountName, accountPhone, form, grandTotalRpb]);
@@ -295,17 +271,20 @@ export default function QuotationPage() {
     setError(null);
 
     try {
-      const sections = splitAdditionalInformation(form.additionalInformation);
+      const sections = parseAdditionalInformationSections(form.additionalInformation);
       const response = await fetch("/api/quotation/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          quotationDate,
+          quotationNo,
           preparedFor: customerName,
           customerAddress: customerAddress,
           attn: form.attn,
           salesName: accountName,
+          salesEmail: accountEmail,
           salesPhone: accountPhone,
           itemDescription: form.itemDescription,
           quantity: Math.max(0, toNumber(form.quantity)),
@@ -595,8 +574,8 @@ export default function QuotationPage() {
 
                 <section className="terms">
                   <div className="terms-list plain-text">
-                    {form.additionalInformation
-                      ? renderRichMultilineText(form.additionalInformation)
+                    {preview.additionalInformationLines.length > 0
+                      ? renderRichMultilineText(preview.additionalInformationLines.join("\n"))
                       : "-"}
                   </div>
                 </section>

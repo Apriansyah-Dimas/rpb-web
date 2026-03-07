@@ -1,11 +1,19 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import {
+  DEFAULT_TERMS_CONDITION_LINES,
+  DEFAULT_TERMS_PAYMENT_LINES,
+  parseAdditionalInformationSections,
+  stripBoldMarkers,
+} from "@/lib/quotation-content";
 import { NextResponse } from "next/server";
 import XlsxPopulate from "xlsx-populate";
 
 export const runtime = "nodejs";
 
 type Payload = {
+  quotationDate?: string;
+  quotationNo?: string;
   preparedFor?: string;
   customerName?: string;
   customerAddressLine1?: string;
@@ -13,6 +21,7 @@ type Payload = {
   customerAddressLine2?: string;
   attn?: string;
   salesName?: string;
+  salesEmail?: string;
   salesPhone?: string;
   itemDescription?: string;
   item1Description?: string;
@@ -31,18 +40,6 @@ type Payload = {
 };
 
 const TEMPLATE_FILE = path.join(process.cwd(), "templates", "Quotation_PT_Jaya_Nurimba.xlsx");
-
-const DEFAULT_TERMS_CONDITION = [
-  "- The above price Excluding PPn 11%",
-  "- The above price loco Jakarta on truck",
-  "- The above price Excluding OUTDOOR",
-  "- Price Excluded Installation",
-  "- The above price valid 15 Days from the date above",
-  "- Unit warranty 12 months after testing commissioning or 18 months after factory delivery whichever comes first.",
-  "- Time delivery: 8 - 10 weeks after DP",
-];
-
-const DEFAULT_TERMS_PAYMENT = ["- 50% Down Payment DP", "- 50% Before Delivery"];
 
 function toNumber(value: unknown): number {
   const parsed = Number(String(value ?? "").replace(/,/g, "").trim());
@@ -64,9 +61,13 @@ function text(value: unknown): string {
   return String(value ?? "").trim();
 }
 
+function plainText(value: unknown): string {
+  return stripBoldMarkers(text(value));
+}
+
 function buildContactPerson(salesName: unknown, salesPhone: unknown): string {
-  const name = text(salesName);
-  const phone = text(salesPhone);
+  const name = plainText(salesName);
+  const phone = plainText(salesPhone);
   if (name && phone) return `${name} / ${phone}`;
   return name || phone;
 }
@@ -79,16 +80,35 @@ function parseLines(value: unknown, fallbackLines: string[]): string[] {
   return lines.length > 0 ? lines : fallbackLines;
 }
 
-function parseRawLinesPreserveBlank(value: unknown): string[] {
-  return String(value ?? "").replace(/\r\n/g, "\n").split("\n");
+function formatQuotationDate(date: Date): string {
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Jakarta",
+  }).format(date);
 }
 
-function stripBoldMarkers(value: string): string {
-  return value.replace(/\*\*(.*?)\*\*/g, "$1");
+function buildQuotationNo(date: Date): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    timeZone: "Asia/Jakarta",
+  }).formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value ?? String(date.getFullYear());
+  const month =
+    parts.find((part) => part.type === "month")?.value ?? String(date.getMonth() + 1).padStart(2, "0");
+  return `Q-${year}${month}`;
 }
+
+type SheetLineWriter = {
+  cell: (address: string) => {
+    value: (nextValue?: unknown) => unknown;
+  };
+};
 
 function writeLinesToColumn(
-  sheet: any,
+  sheet: SheetLineWriter,
   column: string,
   startRow: number,
   endRow: number,
@@ -111,35 +131,35 @@ async function createWorkbookBuffer(payload: Payload): Promise<Buffer> {
   const sheet = workbook.sheet("Quotation") || workbook.sheet(0);
   sheet.pageMarginsPreset("normal");
 
-  const preparedFor = text(payload.preparedFor || payload.customerName);
-  const addressLine1 = text(payload.customerAddressLine1 || payload.customerAddress);
-  const addressLine2 = text(payload.customerAddressLine2);
-  const attn = text(payload.attn);
-  const contactPerson = buildContactPerson(payload.salesName, payload.salesPhone);
+  const now = new Date();
+  const quotationDate = text(payload.quotationDate) || formatQuotationDate(now);
+  const quotationNo = text(payload.quotationNo) || buildQuotationNo(now);
+  const preparedFor = plainText(payload.preparedFor || payload.customerName) || "-";
+  const addressLine1 = plainText(payload.customerAddressLine1 || payload.customerAddress) || "-";
+  const addressLine2 = plainText(payload.customerAddressLine2);
+  const attn = plainText(payload.attn) || "-";
+  const contactPerson = buildContactPerson(payload.salesName, payload.salesPhone) || "-";
+  const salesName = plainText(payload.salesName) || "-";
+  const salesEmail = plainText(payload.salesEmail) || "-";
 
-  const description = text(payload.itemDescription || payload.item1Description);
+  const description = plainText(payload.itemDescription || payload.item1Description) || "-";
   const quantity = toNumber(payload.quantity || payload.itemQuantity || payload.item1Quantity);
   const price = toNumber(payload.price || payload.itemPrice || payload.item1Price);
   const discount = toDiscount(payload.discount || payload.itemDiscount || payload.item1Discount);
-  const addressCombined = [addressLine1, addressLine2].filter(Boolean).join("\n");
+  const addressCombined = [addressLine1, addressLine2].filter(Boolean).join("\n") || "-";
   const discountRateLiteral = Number.isFinite(discount) ? String(discount) : "0";
-  const hasAdditionalInformation =
-    payload.additionalInformation !== undefined && payload.additionalInformation !== null;
-  const additionalLines = hasAdditionalInformation
-    ? parseRawLinesPreserveBlank(payload.additionalInformation)
-    : [];
-  const termsConditionLines =
-    additionalLines.length > 0
-      ? additionalLines.slice(0, 7).map((line) => stripBoldMarkers(line))
-      : parseLines(payload.termsCondition, DEFAULT_TERMS_CONDITION).map((line) =>
-          stripBoldMarkers(line),
-        );
-  const termsPaymentLines =
-    additionalLines.length > 0
-      ? additionalLines.slice(7, 9).map((line) => stripBoldMarkers(line))
-      : parseLines(payload.termsPayment, DEFAULT_TERMS_PAYMENT).map((line) =>
-          stripBoldMarkers(line),
-        );
+  const hasAdditionalInformation = text(payload.additionalInformation).length > 0;
+  const parsedAdditional = parseAdditionalInformationSections(text(payload.additionalInformation));
+  const termsConditionLines = (
+    hasAdditionalInformation
+      ? parsedAdditional.conditionLines
+      : parseLines(payload.termsCondition, DEFAULT_TERMS_CONDITION_LINES)
+  ).map((line) => stripBoldMarkers(line));
+  const termsPaymentLines = (
+    hasAdditionalInformation
+      ? parsedAdditional.paymentLines
+      : parseLines(payload.termsPayment, DEFAULT_TERMS_PAYMENT_LINES)
+  ).map((line) => stripBoldMarkers(line));
 
   ["A26:A36", "B26:D36", "E26:E36", "F26:F36", "G26:G36", "H26:H36"].forEach((range) => {
     sheet.range(range).merged(false);
@@ -150,6 +170,8 @@ async function createWorkbookBuffer(payload: Payload): Promise<Buffer> {
   sheet.column("G").hidden(false);
   sheet.cell("G14").value("Total Price");
   sheet.cell("H14").value("");
+  sheet.cell("H2").formula(null).value(quotationDate);
+  sheet.cell("H3").formula(null).value(quotationNo);
 
   sheet.cell("C9").value(contactPerson);
   sheet.cell("C10").formula(null).value(preparedFor);
@@ -184,7 +206,7 @@ async function createWorkbookBuffer(payload: Payload): Promise<Buffer> {
   sheet.cell("H26").formula(null).value(null);
   sheet.cell("F34").value("Subtotal");
   sheet.cell("G34").formula('IF(G15="","",G15)');
-  sheet.cell("F35").value("Discount");
+  sheet.cell("F35").value(`Discount (${(discount * 100).toFixed(2)}%)`);
   sheet.cell("G35").formula(`IF(G34="","",G34*${discountRateLiteral})`);
   sheet.cell("F36").value("PPN 11%");
   sheet.cell("G36").formula('IF(G34="","",(G34-G35)*11%)');
@@ -249,6 +271,8 @@ async function createWorkbookBuffer(payload: Payload): Promise<Buffer> {
 
   writeLinesToColumn(sheet, "A", 40, 46, termsConditionLines);
   writeLinesToColumn(sheet, "A", 48, 49, termsPaymentLines);
+  sheet.cell("A52").formula(null).value(salesName);
+  sheet.cell("A54").formula(null).value(`Email : ${salesEmail}`);
 
   ["K58:O58", "L59:O59", "L60:O60", "L61:O61", "L62:O62"].forEach((range) => {
     sheet.range(range).merged(false);
