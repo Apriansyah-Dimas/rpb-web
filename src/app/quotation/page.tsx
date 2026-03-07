@@ -835,10 +835,10 @@ export default function QuotationPage() {
           width: 11%;
         }
         .item-grid .w-price {
-          width: 19%;
+          width: 17%;
         }
         .item-grid .w-total {
-          width: 13%;
+          width: 15%;
         }
         .item-grid .item-row td:nth-child(1) {
           text-align: center;
@@ -975,10 +975,10 @@ export default function QuotationPage() {
             width: 12%;
           }
           .item-grid .w-price {
-            width: 22%;
+            width: 20%;
           }
           .item-grid .w-total {
-            width: 16%;
+            width: 18%;
           }
           .item-grid .item-row td:nth-child(2) {
             min-height: 110px;
