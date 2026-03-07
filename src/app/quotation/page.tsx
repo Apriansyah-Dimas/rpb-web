@@ -829,16 +829,16 @@ export default function QuotationPage() {
           width: 36px;
         }
         .item-grid .w-desc {
-          width: 56%;
+          width: 52%;
         }
         .item-grid .w-qty {
           width: 11%;
         }
         .item-grid .w-price {
-          width: 16%;
+          width: 18%;
         }
         .item-grid .w-total {
-          width: 16%;
+          width: 18%;
         }
         .item-grid .item-row td:nth-child(1) {
           text-align: center;
@@ -969,16 +969,16 @@ export default function QuotationPage() {
             width: 7%;
           }
           .item-grid .w-desc {
-            width: 38%;
+            width: 34%;
           }
           .item-grid .w-qty {
             width: 12%;
           }
           .item-grid .w-price {
-            width: 20%;
+            width: 22%;
           }
           .item-grid .w-total {
-            width: 20%;
+            width: 22%;
           }
           .item-grid .item-row td:nth-child(2) {
             min-height: 110px;
