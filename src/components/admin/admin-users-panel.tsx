@@ -10,6 +10,9 @@ type AdminRole = "admin" | "user";
 interface ManagedUser {
   id: string;
   email: string;
+  username: string;
+  fullName: string;
+  phoneNumber: string;
   role: AdminRole;
   createdAt: string | null;
   updatedAt: string | null;
@@ -18,6 +21,9 @@ interface ManagedUser {
 
 interface UserDraft {
   email: string;
+  username: string;
+  fullName: string;
+  phoneNumber: string;
   role: AdminRole;
   password: string;
   confirmPassword: string;
@@ -46,6 +52,9 @@ const toDraftMap = (users: ManagedUser[]): Record<string, UserDraft> =>
   users.reduce<Record<string, UserDraft>>((map, user) => {
     map[user.id] = {
       email: user.email,
+      username: user.username,
+      fullName: user.fullName,
+      phoneNumber: user.phoneNumber,
       role: user.role,
       password: "",
       confirmPassword: "",
@@ -64,6 +73,9 @@ export function AdminUsersPanel() {
   const [error, setError] = useState<string | null>(null);
   const [createForm, setCreateForm] = useState({
     email: "",
+    username: "",
+    fullName: "",
+    phoneNumber: "",
     password: "",
     role: "user" as AdminRole,
   });
@@ -77,7 +89,9 @@ export function AdminUsersPanel() {
         if (b.id === user?.id) {
           return 1;
         }
-        return a.email.localeCompare(b.email);
+        const aLabel = a.fullName || a.username || a.email;
+        const bLabel = b.fullName || b.username || b.email;
+        return aLabel.localeCompare(bLabel);
       }),
     [user?.id, users],
   );
@@ -138,7 +152,14 @@ export function AdminUsersPanel() {
         throw new Error(body.error || "Gagal membuat user.");
       }
 
-      setCreateForm({ email: "", password: "", role: "user" });
+      setCreateForm({
+        email: "",
+        username: "",
+        fullName: "",
+        phoneNumber: "",
+        password: "",
+        role: "user",
+      });
       setMessage("User baru berhasil dibuat.");
       await refreshUsers();
     } catch (err) {
@@ -164,6 +185,9 @@ export function AdminUsersPanel() {
         body: JSON.stringify({
           id,
           email: draft.email,
+          username: draft.username,
+          fullName: draft.fullName,
+          phoneNumber: draft.phoneNumber,
           role: draft.role,
         }),
       });
@@ -274,7 +298,7 @@ export function AdminUsersPanel() {
       <section className="rpb-section p-4">
         <h2 className="rpb-h-title mb-3 text-base font-semibold">Create User</h2>
         <form className="grid gap-3 md:grid-cols-3" onSubmit={createUser}>
-          <label className="md:col-span-2">
+          <label className="md:col-span-3">
             <input
               className="rpb-input"
               type="email"
@@ -284,6 +308,39 @@ export function AdminUsersPanel() {
                 setCreateForm((value) => ({ ...value, email: event.target.value }))
               }
               required
+            />
+          </label>
+          <label>
+            <input
+              className="rpb-input"
+              type="text"
+              placeholder="Nama user"
+              value={createForm.username}
+              onChange={(event) =>
+                setCreateForm((value) => ({ ...value, username: event.target.value }))
+              }
+            />
+          </label>
+          <label>
+            <input
+              className="rpb-input"
+              type="text"
+              placeholder="Nama lengkap"
+              value={createForm.fullName}
+              onChange={(event) =>
+                setCreateForm((value) => ({ ...value, fullName: event.target.value }))
+              }
+            />
+          </label>
+          <label>
+            <input
+              className="rpb-input"
+              type="text"
+              placeholder="Phone number"
+              value={createForm.phoneNumber}
+              onChange={(event) =>
+                setCreateForm((value) => ({ ...value, phoneNumber: event.target.value }))
+              }
             />
           </label>
           <label>
@@ -362,10 +419,13 @@ export function AdminUsersPanel() {
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-foreground">
+                        {managedUser.fullName || managedUser.username || managedUser.email}
+                      </p>
+                      <p className="truncate text-xs text-rpb-ink-soft">
                         {managedUser.email}
                       </p>
                       <p className="text-xs text-rpb-ink-soft">
-                        Role: {managedUser.role.toUpperCase()}
+                        Role: {managedUser.role.toUpperCase()} | Phone: {managedUser.phoneNumber || "-"}
                         {isCurrentUser ? " (Anda)" : ""}
                       </p>
                     </div>
@@ -383,6 +443,39 @@ export function AdminUsersPanel() {
                             value={draft.email}
                             onChange={(event) =>
                               updateDraft(managedUser.id, { email: event.target.value })
+                            }
+                          />
+                        </label>
+                        <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+                          Nama User
+                          <input
+                            className="rpb-input"
+                            type="text"
+                            value={draft.username}
+                            onChange={(event) =>
+                              updateDraft(managedUser.id, { username: event.target.value })
+                            }
+                          />
+                        </label>
+                        <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+                          Nama Lengkap
+                          <input
+                            className="rpb-input"
+                            type="text"
+                            value={draft.fullName}
+                            onChange={(event) =>
+                              updateDraft(managedUser.id, { fullName: event.target.value })
+                            }
+                          />
+                        </label>
+                        <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+                          Phone Number
+                          <input
+                            className="rpb-input"
+                            type="text"
+                            value={draft.phoneNumber}
+                            onChange={(event) =>
+                              updateDraft(managedUser.id, { phoneNumber: event.target.value })
                             }
                           />
                         </label>

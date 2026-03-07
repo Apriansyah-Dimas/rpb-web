@@ -16,6 +16,9 @@ $$;
 create table if not exists public.user_profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null unique,
+  username text not null default '',
+  full_name text not null default '',
+  phone_number text not null default '',
   role text not null default 'user' check (role in ('admin', 'user')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

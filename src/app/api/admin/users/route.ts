@@ -8,6 +8,9 @@ interface CreateUserBody {
   email?: string;
   password?: string;
   role?: AdminRole;
+  username?: string;
+  fullName?: string;
+  phoneNumber?: string;
 }
 
 interface UpdateUserBody {
@@ -15,21 +18,20 @@ interface UpdateUserBody {
   email?: string;
   role?: AdminRole;
   password?: string;
+  username?: string;
+  fullName?: string;
+  phoneNumber?: string;
 }
 
 interface UserProfileRow {
   id: string;
   email: string;
+  username: string;
+  full_name: string;
+  phone_number: string;
   role: AdminRole;
   created_at: string | null;
   updated_at: string | null;
-}
-
-interface AuthUserRow {
-  id: string;
-  email?: string | null;
-  created_at?: string | null;
-  last_sign_in_at?: string | null;
 }
 
 const normalizeEmail = (value?: string): string =>
@@ -38,9 +40,25 @@ const normalizeEmail = (value?: string): string =>
 const normalizeRole = (value?: string): AdminRole =>
   value === "admin" ? "admin" : "user";
 
+const normalizeTextField = (value?: string): string =>
+  value?.trim() ?? "";
+
 const assertPassword = (value: string): string | null => {
   if (value.length < 6) {
     return "Password minimal 6 karakter.";
+  }
+  return null;
+};
+
+const assertPhoneNumber = (value: string): string | null => {
+  if (!value) {
+    return null;
+  }
+  if (value.length > 25) {
+    return "Phone number maksimal 25 karakter.";
+  }
+  if (!/^[0-9+\-() ]+$/.test(value)) {
+    return "Format phone number tidak valid.";
   }
   return null;
 };
@@ -81,35 +99,26 @@ export async function GET() {
     }
 
     const adminClient = getSupabaseAdminClient();
-    const [{ data: profileRows, error: profileError }, listResult] = await Promise.all([
-      adminClient
-        .from("user_profiles")
-        .select("id, email, role, created_at, updated_at")
-        .order("created_at", { ascending: false }),
-      adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 }),
-    ]);
+    const { data: profileRows, error: profileError } = await adminClient
+      .from("user_profiles")
+      .select("id, email, username, full_name, phone_number, role, created_at, updated_at")
+      .order("created_at", { ascending: false });
 
     if (profileError) {
       return NextResponse.json({ error: profileError.message }, { status: 400 });
     }
-    if (listResult.error) {
-      return NextResponse.json({ error: listResult.error.message }, { status: 400 });
-    }
-
-    const authMap = new Map<string, AuthUserRow>();
-    for (const authUser of (listResult.data?.users ?? []) as AuthUserRow[]) {
-      authMap.set(authUser.id, authUser);
-    }
 
     const users = ((profileRows ?? []) as UserProfileRow[]).map((row) => {
-      const authUser = authMap.get(row.id);
       return {
         id: row.id,
-        email: authUser?.email ?? row.email,
+        email: row.email,
+        username: row.username ?? "",
+        fullName: row.full_name ?? "",
+        phoneNumber: row.phone_number ?? "",
         role: normalizeRole(row.role),
-        createdAt: row.created_at ?? authUser?.created_at ?? null,
+        createdAt: row.created_at ?? null,
         updatedAt: row.updated_at ?? null,
-        lastSignInAt: authUser?.last_sign_in_at ?? null,
+        lastSignInAt: null,
       };
     });
 
@@ -133,6 +142,9 @@ export async function POST(request: Request) {
     const email = normalizeEmail(body.email);
     const password = body.password ?? "";
     const role = normalizeRole(body.role);
+    const username = normalizeTextField(body.username);
+    const fullName = normalizeTextField(body.fullName);
+    const phoneNumber = normalizeTextField(body.phoneNumber);
 
     if (!email) {
       return NextResponse.json({ error: "Email wajib diisi." }, { status: 400 });
@@ -141,6 +153,10 @@ export async function POST(request: Request) {
     const passwordError = assertPassword(password);
     if (passwordError) {
       return NextResponse.json({ error: passwordError }, { status: 400 });
+    }
+    const phoneError = assertPhoneNumber(phoneNumber);
+    if (phoneError) {
+      return NextResponse.json({ error: phoneError }, { status: 400 });
     }
 
     const adminClient = getSupabaseAdminClient();
@@ -162,6 +178,9 @@ export async function POST(request: Request) {
       {
         id: created.user.id,
         email,
+        username,
+        full_name: fullName,
+        phone_number: phoneNumber,
         role,
       },
       { onConflict: "id" },
@@ -175,6 +194,9 @@ export async function POST(request: Request) {
       user: {
         id: created.user.id,
         email,
+        username,
+        fullName,
+        phoneNumber,
         role,
       },
     });
@@ -202,8 +224,21 @@ export async function PATCH(request: Request) {
     const nextEmail = body.email ? normalizeEmail(body.email) : undefined;
     const nextRole = body.role ? normalizeRole(body.role) : undefined;
     const nextPassword = body.password ?? "";
+    const hasUsername = Object.prototype.hasOwnProperty.call(body, "username");
+    const hasFullName = Object.prototype.hasOwnProperty.call(body, "fullName");
+    const hasPhoneNumber = Object.prototype.hasOwnProperty.call(body, "phoneNumber");
+    const nextUsername = hasUsername ? normalizeTextField(body.username) : undefined;
+    const nextFullName = hasFullName ? normalizeTextField(body.fullName) : undefined;
+    const nextPhoneNumber = hasPhoneNumber ? normalizeTextField(body.phoneNumber) : undefined;
 
-    if (!nextEmail && !nextRole && !nextPassword) {
+    if (
+      !nextEmail &&
+      !nextRole &&
+      !nextPassword &&
+      !hasUsername &&
+      !hasFullName &&
+      !hasPhoneNumber
+    ) {
       return NextResponse.json({ error: "Tidak ada perubahan yang dikirim." }, { status: 400 });
     }
 
@@ -211,6 +246,12 @@ export async function PATCH(request: Request) {
       const passwordError = assertPassword(nextPassword);
       if (passwordError) {
         return NextResponse.json({ error: passwordError }, { status: 400 });
+      }
+    }
+    if (nextPhoneNumber !== undefined) {
+      const phoneError = assertPhoneNumber(nextPhoneNumber);
+      if (phoneError) {
+        return NextResponse.json({ error: phoneError }, { status: 400 });
       }
     }
 
@@ -238,10 +279,13 @@ export async function PATCH(request: Request) {
       }
     }
 
-    if (nextEmail || nextRole) {
+    if (nextEmail || nextRole || hasUsername || hasFullName || hasPhoneNumber) {
       const profilePayload: {
         id: string;
         email?: string;
+        username?: string;
+        full_name?: string;
+        phone_number?: string;
         role?: AdminRole;
       } = { id };
 
@@ -250,6 +294,15 @@ export async function PATCH(request: Request) {
       }
       if (nextRole) {
         profilePayload.role = nextRole;
+      }
+      if (hasUsername) {
+        profilePayload.username = nextUsername;
+      }
+      if (hasFullName) {
+        profilePayload.full_name = nextFullName;
+      }
+      if (hasPhoneNumber) {
+        profilePayload.phone_number = nextPhoneNumber;
       }
 
       const { error: profileUpdateError } = await adminClient

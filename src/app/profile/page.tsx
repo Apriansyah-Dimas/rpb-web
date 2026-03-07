@@ -4,11 +4,14 @@ import { LogoutButton } from "@/components/auth/logout-button";
 import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { Mail, Shield, UserRound } from "lucide-react";
+import { IdCard, Mail, Phone, Shield, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface ProfileInfo {
   email: string;
+  username: string;
+  fullName: string;
+  phoneNumber: string;
   role: "admin" | "user";
   createdAt: string | null;
 }
@@ -47,7 +50,7 @@ export default function ProfilePage() {
         const supabase = getSupabaseBrowserClient();
         const { data, error: selectError } = await supabase
           .from("user_profiles")
-          .select("email, role, created_at")
+          .select("email, username, full_name, phone_number, role, created_at")
           .eq("id", user.id)
           .maybeSingle();
 
@@ -57,6 +60,9 @@ export default function ProfilePage() {
 
         setProfileInfo({
           email: String(data?.email ?? user.email ?? "-"),
+          username: String(data?.username ?? ""),
+          fullName: String(data?.full_name ?? ""),
+          phoneNumber: String(data?.phone_number ?? ""),
           role: data?.role === "admin" ? "admin" : "user",
           createdAt: data?.created_at ? String(data.created_at) : null,
         });
@@ -87,11 +93,38 @@ export default function ProfilePage() {
           <div className="grid gap-3 md:grid-cols-3">
             <div className="rounded-xl border border-rpb-border bg-white p-4">
               <p className="mb-1 inline-flex items-center gap-2 text-xs font-semibold text-rpb-ink-soft">
+                <UserRound size={14} />
+                Nama User
+              </p>
+              <p className="text-sm font-semibold text-foreground">
+                {profileInfo?.username || "-"}
+              </p>
+            </div>
+            <div className="rounded-xl border border-rpb-border bg-white p-4">
+              <p className="mb-1 inline-flex items-center gap-2 text-xs font-semibold text-rpb-ink-soft">
+                <IdCard size={14} />
+                Nama Lengkap
+              </p>
+              <p className="text-sm font-semibold text-foreground">
+                {profileInfo?.fullName || "-"}
+              </p>
+            </div>
+            <div className="rounded-xl border border-rpb-border bg-white p-4">
+              <p className="mb-1 inline-flex items-center gap-2 text-xs font-semibold text-rpb-ink-soft">
                 <Mail size={14} />
                 Email
               </p>
               <p className="text-sm font-semibold text-foreground">
                 {profileInfo?.email ?? user?.email ?? "-"}
+              </p>
+            </div>
+            <div className="rounded-xl border border-rpb-border bg-white p-4">
+              <p className="mb-1 inline-flex items-center gap-2 text-xs font-semibold text-rpb-ink-soft">
+                <Phone size={14} />
+                Phone Number
+              </p>
+              <p className="text-sm font-semibold text-foreground">
+                {profileInfo?.phoneNumber || "-"}
               </p>
             </div>
             <div className="rounded-xl border border-rpb-border bg-white p-4">

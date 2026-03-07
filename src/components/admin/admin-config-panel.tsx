@@ -8,9 +8,9 @@ import {
   deleteOtherMasterItem,
   deleteFormulaVariableSetting,
   upsertFormulaVariableSetting,
-  upsertKonstruksiMasterItem,
+  upsertKonstruksiMasterItems,
   upsertOtherMasterItem,
-  upsertProfileMasterItem,
+  upsertProfileMasterItems,
 } from "@/lib/rpb-db";
 import { evaluateFormulaQuantity, validateFormulaExpression } from "@/lib/rpb-formula";
 import { useRpbStore } from "@/store/rpb-store";
@@ -428,9 +428,7 @@ export function AdminConfigPanel() {
     setMessage(null);
     try {
       const supabase = getSupabaseBrowserClient();
-      for (const row of profileRows) {
-        await upsertProfileMasterItem(supabase, row);
-      }
+      await upsertProfileMasterItems(supabase, profileRows);
       setMessage("Konfigurasi PROFILE berhasil disimpan.");
       await refresh();
     } catch (err) {
@@ -453,9 +451,7 @@ export function AdminConfigPanel() {
     setMessage(null);
     try {
       const supabase = getSupabaseBrowserClient();
-      for (const row of konstruksiRows) {
-        await upsertKonstruksiMasterItem(supabase, row);
-      }
+      await upsertKonstruksiMasterItems(supabase, konstruksiRows);
       setMessage("Konfigurasi KONSTRUKSI berhasil disimpan.");
       await refresh();
     } catch (err) {

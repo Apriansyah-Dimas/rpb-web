@@ -286,6 +286,32 @@ export const upsertProfileMasterItem = async (
   }
 };
 
+export const upsertProfileMasterItems = async (
+  supabase: SupabaseClient,
+  items: ProfileMasterItem[],
+): Promise<void> => {
+  if (items.length === 0) {
+    return;
+  }
+
+  const payload = items.map((item) => ({
+    id: item.id,
+    code: item.code,
+    name: item.name,
+    unit: item.unit,
+    sort_order: item.sortOrder,
+    formula_expr: item.formulaExpr,
+    price_idr_30: item.priceIdr30,
+    price_idr_45: item.priceIdr45,
+    is_active: item.isActive,
+  }));
+
+  const { error } = await supabase.from("rpb_profile_items").upsert(payload);
+  if (error) {
+    throw error;
+  }
+};
+
 export const upsertKonstruksiMasterItem = async (
   supabase: SupabaseClient,
   item: KonstruksiMasterItem,
@@ -301,6 +327,31 @@ export const upsertKonstruksiMasterItem = async (
     is_active: item.isActive,
   });
 
+  if (error) {
+    throw error;
+  }
+};
+
+export const upsertKonstruksiMasterItems = async (
+  supabase: SupabaseClient,
+  items: KonstruksiMasterItem[],
+): Promise<void> => {
+  if (items.length === 0) {
+    return;
+  }
+
+  const payload = items.map((item) => ({
+    id: item.id,
+    code: item.code,
+    name: item.name,
+    unit: item.unit,
+    sort_order: item.sortOrder,
+    formula_expr: item.formulaExpr,
+    unit_price_idr: item.unitPriceIdr,
+    is_active: item.isActive,
+  }));
+
+  const { error } = await supabase.from("rpb_konstruksi_items").upsert(payload);
   if (error) {
     throw error;
   }

@@ -124,9 +124,12 @@ export const useRpbMasterData = (): MasterDataState => {
     setError(null);
     try {
       const supabase = getSupabaseBrowserClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const [masterData, currentRole] = await Promise.all([
         fetchRpbMasterData(supabase),
-        fetchCurrentUserRole(supabase),
+        fetchCurrentUserRole(supabase, session?.user ?? null),
       ]);
 
       writeCache({
