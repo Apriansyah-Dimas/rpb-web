@@ -1,6 +1,5 @@
 "use client";
 
-import { LogoutButton } from "@/components/auth/logout-button";
 import { Settings2, Users } from "lucide-react";
 import Link from "next/link";
 
@@ -33,10 +32,6 @@ export function AdminDashboard() {
             Lihat semua akun, edit info, atur role, ganti password, buat dan hapus user.
           </p>
         </Link>
-      </section>
-
-      <section className="rpb-section p-4">
-        <LogoutButton className="rpb-btn-primary px-4 py-2 text-sm font-semibold" />
       </section>
     </div>
   );
