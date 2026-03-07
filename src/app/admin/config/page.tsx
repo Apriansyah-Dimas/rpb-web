@@ -3,9 +3,13 @@ import { ArrowLeft } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { AdminConfigPanel } from "@/components/admin/admin-config-panel";
 import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
+import { fetchRpbMasterData } from "@/lib/rpb-db";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function AdminConfigPage() {
   await requireAdmin();
+  const supabase = await createSupabaseServerClient();
+  const initialData = await fetchRpbMasterData(supabase);
 
   return (
     <RpbPageFrame>
@@ -21,7 +25,7 @@ export default async function AdminConfigPage() {
           </Link>
         </div>
       </div>
-      <AdminConfigPanel />
+      <AdminConfigPanel initialData={initialData} />
     </RpbPageFrame>
   );
 }

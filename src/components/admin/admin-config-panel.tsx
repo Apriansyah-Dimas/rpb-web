@@ -3,10 +3,10 @@
 import type { TextareaHTMLAttributes } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Save, Trash2 } from "lucide-react";
-import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
 import {
   deleteOtherMasterItem,
   deleteFormulaVariableSetting,
+  fetchRpbMasterData,
   upsertFormulaVariableSetting,
   upsertKonstruksiMasterItems,
   upsertOtherMasterItem,
@@ -21,6 +21,7 @@ import type {
   KonstruksiMasterItem,
   OtherItem,
   ProfileMasterItem,
+  RpbMasterData,
 } from "@/types/rpb";
 
 type ConfigSection = "profile" | "konstruksi" | "other";
@@ -315,8 +316,10 @@ function VariableSettingsCard({
   );
 }
 
-export function AdminConfigPanel() {
-  const { data, loading, error, refresh } = useRpbMasterData();
+export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }) {
+  const [data, setData] = useState<RpbMasterData>(initialData);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const dimensions = useRpbStore((state) => state.dimensions);
   const [profileRows, setProfileRows] = useState<ProfileMasterItem[]>([]);
   const [konstruksiRows, setKonstruksiRows] = useState<KonstruksiMasterItem[]>([]);
@@ -327,6 +330,20 @@ export function AdminConfigPanel() {
   const [activeSection, setActiveSection] = useState<ConfigSection>("profile");
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+  const refresh = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const latestData = await fetchRpbMasterData(supabase);
+      setData(latestData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal memuat data master.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!data) {

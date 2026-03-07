@@ -3,7 +3,7 @@
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { ChevronDown, ChevronUp, Plus, Save, Trash2, UserRound } from "lucide-react";
 import type { FormEvent } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type AdminRole = "admin" | "user";
 
@@ -17,6 +17,10 @@ interface ManagedUser {
   createdAt: string | null;
   updatedAt: string | null;
   lastSignInAt: string | null;
+}
+
+interface AdminUsersPanelProps {
+  initialUsers: ManagedUser[];
 }
 
 interface UserDraft {
@@ -62,12 +66,12 @@ const toDraftMap = (users: ManagedUser[]): Record<string, UserDraft> =>
     return map;
   }, {});
 
-export function AdminUsersPanel() {
+export function AdminUsersPanel({ initialUsers }: AdminUsersPanelProps) {
   const { user } = useAuthSession();
-  const [users, setUsers] = useState<ManagedUser[]>([]);
-  const [drafts, setDrafts] = useState<Record<string, UserDraft>>({});
+  const [users, setUsers] = useState<ManagedUser[]>(initialUsers);
+  const [drafts, setDrafts] = useState<Record<string, UserDraft>>(() => toDraftMap(initialUsers));
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -118,10 +122,6 @@ export function AdminUsersPanel() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    void refreshUsers();
-  }, []);
 
   const updateDraft = (id: string, next: Partial<UserDraft>) => {
     setDrafts((prev) => {
