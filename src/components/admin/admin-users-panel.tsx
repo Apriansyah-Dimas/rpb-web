@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 
 type AdminRole = "admin" | "user";
 
-interface ManagedUser {
+export interface ManagedUser {
   id: string;
   email: string;
   username: string;

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { AdminUsersPanel } from "@/components/admin/admin-users-panel";
+import type { ManagedUser } from "@/components/admin/admin-users-panel";
 import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -30,17 +31,20 @@ export default async function AdminUsersPage() {
     throw new Error(error.message);
   }
 
-  const initialUsers = ((data ?? []) as UserProfileRow[]).map((row) => ({
-    id: row.id,
-    email: row.email,
-    username: row.username ?? "",
-    fullName: row.full_name ?? "",
-    phoneNumber: row.phone_number ?? "",
-    role: row.role === "admin" ? "admin" : "user",
-    createdAt: row.created_at ?? null,
-    updatedAt: row.updated_at ?? null,
-    lastSignInAt: null,
-  }));
+  const initialUsers: ManagedUser[] = ((data ?? []) as UserProfileRow[]).map((row) => {
+    const role: ManagedUser["role"] = row.role === "admin" ? "admin" : "user";
+    return {
+      id: row.id,
+      email: row.email,
+      username: row.username ?? "",
+      fullName: row.full_name ?? "",
+      phoneNumber: row.phone_number ?? "",
+      role,
+      createdAt: row.created_at ?? null,
+      updatedAt: row.updated_at ?? null,
+      lastSignInAt: null,
+    };
+  });
 
   return (
     <RpbPageFrame>
