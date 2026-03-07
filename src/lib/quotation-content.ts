@@ -54,15 +54,21 @@ export function parseAdditionalInformationSections(value: string): AdditionalInf
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
-    if (!line) {
-      continue;
-    }
     if (isConditionHeader(line)) {
       currentSection = "condition";
       continue;
     }
     if (isPaymentHeader(line)) {
       currentSection = "payment";
+      continue;
+    }
+
+    if (!line) {
+      if (currentSection === "payment") {
+        paymentLines.push("");
+      } else {
+        conditionLines.push("");
+      }
       continue;
     }
 

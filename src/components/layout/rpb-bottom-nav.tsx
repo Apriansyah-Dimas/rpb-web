@@ -19,16 +19,16 @@ interface BottomNavItem {
 }
 
 const USER_NAV_ITEMS: BottomNavItem[] = [
-  { key: "history", href: "/history", label: "History", icon: History },
   { key: "home", href: "/", label: "Beranda", icon: House },
   { key: "quotation", href: "/quotation", label: "Quotation", icon: FileText },
+  { key: "history", href: "/history", label: "History", icon: History },
   { key: "profile", href: "/profile", label: "Profile", icon: UserRound },
 ];
 
 const ADMIN_NAV_ITEMS: BottomNavItem[] = [
-  { key: "history", href: "/history", label: "History", icon: History },
   { key: "home", href: "/", label: "Beranda", icon: House },
   { key: "quotation", href: "/quotation", label: "Quotation", icon: FileText },
+  { key: "history", href: "/history", label: "History", icon: History },
   { key: "admin", href: "/admin", label: "Admin", icon: Settings2 },
   { key: "profile", href: "/profile", label: "Profile", icon: UserRound },
 ];
