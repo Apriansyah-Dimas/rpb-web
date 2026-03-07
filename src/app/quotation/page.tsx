@@ -259,6 +259,23 @@ export default function QuotationPage() {
     }));
   };
 
+  const handleDescriptionTab = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== "Tab") {
+      return;
+    }
+    event.preventDefault();
+    const el = event.currentTarget;
+    const start = el.selectionStart ?? 0;
+    const end = el.selectionEnd ?? 0;
+    const next = `${form.itemDescription.slice(0, start)}\t${form.itemDescription.slice(end)}`;
+    setField("itemDescription", next);
+    requestAnimationFrame(() => {
+      el.focus();
+      const cursor = start + 1;
+      el.setSelectionRange(cursor, cursor);
+    });
+  };
+
   const applyBoldToControl = (
     control: HTMLInputElement | HTMLTextAreaElement | null,
     field: keyof QuotationForm,
@@ -423,6 +440,7 @@ export default function QuotationPage() {
                     rows={4}
                     value={form.itemDescription}
                     onChange={(event) => setField("itemDescription", event.target.value)}
+                    onKeyDown={handleDescriptionTab}
                   />
                 </label>
                 <label>
@@ -853,7 +871,8 @@ export default function QuotationPage() {
           text-align: center;
         }
         .item-grid .item-row td:nth-child(2) {
-          white-space: pre-line;
+          white-space: pre-wrap;
+          tab-size: 4;
           min-height: 180px;
         }
         .item-grid .item-row td:nth-child(3),
