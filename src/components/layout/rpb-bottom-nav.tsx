@@ -49,6 +49,11 @@ const isPathActive = (pathname: string, key: BottomNavItem["key"]): boolean => {
 export function RpbBottomNav() {
   const pathname = usePathname();
   const { loading, role } = useAuthSession();
+  const hideNav = loading && role === null;
+
+  if (hideNav) {
+    return null;
+  }
 
   const isAdminPath = pathname === "/admin" || pathname.startsWith("/admin/");
   const items =

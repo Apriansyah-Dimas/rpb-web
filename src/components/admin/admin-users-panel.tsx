@@ -392,7 +392,7 @@ export function AdminUsersPanel() {
         </div>
 
         {loading ? (
-          <p className="text-sm text-rpb-ink-soft">Memuat user...</p>
+          <p className="rpb-delayed-loader text-sm text-rpb-ink-soft">Memuat user...</p>
         ) : sortedUsers.length === 0 ? (
           <p className="text-sm text-rpb-ink-soft">Belum ada user terdaftar.</p>
         ) : (

@@ -290,7 +290,7 @@ export default function HomePage() {
     <RpbPageFrame shellClassName="rpb-compact">
       <div className="space-y-4 py-4 md:space-y-3 md:py-5">
           {masterLoading ? (
-            <div className="rpb-section p-4 text-sm text-rpb-ink-soft">
+            <div className="rpb-section rpb-delayed-loader p-4 text-sm text-rpb-ink-soft">
               Memuat master data dari database...
             </div>
           ) : null}

@@ -210,7 +210,7 @@ export default function HistoryPage() {
               Menampilkan maksimal {HISTORY_FETCH_LIMIT} history terbaru.
             </p>
             {loading ? (
-              <p className="text-sm text-rpb-ink-soft">Memuat history...</p>
+              <p className="rpb-delayed-loader text-sm text-rpb-ink-soft">Memuat history...</p>
             ) : items.length === 0 ? (
               <p className="text-sm text-rpb-ink-soft">Belum ada history tersimpan.</p>
             ) : (

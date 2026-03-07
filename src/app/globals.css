@@ -236,6 +236,17 @@ body::-webkit-scrollbar {
   border-radius: 8px;
 }
 
+@keyframes rpb-delayed-loader-show {
+  to {
+    opacity: 1;
+  }
+}
+
+.rpb-delayed-loader {
+  opacity: 0;
+  animation: rpb-delayed-loader-show 0s linear 220ms forwards;
+}
+
 @media (min-width: 1024px) {
   .rpb-compact {
     line-height: 1.25;

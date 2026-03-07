@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const greetings = [
@@ -114,7 +114,6 @@ const getSafeNextPath = (value: string | null): string => {
 
 function LoginPageContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const headerRef = useRef<HTMLHeadingElement>(null);
 
   const [email, setEmail] = useState("");
@@ -124,11 +123,15 @@ function LoginPageContent() {
   const [errorPassword, setErrorPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [headerText, setHeaderText] = useState("Masuk");
+  const [nextPath, setNextPath] = useState("/");
 
-  const nextPath = useMemo(
-    () => getSafeNextPath(searchParams.get("next")),
-    [searchParams],
-  );
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    setNextPath(getSafeNextPath(params.get("next")));
+  }, []);
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -643,21 +646,6 @@ function LoginPageContent() {
 }
 
 export default function LoginPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center p-4 md:px-10 md:py-8">
-          <div className="w-full max-w-xl">
-            <h1 className="rpb-h-title mb-4 text-center text-2xl font-semibold text-rpb-ink-soft md:text-3xl">
-              RPB Login
-            </h1>
-            <div className="rpb-section p-6 text-sm text-rpb-ink-soft">Memuat halaman login...</div>
-          </div>
-        </div>
-      }
-    >
-      <LoginPageContent />
-    </Suspense>
-  );
+  return <LoginPageContent />;
 }
 

@@ -634,7 +634,7 @@ export default function QuotationPage() {
     <RpbPageFrame shellClassName="print-a4" headerClassName="no-print">
       <div className="space-y-3 py-3 md:py-4">
           {masterLoading ? (
-            <div className="rpb-section p-4 text-sm text-rpb-ink-soft">
+            <div className="rpb-section rpb-delayed-loader p-4 text-sm text-rpb-ink-soft">
               Memuat master data dari database...
             </div>
           ) : null}

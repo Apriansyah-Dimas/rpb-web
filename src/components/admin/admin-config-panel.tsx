@@ -613,7 +613,7 @@ export function AdminConfigPanel() {
 
   return (
     <div className="space-y-4 p-3 md:p-6">
-      {loading ? <div className="rpb-section p-4 text-sm text-rpb-ink-soft">Memuat data master...</div> : null}
+      {loading ? <div className="rpb-section rpb-delayed-loader p-4 text-sm text-rpb-ink-soft">Memuat data master...</div> : null}
       {error ? (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       ) : null}

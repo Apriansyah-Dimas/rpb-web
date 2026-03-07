@@ -61,10 +61,15 @@ export const useAuthSession = (): AuthSessionState => {
           let nextRole: UserRole | null = authCache.role;
 
           if (resolvedUser) {
-            try {
-              nextRole = await fetchCurrentUserRole(supabase, resolvedUser);
-            } catch {
-              // Keep previous role if role lookup fails temporarily.
+            const metadataRole = resolvedUser.user_metadata?.role;
+            if (metadataRole === "admin" || metadataRole === "user") {
+              nextRole = metadataRole;
+            } else {
+              try {
+                nextRole = await fetchCurrentUserRole(supabase, resolvedUser);
+              } catch {
+                // Keep previous role if role lookup fails temporarily.
+              }
             }
           } else {
             nextRole = null;
