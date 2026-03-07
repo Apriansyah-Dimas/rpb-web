@@ -266,7 +266,7 @@ drop policy if exists "rpb_saved_summaries_delete_own" on public.rpb_saved_summa
 create policy "rpb_saved_summaries_delete_own"
 on public.rpb_saved_summaries for delete
 to authenticated
-using (user_id = auth.uid());
+using (user_id = auth.uid() or public.is_admin());
 
 drop policy if exists "rpb_formula_variables_select" on public.rpb_formula_variables;
 create policy "rpb_formula_variables_select"
