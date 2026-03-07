@@ -167,6 +167,9 @@ async function createWorkbookBuffer(payload: Payload): Promise<Buffer> {
   ["G15:G25", "H15:H25"].forEach((range) => {
     sheet.range(range).merged(false);
   });
+  sheet.column("F").width(13.5);
+  sheet.column("G").width(5.5);
+  sheet.column("H").width(11.5);
   sheet.column("G").hidden(false);
   sheet.cell("G14").value("Total Price");
   sheet.cell("H14").value("");
