@@ -218,14 +218,15 @@ async function createWorkbookBuffer(payload: Payload): Promise<Buffer> {
   sheet.cell("E37").value("Grand Total");
   sheet.cell("G37").formula('IF(G34="","",G34-G35+G36)');
 
-  const numberFormat = "#,##0";
-  sheet.cell("E15").style("numberFormat", numberFormat);
-  sheet.cell("F15").style("numberFormat", numberFormat);
-  sheet.cell("G15").style("numberFormat", numberFormat);
+  const qtyNumberFormat = "#,##0";
+  const currencyNumberFormat = '"Rp" #,##0';
+  sheet.cell("E15").style("numberFormat", qtyNumberFormat);
+  sheet.cell("F15").style("numberFormat", currencyNumberFormat);
+  sheet.cell("G15").style("numberFormat", currencyNumberFormat);
   for (let row = 34; row <= 37; row += 1) {
     sheet.range(`E${row}:F${row}`).style("horizontalAlignment", "right");
     sheet.cell(`G${row}`).style("horizontalAlignment", "right");
-    sheet.cell(`G${row}`).style("numberFormat", numberFormat);
+    sheet.cell(`G${row}`).style("numberFormat", currencyNumberFormat);
   }
   sheet.range("E37:F37").style("bold", true);
   sheet.cell("G37").style("bold", true);

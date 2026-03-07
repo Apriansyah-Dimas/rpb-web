@@ -25,6 +25,11 @@ type QuotationForm = {
 const numberFormatter = new Intl.NumberFormat("id-ID", {
   maximumFractionDigits: 0,
 });
+const currencyFormatter = new Intl.NumberFormat("id-ID", {
+  style: "currency",
+  currency: "IDR",
+  maximumFractionDigits: 0,
+});
 
 const pctToValue = (subtotal: number, pct: number): number => subtotal * (pct / 100);
 
@@ -418,7 +423,7 @@ export default function QuotationPage() {
                   Grand Total RPB (Auto)
                   <input
                     className="rpb-input"
-                    value={numberFormatter.format(grandTotalRpb)}
+                    value={currencyFormatter.format(grandTotalRpb)}
                     readOnly
                   />
                 </label>
@@ -547,27 +552,27 @@ export default function QuotationPage() {
                       <td>1</td>
                       <td>{form.itemDescription ? renderRichMultilineText(form.itemDescription) : "-"}</td>
                       <td>{numberFormatter.format(preview.quantity)}</td>
-                      <td>{numberFormatter.format(preview.price)}</td>
-                      <td>{numberFormatter.format(preview.subtotal)}</td>
+                      <td>{currencyFormatter.format(preview.price)}</td>
+                      <td>{currencyFormatter.format(preview.subtotal)}</td>
                     </tr>
                     <tr className="summary-row summary-start">
                       <td className="summary-empty" colSpan={2} rowSpan={4} />
                       <td className="summary-label" colSpan={2}>Subtotal</td>
-                      <td className="summary-value">{numberFormatter.format(preview.subtotal)}</td>
+                      <td className="summary-value">{currencyFormatter.format(preview.subtotal)}</td>
                     </tr>
                     <tr className="summary-row">
                       <td className="summary-label" colSpan={2}>
                         Discount ({(preview.discountRate * 100).toFixed(2)}%)
                       </td>
-                      <td className="summary-value">{numberFormatter.format(preview.discountAmount)}</td>
+                      <td className="summary-value">{currencyFormatter.format(preview.discountAmount)}</td>
                     </tr>
                     <tr className="summary-row">
                       <td className="summary-label" colSpan={2}>PPN 11%</td>
-                      <td className="summary-value">{numberFormatter.format(preview.ppn)}</td>
+                      <td className="summary-value">{currencyFormatter.format(preview.ppn)}</td>
                     </tr>
                     <tr className="summary-row strong">
                       <td className="summary-label" colSpan={2}>Grand Total</td>
-                      <td className="summary-value">{numberFormatter.format(preview.grandTotal)}</td>
+                      <td className="summary-value">{currencyFormatter.format(preview.grandTotal)}</td>
                     </tr>
                   </tbody>
                 </table>
