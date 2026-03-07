@@ -7,7 +7,7 @@ import { buildSummaryLineItems } from "@/lib/rpb-line-items";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useRpbStore } from "@/store/rpb-store";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type QuotationForm = {
   attn: string;
@@ -65,10 +65,35 @@ function parseLines(value: string, fallbackLines: string[]): string[] {
 }
 
 function splitAdditionalInformation(value: string): { conditionLines: string[]; paymentLines: string[] } {
-  const lines = parseLines(value, []);
+  const lines = String(value ?? "").replace(/\r\n/g, "\n").split("\n");
   const conditionLines = lines.slice(0, 7);
   const paymentLines = lines.slice(7, 9);
   return { conditionLines, paymentLines };
+}
+
+function renderBoldInline(text: string) {
+  const parts = text.split(/(\*\*.*?\*\*)/g).filter((part) => part.length > 0);
+  return parts.map((part, index) => {
+    const boldMatch = /^\*\*(.*)\*\*$/.exec(part);
+    if (boldMatch) {
+      return <strong key={`b-${index}`}>{boldMatch[1]}</strong>;
+    }
+    return <span key={`n-${index}`}>{part}</span>;
+  });
+}
+
+function renderRichMultilineText(value: string) {
+  const normalized = String(value ?? "").replace(/\r\n/g, "\n");
+  const lines = normalized.split("\n");
+  if (lines.length === 0) {
+    return "-";
+  }
+  return lines.map((line, index) => (
+    <span key={`line-${index}`}>
+      {line.length > 0 ? renderBoldInline(line) : "\u00A0"}
+      {index < lines.length - 1 ? <br /> : null}
+    </span>
+  ));
 }
 
 export default function QuotationPage() {
@@ -86,6 +111,9 @@ export default function QuotationPage() {
 
   const [accountName, setAccountName] = useState("");
   const [accountPhone, setAccountPhone] = useState("");
+  const attnInputRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const additionalInfoRef = useRef<HTMLTextAreaElement>(null);
   const [form, setForm] = useState<QuotationForm>({
     attn: "",
     itemDescription: projectName || "",
@@ -178,7 +206,7 @@ export default function QuotationPage() {
     const discountAmount = subtotal * discountRate;
     const ppn = (subtotal - discountAmount) * 0.11;
     const grandTotal = subtotal - discountAmount + ppn;
-    const additionalLines = parseLines(form.additionalInformation, []);
+    const additionalLines = String(form.additionalInformation ?? "").replace(/\r\n/g, "\n").split("\n");
 
     return {
       quantity,
@@ -229,6 +257,36 @@ export default function QuotationPage() {
       itemDescription: projectName || prev.itemDescription,
       quantity: prev.quantity || "1",
     }));
+  };
+
+  const applyBoldToControl = (
+    control: HTMLInputElement | HTMLTextAreaElement | null,
+    field: keyof QuotationForm,
+  ) => {
+    if (!control) return;
+
+    const start = control.selectionStart ?? 0;
+    const end = control.selectionEnd ?? 0;
+    const currentValue = form[field] as string;
+    const selected = currentValue.slice(start, end);
+
+    if (!selected) {
+      const nextValue = `${currentValue.slice(0, start)}****${currentValue.slice(end)}`;
+      setField(field, nextValue);
+      requestAnimationFrame(() => {
+        control.focus();
+        control.setSelectionRange(start + 2, start + 2);
+      });
+      return;
+    }
+
+    const wrapped = `**${selected}**`;
+    const nextValue = `${currentValue.slice(0, start)}${wrapped}${currentValue.slice(end)}`;
+    setField(field, nextValue);
+    requestAnimationFrame(() => {
+      control.focus();
+      control.setSelectionRange(start + 2, end + 2);
+    });
   };
 
   const downloadExcel = async () => {
@@ -327,7 +385,18 @@ export default function QuotationPage() {
 
               <label>
                 Attn
+                <div className="field-toolbar">
+                  <button
+                    type="button"
+                    className="rpb-btn-ghost text-style-btn"
+                    onClick={() => applyBoldToControl(attnInputRef.current, "attn")}
+                    title="Bold teks terpilih"
+                  >
+                    B
+                  </button>
+                </div>
                 <input
+                  ref={attnInputRef}
                   className="rpb-input"
                   value={form.attn}
                   onChange={(event) => setField("attn", event.target.value)}
@@ -338,7 +407,18 @@ export default function QuotationPage() {
                 <legend>Item</legend>
                 <label>
                   Quotation Description
+                  <div className="field-toolbar">
+                    <button
+                      type="button"
+                      className="rpb-btn-ghost text-style-btn"
+                      onClick={() => applyBoldToControl(descriptionRef.current, "itemDescription")}
+                      title="Bold teks terpilih"
+                    >
+                      B
+                    </button>
+                  </div>
                   <textarea
+                    ref={descriptionRef}
                     className="rpb-input"
                     rows={4}
                     value={form.itemDescription}
@@ -375,7 +455,20 @@ export default function QuotationPage() {
                 <legend>Additional Information</legend>
                 <label>
                   Additional Information (Plain Text)
+                  <div className="field-toolbar">
+                    <button
+                      type="button"
+                      className="rpb-btn-ghost text-style-btn"
+                      onClick={() =>
+                        applyBoldToControl(additionalInfoRef.current, "additionalInformation")
+                      }
+                      title="Bold teks terpilih"
+                    >
+                      B
+                    </button>
+                  </div>
                   <textarea
+                    ref={additionalInfoRef}
                     className="rpb-input"
                     rows={12}
                     value={form.additionalInformation}
@@ -460,7 +553,9 @@ export default function QuotationPage() {
                   <div className="info-line info-line-attn">
                     <div className="info-label">Attn</div>
                     <div className="info-sep">:</div>
-                    <div className="info-value strong">{form.attn || "-"}</div>
+                    <div className="info-value strong">
+                      {form.attn ? renderRichMultilineText(form.attn) : "-"}
+                    </div>
                   </div>
                 </section>
 
@@ -477,7 +572,7 @@ export default function QuotationPage() {
                   <tbody>
                     <tr className="item-row">
                       <td>1</td>
-                      <td>{form.itemDescription || "-"}</td>
+                      <td>{form.itemDescription ? renderRichMultilineText(form.itemDescription) : "-"}</td>
                       <td>{numberFormatter.format(preview.quantity)}</td>
                       <td>{numberFormatter.format(preview.price)}</td>
                       <td>{numberFormatter.format(preview.subtotal)}</td>
@@ -505,7 +600,11 @@ export default function QuotationPage() {
                 </table>
 
                 <section className="terms">
-                  <div className="terms-list plain-text">{preview.additionalLines.join("\n") || "-"}</div>
+                  <div className="terms-list plain-text">
+                    {form.additionalInformation
+                      ? renderRichMultilineText(form.additionalInformation)
+                      : "-"}
+                  </div>
                 </section>
               </article>
             </div>
@@ -587,6 +686,20 @@ export default function QuotationPage() {
           display: grid;
           gap: 6px;
           font-size: 14px;
+        }
+        .field-toolbar {
+          display: flex;
+          justify-content: flex-end;
+          margin-top: -2px;
+          margin-bottom: 2px;
+        }
+        .text-style-btn {
+          width: 30px;
+          height: 28px;
+          font-weight: 800;
+          font-size: 14px;
+          line-height: 1;
+          cursor: pointer;
         }
         textarea {
           resize: vertical;

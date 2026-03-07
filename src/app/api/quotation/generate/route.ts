@@ -79,6 +79,14 @@ function parseLines(value: unknown, fallbackLines: string[]): string[] {
   return lines.length > 0 ? lines : fallbackLines;
 }
 
+function parseRawLinesPreserveBlank(value: unknown): string[] {
+  return String(value ?? "").replace(/\r\n/g, "\n").split("\n");
+}
+
+function stripBoldMarkers(value: string): string {
+  return value.replace(/\*\*(.*?)\*\*/g, "$1");
+}
+
 function writeLinesToColumn(
   sheet: any,
   column: string,
@@ -115,15 +123,23 @@ async function createWorkbookBuffer(payload: Payload): Promise<Buffer> {
   const discount = toDiscount(payload.discount || payload.itemDiscount || payload.item1Discount);
   const addressCombined = [addressLine1, addressLine2].filter(Boolean).join("\n");
   const discountRateLiteral = Number.isFinite(discount) ? String(discount) : "0";
-  const additionalLines = parseLines(payload.additionalInformation, []);
+  const hasAdditionalInformation =
+    payload.additionalInformation !== undefined && payload.additionalInformation !== null;
+  const additionalLines = hasAdditionalInformation
+    ? parseRawLinesPreserveBlank(payload.additionalInformation)
+    : [];
   const termsConditionLines =
     additionalLines.length > 0
-      ? additionalLines.slice(0, 7)
-      : parseLines(payload.termsCondition, DEFAULT_TERMS_CONDITION);
+      ? additionalLines.slice(0, 7).map((line) => stripBoldMarkers(line))
+      : parseLines(payload.termsCondition, DEFAULT_TERMS_CONDITION).map((line) =>
+          stripBoldMarkers(line),
+        );
   const termsPaymentLines =
     additionalLines.length > 0
-      ? additionalLines.slice(7, 9)
-      : parseLines(payload.termsPayment, DEFAULT_TERMS_PAYMENT);
+      ? additionalLines.slice(7, 9).map((line) => stripBoldMarkers(line))
+      : parseLines(payload.termsPayment, DEFAULT_TERMS_PAYMENT).map((line) =>
+          stripBoldMarkers(line),
+        );
 
   ["A26:A36", "B26:D36", "E26:E36", "F26:F36", "G26:G36", "H26:H36"].forEach((range) => {
     sheet.range(range).merged(false);
