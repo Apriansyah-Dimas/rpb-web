@@ -106,16 +106,23 @@ export const useAuthSession = (): AuthSessionState => {
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       const nextUser = session?.user ?? null;
+      const metadataRole = nextUser?.user_metadata?.role;
+      const nextMetadataRole: UserRole | null =
+        metadataRole === "admin" || metadataRole === "user" ? metadataRole : null;
       authCache = {
         hydrated: true,
         user: nextUser,
-        role: nextUser ? authCache.role : null,
+        role: nextUser ? (nextMetadataRole ?? authCache.role) : null,
         fetchedAt: 0,
       };
       setUser(nextUser);
-      if (!nextUser) {
-        setRole(null);
+      setRole(authCache.role);
+
+      if (_event === "TOKEN_REFRESHED" || _event === "INITIAL_SESSION") {
+        setLoading(false);
+        return;
       }
+
       void refreshInternal(true);
     });
 

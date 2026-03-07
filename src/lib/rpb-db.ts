@@ -215,11 +215,21 @@ export const saveSummaryHistory = async (
 
 export const fetchSummaryHistory = async (
   supabase: SupabaseClient,
+  options?: {
+    limit?: number;
+  },
 ): Promise<SavedSummaryRecord[]> => {
-  const { data, error } = await supabase
+  const limit = options?.limit;
+  let query = supabase
     .from("rpb_saved_summaries")
     .select("id, user_id, title, customer_name, project_name, snapshot_json, created_at, updated_at")
     .order("updated_at", { ascending: false });
+
+  if (typeof limit === "number" && Number.isFinite(limit) && limit > 0) {
+    query = query.limit(Math.floor(limit));
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw error;

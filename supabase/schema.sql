@@ -126,6 +126,9 @@ create table if not exists public.rpb_other_items (
   updated_at timestamptz not null default now()
 );
 
+create index if not exists idx_rpb_other_items_category_name
+on public.rpb_other_items (category, name);
+
 drop trigger if exists trg_rpb_other_items_updated_at on public.rpb_other_items;
 create trigger trg_rpb_other_items_updated_at
 before update on public.rpb_other_items
@@ -141,6 +144,12 @@ create table if not exists public.rpb_saved_summaries (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+create index if not exists idx_rpb_saved_summaries_user_updated_at
+on public.rpb_saved_summaries (user_id, updated_at desc);
+
+create index if not exists idx_rpb_saved_summaries_updated_at
+on public.rpb_saved_summaries (updated_at desc);
 
 drop trigger if exists trg_rpb_saved_summaries_updated_at on public.rpb_saved_summaries;
 create trigger trg_rpb_saved_summaries_updated_at
@@ -159,6 +168,9 @@ create table if not exists public.rpb_formula_variables (
   updated_at timestamptz not null default now(),
   unique (section, key)
 );
+
+create index if not exists idx_rpb_formula_variables_section_sort
+on public.rpb_formula_variables (section, sort_order);
 
 drop trigger if exists trg_rpb_formula_variables_updated_at on public.rpb_formula_variables;
 create trigger trg_rpb_formula_variables_updated_at

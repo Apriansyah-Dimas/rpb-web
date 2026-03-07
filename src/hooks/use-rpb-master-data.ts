@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchCurrentUserRole, fetchRpbMasterData } from "@/lib/rpb-db";
+import { fetchRpbMasterData } from "@/lib/rpb-db";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { RpbMasterData, UserRole } from "@/types/rpb";
 
@@ -127,10 +127,10 @@ export const useRpbMasterData = (): MasterDataState => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      const [masterData, currentRole] = await Promise.all([
-        fetchRpbMasterData(supabase),
-        fetchCurrentUserRole(supabase, session?.user ?? null),
-      ]);
+      const masterData = await fetchRpbMasterData(supabase);
+      const roleFromMetadata = session?.user?.user_metadata?.role;
+      const currentRole: UserRole | null =
+        roleFromMetadata === "admin" || roleFromMetadata === "user" ? roleFromMetadata : null;
 
       writeCache({
         data: masterData,

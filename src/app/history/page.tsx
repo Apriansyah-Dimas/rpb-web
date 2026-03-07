@@ -40,6 +40,8 @@ const formatDateTime = (value: string) => {
   }).format(date);
 };
 
+const HISTORY_FETCH_LIMIT = 100;
+
 export default function HistoryPage() {
   const router = useRouter();
   const loadSnapshot = useRpbStore((state) => state.loadSnapshot);
@@ -56,7 +58,7 @@ export default function HistoryPage() {
     setError(null);
     try {
       const supabase = getSupabaseBrowserClient();
-      const rows = await fetchSummaryHistory(supabase);
+      const rows = await fetchSummaryHistory(supabase, { limit: HISTORY_FETCH_LIMIT });
       setItems(rows);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal memuat history.");
@@ -204,6 +206,9 @@ export default function HistoryPage() {
             </div>
           ) : null}
           <section className="rpb-section p-4">
+            <p className="mb-2 text-xs text-rpb-ink-soft">
+              Menampilkan maksimal {HISTORY_FETCH_LIMIT} history terbaru.
+            </p>
             {loading ? (
               <p className="text-sm text-rpb-ink-soft">Memuat history...</p>
             ) : items.length === 0 ? (

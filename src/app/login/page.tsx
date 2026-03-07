@@ -3,7 +3,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { isInvalidAuthSessionError } from "@/lib/supabase/auth-errors";
 
 const greetings = [
   "Ready to Dive in?",
@@ -135,16 +134,10 @@ function LoginPageContent() {
     const supabase = getSupabaseBrowserClient();
     void (async () => {
       const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      if (isInvalidAuthSessionError(error)) {
-        await supabase.auth.signOut({ scope: "local" });
-        return;
-      }
-
-      if (user) {
+      if (session?.user) {
         router.replace(nextPath);
       }
     })();
