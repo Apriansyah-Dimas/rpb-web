@@ -25,6 +25,7 @@ type Payload = {
   discount?: number | string;
   itemDiscount?: number | string;
   item1Discount?: number | string;
+  additionalInformation?: string;
   termsCondition?: string;
   termsPayment?: string;
 };
@@ -114,8 +115,15 @@ async function createWorkbookBuffer(payload: Payload): Promise<Buffer> {
   const discount = toDiscount(payload.discount || payload.itemDiscount || payload.item1Discount);
   const addressCombined = [addressLine1, addressLine2].filter(Boolean).join("\n");
   const discountRateLiteral = Number.isFinite(discount) ? String(discount) : "0";
-  const termsConditionLines = parseLines(payload.termsCondition, DEFAULT_TERMS_CONDITION);
-  const termsPaymentLines = parseLines(payload.termsPayment, DEFAULT_TERMS_PAYMENT);
+  const additionalLines = parseLines(payload.additionalInformation, []);
+  const termsConditionLines =
+    additionalLines.length > 0
+      ? additionalLines.slice(0, 7)
+      : parseLines(payload.termsCondition, DEFAULT_TERMS_CONDITION);
+  const termsPaymentLines =
+    additionalLines.length > 0
+      ? additionalLines.slice(7, 9)
+      : parseLines(payload.termsPayment, DEFAULT_TERMS_PAYMENT);
 
   ["A26:A36", "B26:D36", "E26:E36", "F26:F36", "G26:G36", "H26:H36"].forEach((range) => {
     sheet.range(range).merged(false);

@@ -6,16 +6,15 @@ import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
 import { buildSummaryLineItems } from "@/lib/rpb-line-items";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useRpbStore } from "@/store/rpb-store";
-import { Bold } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type QuotationForm = {
   attn: string;
   itemDescription: string;
   quantity: string;
   discount: string;
-  termsContent: string;
+  additionalInformation: string;
 };
 
 const DEFAULT_TERMS_CONDITION = [
@@ -29,11 +28,9 @@ const DEFAULT_TERMS_CONDITION = [
 ];
 
 const DEFAULT_TERMS_PAYMENT = ["- 50% Down Payment DP", "- 50% Before Delivery"];
-const DEFAULT_TERMS_TEXT = [
-  "Term and Condition :",
+const DEFAULT_ADDITIONAL_INFORMATION = [
   ...DEFAULT_TERMS_CONDITION,
   "",
-  "Term of Payment :",
   ...DEFAULT_TERMS_PAYMENT,
 ].join("\n");
 
@@ -67,57 +64,11 @@ function parseLines(value: string, fallbackLines: string[]): string[] {
   return lines.length > 0 ? lines : fallbackLines;
 }
 
-function stripBoldMarkers(value: string): string {
-  return value.replace(/\*\*(.*?)\*\*/g, "$1");
-}
-
-function splitTermsContent(value: string): { conditionLines: string[]; paymentLines: string[] } {
-  const lines = String(value ?? "")
-    .split(/\r?\n/)
-    .map((line) => line.trim());
-
-  const conditionLines: string[] = [];
-  const paymentLines: string[] = [];
-  let section: "condition" | "payment" = "condition";
-
-  for (const line of lines) {
-    if (!line) {
-      continue;
-    }
-    const normalized = line.toLowerCase().replace(/\s+/g, " ").trim();
-    if (
-      /^te?rm\s+and\s+condit/i.test(normalized) ||
-      /^tern\s+and\s+condit/i.test(normalized)
-    ) {
-      section = "condition";
-      continue;
-    }
-    if (/^te?rm\s+of\s+payment/i.test(normalized)) {
-      section = "payment";
-      continue;
-    }
-    if (section === "payment") {
-      paymentLines.push(stripBoldMarkers(line));
-    } else {
-      conditionLines.push(stripBoldMarkers(line));
-    }
-  }
-
-  return {
-    conditionLines: conditionLines.length > 0 ? conditionLines : DEFAULT_TERMS_CONDITION,
-    paymentLines: paymentLines.length > 0 ? paymentLines : DEFAULT_TERMS_PAYMENT,
-  };
-}
-
-function renderBoldLine(line: string) {
-  const parts = line.split(/(\*\*.*?\*\*)/g).filter(Boolean);
-  return parts.map((part, index) => {
-    const boldMatch = /^\*\*(.*)\*\*$/.exec(part);
-    if (boldMatch) {
-      return <strong key={`b-${index}`}>{boldMatch[1]}</strong>;
-    }
-    return <span key={`n-${index}`}>{part}</span>;
-  });
+function splitAdditionalInformation(value: string): { conditionLines: string[]; paymentLines: string[] } {
+  const lines = parseLines(value, []);
+  const conditionLines = lines.slice(0, 7);
+  const paymentLines = lines.slice(7, 9);
+  return { conditionLines, paymentLines };
 }
 
 export default function QuotationPage() {
@@ -135,14 +86,12 @@ export default function QuotationPage() {
 
   const [accountName, setAccountName] = useState("");
   const [accountPhone, setAccountPhone] = useState("");
-  const termsRef = useRef<HTMLTextAreaElement>(null);
-
   const [form, setForm] = useState<QuotationForm>({
     attn: "",
     itemDescription: projectName || "",
     quantity: "1",
     discount: "0",
-    termsContent: DEFAULT_TERMS_TEXT,
+    additionalInformation: DEFAULT_ADDITIONAL_INFORMATION,
   });
 
   const [busy, setBusy] = useState(false);
@@ -229,12 +178,7 @@ export default function QuotationPage() {
     const discountAmount = subtotal * discountRate;
     const ppn = (subtotal - discountAmount) * 0.11;
     const grandTotal = subtotal - discountAmount + ppn;
-    const sections = splitTermsContent(form.termsContent);
-    const termsCondition = parseLines(
-      sections.conditionLines.join("\n"),
-      DEFAULT_TERMS_CONDITION,
-    );
-    const termsPayment = parseLines(sections.paymentLines.join("\n"), DEFAULT_TERMS_PAYMENT);
+    const additionalLines = parseLines(form.additionalInformation, []);
 
     return {
       quantity,
@@ -244,8 +188,7 @@ export default function QuotationPage() {
       discountAmount,
       ppn,
       grandTotal,
-      termsCondition,
-      termsPayment,
+      additionalLines,
       contactPerson: [accountName, accountPhone].filter(Boolean).join(" / "),
     };
   }, [accountName, accountPhone, form, grandTotalRpb]);
@@ -276,7 +219,7 @@ export default function QuotationPage() {
       itemDescription: projectName || "AHU (CLW46)\nAHU R.CCP",
       quantity: "1",
       discount: "25%",
-      termsContent: DEFAULT_TERMS_TEXT,
+      additionalInformation: DEFAULT_ADDITIONAL_INFORMATION,
     }));
   };
 
@@ -288,40 +231,12 @@ export default function QuotationPage() {
     }));
   };
 
-  const applyBoldToTermsSelection = () => {
-    const el = termsRef.current;
-    if (!el) return;
-
-    const start = el.selectionStart ?? 0;
-    const end = el.selectionEnd ?? 0;
-    const text = form.termsContent;
-    const selected = text.slice(start, end);
-
-    if (!selected) {
-      const next = `${text.slice(0, start)}****${text.slice(end)}`;
-      setField("termsContent", next);
-      requestAnimationFrame(() => {
-        el.focus();
-        el.setSelectionRange(start + 2, start + 2);
-      });
-      return;
-    }
-
-    const wrapped = `**${selected}**`;
-    const next = `${text.slice(0, start)}${wrapped}${text.slice(end)}`;
-    setField("termsContent", next);
-    requestAnimationFrame(() => {
-      el.focus();
-      el.setSelectionRange(start + 2, end + 2);
-    });
-  };
-
   const downloadExcel = async () => {
     setBusy(true);
     setError(null);
 
     try {
-      const sections = splitTermsContent(form.termsContent);
+      const sections = splitAdditionalInformation(form.additionalInformation);
       const response = await fetch("/api/quotation/generate", {
         method: "POST",
         headers: {
@@ -339,6 +254,7 @@ export default function QuotationPage() {
           discount: form.discount,
           termsCondition: sections.conditionLines.join("\n"),
           termsPayment: sections.paymentLines.join("\n"),
+          additionalInformation: form.additionalInformation,
         }),
       });
 
@@ -456,26 +372,14 @@ export default function QuotationPage() {
               </fieldset>
 
               <fieldset className="item-box">
-                <legend>Term (Editable)</legend>
-                <div className="term-toolbar">
-                  <button
-                    type="button"
-                    className="rpb-btn-ghost term-bold-btn"
-                    onClick={applyBoldToTermsSelection}
-                    title="Bold teks terpilih (format **teks**)"
-                  >
-                    <Bold size={14} />
-                    Bold
-                  </button>
-                </div>
+                <legend>Additional Information</legend>
                 <label>
-                  Terms (termasuk judul section)
+                  Additional Information (Plain Text)
                   <textarea
-                    ref={termsRef}
                     className="rpb-input"
                     rows={12}
-                    value={form.termsContent}
-                    onChange={(event) => setField("termsContent", event.target.value)}
+                    value={form.additionalInformation}
+                    onChange={(event) => setField("additionalInformation", event.target.value)}
                   />
                 </label>
               </fieldset>
@@ -601,18 +505,8 @@ export default function QuotationPage() {
                 </table>
 
                 <section className="terms">
-                  <div className="terms-title">Term and Condition :</div>
-                  <div className="terms-list">
-                    {preview.termsCondition.map((line, index) => (
-                      <div key={`tc-${index}`}>{renderBoldLine(line)}</div>
-                    ))}
-                  </div>
-                  <div className="terms-title mt">Term of Payment :</div>
-                  <div className="terms-list">
-                    {preview.termsPayment.map((line, index) => (
-                      <div key={`tp-${index}`}>{renderBoldLine(line)}</div>
-                    ))}
-                  </div>
+                  <div className="terms-title">Additional Information :</div>
+                  <div className="terms-list plain-text">{preview.additionalLines.join("\n") || "-"}</div>
                 </section>
               </article>
             </div>
@@ -706,19 +600,6 @@ export default function QuotationPage() {
           margin: 0;
           display: grid;
           gap: 8px;
-        }
-        .term-toolbar {
-          display: flex;
-          justify-content: flex-end;
-        }
-        .term-bold-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 10px;
-          font-size: 12px;
-          font-weight: 700;
-          cursor: pointer;
         }
         legend {
           padding: 0 8px;
@@ -887,6 +768,10 @@ export default function QuotationPage() {
         }
         .terms-list > div {
           margin: 3px 0;
+        }
+        .terms-list.plain-text {
+          white-space: pre-line;
+          line-height: 1.35;
         }
         .terms-title {
           font-weight: 700;
