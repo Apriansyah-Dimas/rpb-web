@@ -5,7 +5,6 @@ import { useAuthSession } from "@/hooks/use-auth-session";
 import {
   buildAdditionalInformationPreviewLines,
   DEFAULT_ADDITIONAL_INFORMATION,
-  parseAdditionalInformationSections,
 } from "@/lib/quotation-content";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
 import { buildSummaryLineItems } from "@/lib/rpb-line-items";
@@ -276,7 +275,6 @@ export default function QuotationPage() {
     setError(null);
 
     try {
-      const sections = parseAdditionalInformationSections(form.additionalInformation);
       const response = await fetch("/api/quotation/generate", {
         method: "POST",
         headers: {
@@ -295,8 +293,6 @@ export default function QuotationPage() {
           quantity: Math.max(0, toNumber(form.quantity)),
           price: grandTotalRpb,
           discount: form.discount,
-          termsCondition: sections.conditionLines.join("\n"),
-          termsPayment: sections.paymentLines.join("\n"),
           additionalInformation: form.additionalInformation,
         }),
       });

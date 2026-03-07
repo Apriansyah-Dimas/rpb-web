@@ -1,8 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import {
-  DEFAULT_TERMS_CONDITION_LINES,
-  DEFAULT_TERMS_PAYMENT_LINES,
   parseAdditionalInformationSections,
   stripBoldMarkers,
 } from "@/lib/quotation-content";
@@ -35,8 +33,6 @@ type Payload = {
   itemDiscount?: number | string;
   item1Discount?: number | string;
   additionalInformation?: string;
-  termsCondition?: string;
-  termsPayment?: string;
 };
 
 const TEMPLATE_FILE = path.join(process.cwd(), "templates", "Quotation_PT_Jaya_Nurimba.xlsx");
@@ -70,14 +66,6 @@ function buildContactPerson(salesName: unknown, salesPhone: unknown): string {
   const phone = plainText(salesPhone);
   if (name && phone) return `${name} / ${phone}`;
   return name || phone;
-}
-
-function parseLines(value: unknown, fallbackLines: string[]): string[] {
-  const lines = String(value ?? "")
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-  return lines.length > 0 ? lines : fallbackLines;
 }
 
 function formatQuotationDate(date: Date): string {
@@ -148,18 +136,9 @@ async function createWorkbookBuffer(payload: Payload): Promise<Buffer> {
   const discount = toDiscount(payload.discount || payload.itemDiscount || payload.item1Discount);
   const addressCombined = [addressLine1, addressLine2].filter(Boolean).join("\n") || "-";
   const discountRateLiteral = Number.isFinite(discount) ? String(discount) : "0";
-  const hasAdditionalInformation = text(payload.additionalInformation).length > 0;
   const parsedAdditional = parseAdditionalInformationSections(text(payload.additionalInformation));
-  const termsConditionLines = (
-    hasAdditionalInformation
-      ? parsedAdditional.conditionLines
-      : parseLines(payload.termsCondition, DEFAULT_TERMS_CONDITION_LINES)
-  ).map((line) => stripBoldMarkers(line));
-  const termsPaymentLines = (
-    hasAdditionalInformation
-      ? parsedAdditional.paymentLines
-      : parseLines(payload.termsPayment, DEFAULT_TERMS_PAYMENT_LINES)
-  ).map((line) => stripBoldMarkers(line));
+  const termsConditionLines = parsedAdditional.conditionLines.map((line) => stripBoldMarkers(line));
+  const termsPaymentLines = parsedAdditional.paymentLines.map((line) => stripBoldMarkers(line));
 
   ["A26:A36", "B26:D36", "E26:E36", "F26:F36", "G26:G36", "H26:H36"].forEach((range) => {
     sheet.range(range).merged(false);
