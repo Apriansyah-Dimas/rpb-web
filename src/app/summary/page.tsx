@@ -9,7 +9,7 @@ import { buildSummaryLineItems } from "@/lib/rpb-line-items";
 import { saveSummaryHistory } from "@/lib/rpb-db";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useRpbStore } from "@/store/rpb-store";
-import { ArrowLeft, Download, FileText, History, Minus, Plus, Save } from "lucide-react";
+import { ArrowLeft, Download, FileText, Minus, Plus, Save } from "lucide-react";
 import type { RowInput } from "jspdf-autotable";
 import Link from "next/link";
 import type { FocusEvent, FormEvent } from "react";
@@ -605,22 +605,24 @@ export default function SummaryPage() {
           </section>
 
           <div className="no-print space-y-3">
-            <Link
-              href="/"
-              className="rpb-btn-ghost inline-flex h-11 items-center gap-2 px-4 py-2 text-sm font-semibold"
-            >
-              <ArrowLeft size={16} />
-              Back
-            </Link>
-
-            <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap">
+            <div className="flex items-center justify-between gap-2">
+              <Link
+                href="/"
+                className="rpb-btn-ghost inline-flex h-11 items-center gap-2 px-4 py-2 text-sm font-semibold"
+              >
+                <ArrowLeft size={16} />
+                Back
+              </Link>
               <Link
                 href="/quotation"
-                className="rpb-btn-ghost inline-flex h-11 items-center justify-center gap-2 px-3 py-2 text-sm font-semibold"
+                className="rpb-btn-primary inline-flex h-11 items-center justify-center gap-2 px-4 py-2 text-sm font-semibold"
               >
                 <FileText size={15} />
-                Quotation
+                Make Quotation
               </Link>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap">
               <button
                 type="button"
                 className="rpb-btn-ghost inline-flex h-11 items-center justify-center gap-2 px-3 py-2 text-sm font-semibold"
@@ -630,16 +632,9 @@ export default function SummaryPage() {
                 <Save size={15} />
                 {saveBusy ? "Saving..." : "Save"}
               </button>
-              <Link
-                href="/history"
-                className="rpb-btn-ghost inline-flex h-11 items-center justify-center gap-2 px-3 py-2 text-sm font-semibold"
-              >
-                <History size={15} />
-                Save History
-              </Link>
               <button
                 type="button"
-                className="rpb-btn-primary col-span-2 inline-flex h-11 items-center justify-center gap-2 px-4 py-2 text-sm font-semibold md:col-span-1"
+                className="rpb-btn-primary inline-flex h-11 items-center justify-center gap-2 px-4 py-2 text-sm font-semibold"
                 onClick={() => void downloadPdf()}
               >
                 <Download size={15} />
