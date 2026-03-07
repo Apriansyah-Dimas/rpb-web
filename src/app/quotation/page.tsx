@@ -18,7 +18,7 @@ type QuotationForm = {
 };
 
 const DEFAULT_TERMS_CONDITION = [
-  "- The above price Excluding PPn 11%",
+  "**Term and Condition:**",
   "- The above price loco Jakarta on truck",
   "- The above price Excluding OUTDOOR",
   "- Price Excluded Installation",
@@ -27,10 +27,9 @@ const DEFAULT_TERMS_CONDITION = [
   "- Time delivery: 8 - 10 weeks after DP",
 ];
 
-const DEFAULT_TERMS_PAYMENT = ["- 50% Down Payment DP", "- 50% Before Delivery"];
+const DEFAULT_TERMS_PAYMENT = ["", "**Term of Payment:**", "- 50% Down Payment DP", "- 50% Before Delivery"];
 const DEFAULT_ADDITIONAL_INFORMATION = [
   ...DEFAULT_TERMS_CONDITION,
-  "",
   ...DEFAULT_TERMS_PAYMENT,
 ].join("\n");
 
@@ -118,7 +117,7 @@ export default function QuotationPage() {
     attn: "",
     itemDescription: projectName || "",
     quantity: "1",
-    discount: "0",
+    discount: "25%",
     additionalInformation: DEFAULT_ADDITIONAL_INFORMATION,
   });
 
