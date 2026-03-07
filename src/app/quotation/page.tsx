@@ -243,25 +243,6 @@ export default function QuotationPage() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const fillSample = () => {
-    setForm((prev) => ({
-      ...prev,
-      attn: "Bapak Marcus",
-      itemDescription: projectName || "AHU (CLW46)\nAHU R.CCP",
-      quantity: "1",
-      discount: "25%",
-      additionalInformation: DEFAULT_ADDITIONAL_INFORMATION,
-    }));
-  };
-
-  const applyRpbIdentity = () => {
-    setForm((prev) => ({
-      ...prev,
-      itemDescription: projectName || prev.itemDescription,
-      quantity: prev.quantity || "1",
-    }));
-  };
-
   const handleDescriptionTab = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key !== "Tab") {
       return;
@@ -363,7 +344,7 @@ export default function QuotationPage() {
         <div className="quotation-page py-4 md:py-5">
           <div className="quotation-grid">
             <section className="quotation-panel">
-              <h1>Quotation Excel Generator</h1>
+              <h1>Quotation</h1>
               <p className="muted">Menyiapkan data quotation...</p>
             </section>
           </div>
@@ -377,10 +358,10 @@ export default function QuotationPage() {
       <div className="quotation-page py-4 md:py-5">
         <div className="quotation-grid">
           <section className="quotation-panel">
-            <h1>Quotation Excel Generator</h1>
+            <h1>Quotation</h1>
             <p className="muted">
-              Data customer dan sales diambil otomatis dari RPB + akun login. Price otomatis pakai Grand
-              Total RPB.
+              Data customer dan Contact Person diambil otomatis dari RPB dan informasi akun. Price
+              otomatis pakai Grand Total RPB.
             </p>
 
             <div className="form-grid">
@@ -394,11 +375,11 @@ export default function QuotationPage() {
                   <strong>{customerAddress || "-"}</strong>
                 </div>
                 <div className="auto-row">
-                  <span>Sales Name (Akun)</span>
+                  <span>Contact Person</span>
                   <strong>{accountName || "-"}</strong>
                 </div>
                 <div className="auto-row">
-                  <span>Sales Phone (Akun)</span>
+                  <span>Phone Number</span>
                   <strong>{accountPhone || "-"}</strong>
                 </div>
               </div>
@@ -475,7 +456,6 @@ export default function QuotationPage() {
               <fieldset className="item-box">
                 <legend>Additional Information</legend>
                 <label>
-                  Additional Information (Plain Text)
                   <div className="field-toolbar">
                     <button
                       type="button"
@@ -501,12 +481,6 @@ export default function QuotationPage() {
               {error ? <div className="error-box">{error}</div> : null}
 
               <div className="actions">
-                <button type="button" className="rpb-btn-ghost action-btn" onClick={applyRpbIdentity}>
-                  Sync Data RPB
-                </button>
-                <button type="button" className="rpb-btn-ghost action-btn" onClick={fillSample}>
-                  Isi Contoh
-                </button>
                 <button
                   type="button"
                   className="rpb-btn-primary action-btn"
@@ -520,8 +494,7 @@ export default function QuotationPage() {
           </section>
 
           <section className="quotation-panel preview">
-            <h2>Preview A4 (Mirip Excel)</h2>
-            <p className="muted">Preview ini diselaraskan dengan format quotation template.</p>
+            <h2>Preview</h2>
 
             <div className="a4-stage">
               <article className="a4-page">
@@ -661,6 +634,7 @@ export default function QuotationPage() {
           width: 100%;
           padding-left: 20px;
           padding-right: 20px;
+          overflow-x: hidden;
         }
         @media (min-width: 1024px) {
           .quotation-page {
@@ -773,16 +747,16 @@ export default function QuotationPage() {
           border: 1px solid var(--rpb-border);
           border-radius: 10px;
           background: #eef2f7;
-          overflow: auto;
+          overflow: hidden;
         }
         .a4-page {
-          width: 210mm;
+          width: min(100%, 210mm);
           min-height: 297mm;
           margin: 0 auto;
           background: #fff;
           color: #111;
           font-family: Calibri, Arial, sans-serif;
-          font-size: 11px;
+          font-size: clamp(9px, 1.7vw, 11px);
           line-height: 1.2;
           padding: 10mm;
           box-shadow: 0 14px 24px rgba(15, 23, 42, 0.14);
@@ -795,11 +769,13 @@ export default function QuotationPage() {
         }
         .sheet-logo {
           width: 175px;
+          max-width: 48%;
           max-height: 58px;
           object-fit: contain;
         }
         .sheet-head-right {
-          min-width: 290px;
+          min-width: 0;
+          max-width: 52%;
         }
         .sheet-title {
           font-size: 16px;
@@ -851,12 +827,15 @@ export default function QuotationPage() {
           width: 100%;
           border-collapse: collapse;
           margin-bottom: 8px;
+          table-layout: fixed;
         }
         .item-grid th,
         .item-grid td {
           border: 1px solid #111;
           padding: 2px 4px;
           vertical-align: top;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
         .item-grid th {
           font-weight: 700;
@@ -940,6 +919,118 @@ export default function QuotationPage() {
         @media (max-width: 980px) {
           .quotation-grid {
             grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .quotation-page {
+            padding-left: 12px;
+            padding-right: 12px;
+          }
+          .quotation-panel {
+            border-radius: 12px;
+            padding: 14px;
+          }
+          .actions {
+            justify-content: stretch;
+          }
+          .action-btn {
+            width: 100%;
+          }
+          .a4-stage {
+            padding: 8px;
+          }
+          .a4-page {
+            min-height: 0;
+            padding: 14px;
+            font-size: 9px;
+            line-height: 1.3;
+            box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
+          }
+          .sheet-head {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+          }
+          .sheet-logo {
+            width: 130px;
+            max-width: 100%;
+            max-height: 46px;
+          }
+          .sheet-head-right {
+            width: 100%;
+            max-width: 100%;
+          }
+          .sheet-title {
+            text-align: left;
+            font-size: 13px;
+          }
+          .meta-table {
+            margin-left: 0;
+          }
+          .meta-table td {
+            padding: 0 2px;
+            font-size: 9px;
+          }
+          .info-line {
+            grid-template-columns: 88px 8px 1fr;
+            column-gap: 2px;
+          }
+          .item-grid th,
+          .item-grid td {
+            padding: 2px;
+            font-size: 8.5px;
+          }
+          .item-grid .w-no {
+            width: 7%;
+          }
+          .item-grid .w-desc {
+            width: 42%;
+          }
+          .item-grid .w-qty {
+            width: 12%;
+          }
+          .item-grid .w-price {
+            width: 19%;
+          }
+          .item-grid .w-total {
+            width: 20%;
+          }
+          .item-grid .item-row td:nth-child(2) {
+            min-height: 110px;
+          }
+          .terms {
+            font-size: 9px;
+          }
+          .sign-block {
+            margin-top: 14px;
+            font-size: 9px;
+          }
+          .sign-name {
+            margin-top: 14px !important;
+          }
+        }
+
+        @media (max-width: 375px) {
+          .quotation-page {
+            padding-left: 10px;
+            padding-right: 10px;
+          }
+          .quotation-panel {
+            padding: 12px;
+          }
+          .a4-stage {
+            padding: 6px;
+          }
+          .a4-page {
+            padding: 10px;
+          }
+          .info-line {
+            grid-template-columns: 78px 7px 1fr;
+          }
+          .item-grid th,
+          .item-grid td {
+            font-size: 8px;
           }
         }
       `}</style>
