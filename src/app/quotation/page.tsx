@@ -110,6 +110,7 @@ export default function QuotationPage() {
 
   const [accountName, setAccountName] = useState("");
   const [accountPhone, setAccountPhone] = useState("");
+  const [accountEmail, setAccountEmail] = useState("");
   const attnInputRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const additionalInfoRef = useRef<HTMLTextAreaElement>(null);
@@ -133,6 +134,7 @@ export default function QuotationPage() {
     if (!user) {
       setAccountName("");
       setAccountPhone("");
+      setAccountEmail("");
       return;
     }
 
@@ -141,7 +143,7 @@ export default function QuotationPage() {
         const supabase = getSupabaseBrowserClient();
         const { data } = await supabase
           .from("user_profiles")
-          .select("full_name, phone_number")
+          .select("full_name, phone_number, email")
           .eq("id", user.id)
           .maybeSingle();
 
@@ -152,6 +154,7 @@ export default function QuotationPage() {
 
         setAccountName(String(data?.full_name ?? fallbackName).trim());
         setAccountPhone(String(data?.phone_number ?? "").trim());
+        setAccountEmail(String(data?.email ?? user.email ?? "").trim());
       } catch {
         const fallbackName =
           String(user.user_metadata?.full_name ?? "").trim() ||
@@ -159,6 +162,7 @@ export default function QuotationPage() {
           String(user.email ?? "").trim();
         setAccountName(fallbackName);
         setAccountPhone("");
+        setAccountEmail(String(user.email ?? "").trim());
       }
     };
 
@@ -623,6 +627,13 @@ export default function QuotationPage() {
                       : "-"}
                   </div>
                 </section>
+
+                <footer className="sign-block">
+                  <div>Best Regards</div>
+                  <div className="sign-name">{accountName || "-"}</div>
+                  <div className="sign-company">PT Klimatek</div>
+                  <div className="sign-email">Email : {accountEmail || "-"}</div>
+                </footer>
               </article>
             </div>
           </section>
@@ -908,6 +919,22 @@ export default function QuotationPage() {
         }
         .terms-title.mt {
           margin-top: 10px;
+        }
+        .sign-block {
+          margin-top: 18px;
+          font-size: 10px;
+          white-space: pre-line;
+        }
+        .sign-block div {
+          margin: 2px 0;
+        }
+        .sign-name,
+        .sign-company,
+        .sign-email {
+          font-weight: 700;
+        }
+        .sign-name {
+          margin-top: 20px !important;
         }
 
         @media (max-width: 980px) {
