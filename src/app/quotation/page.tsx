@@ -3,7 +3,6 @@
 import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import {
-  buildAdditionalInformationPreviewLines,
   DEFAULT_ADDITIONAL_INFORMATION,
 } from "@/lib/quotation-content";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
@@ -187,10 +186,6 @@ export default function QuotationPage() {
     const discountAmount = subtotal * discountRate;
     const ppn = (subtotal - discountAmount) * 0.11;
     const grandTotal = subtotal - discountAmount + ppn;
-    const additionalInformationLines = buildAdditionalInformationPreviewLines(
-      form.additionalInformation,
-    );
-
     return {
       quantity,
       price,
@@ -199,7 +194,6 @@ export default function QuotationPage() {
       discountAmount,
       ppn,
       grandTotal,
-      additionalInformationLines,
       contactPerson: [accountName, accountPhone].filter(Boolean).join(" / "),
     };
   }, [accountName, accountPhone, form, grandTotalRpb]);
@@ -575,8 +569,8 @@ export default function QuotationPage() {
 
                 <section className="terms">
                   <div className="terms-list plain-text">
-                    {preview.additionalInformationLines.length > 0
-                      ? renderRichMultilineText(preview.additionalInformationLines.join("\n"))
+                    {form.additionalInformation.trim().length > 0
+                      ? renderRichMultilineText(form.additionalInformation)
                       : "-"}
                   </div>
                 </section>
