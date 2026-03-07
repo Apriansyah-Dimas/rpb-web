@@ -1,4 +1,4 @@
-const CACHE_NAME = "rpb-estimator-v3";
+const CACHE_NAME = "rpb-estimator-v5";
 const OFFLINE_URL = "/offline";
 const PRECACHE_URLS = [
   "/login",
