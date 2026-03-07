@@ -196,21 +196,26 @@ async function createWorkbookBuffer(payload: Payload): Promise<Buffer> {
     sheet.row(row).hidden(false);
   }
 
-  ["A", "B", "C", "D", "E", "G", "H"].forEach((col) => {
-    for (let row = 34; row <= 36; row += 1) {
-      sheet.cell(`${col}${row}`).value(null);
+  ["E34:F34", "E35:F35", "E36:F36", "E37:F37", "G34:H34", "G35:H35", "G36:H36", "G37:H37"].forEach(
+    (range) => {
+      sheet.range(range).merged(false);
+    },
+  );
+  ["A", "B", "C", "D", "E", "F", "G", "H"].forEach((col) => {
+    for (let row = 34; row <= 37; row += 1) {
+      sheet.cell(`${col}${row}`).formula(null).value(null);
     }
   });
 
   sheet.cell("G26").formula(null).value(null);
   sheet.cell("H26").formula(null).value(null);
-  sheet.cell("F34").value("Subtotal");
+  sheet.cell("E34").value("Subtotal");
   sheet.cell("G34").formula('IF(G15="","",G15)');
-  sheet.cell("F35").value(`Discount (${(discount * 100).toFixed(2)}%)`);
+  sheet.cell("E35").value(`Discount (${(discount * 100).toFixed(2)}%)`);
   sheet.cell("G35").formula(`IF(G34="","",G34*${discountRateLiteral})`);
-  sheet.cell("F36").value("PPN 11%");
+  sheet.cell("E36").value("PPN 11%");
   sheet.cell("G36").formula('IF(G34="","",(G34-G35)*11%)');
-  sheet.cell("F37").value("Grand Total");
+  sheet.cell("E37").value("Grand Total");
   sheet.cell("G37").formula('IF(G34="","",G34-G35+G36)');
 
   const numberFormat = "#,##0";
@@ -218,14 +223,24 @@ async function createWorkbookBuffer(payload: Payload): Promise<Buffer> {
   sheet.cell("F15").style("numberFormat", numberFormat);
   sheet.cell("G15").style("numberFormat", numberFormat);
   for (let row = 34; row <= 37; row += 1) {
-    sheet.cell(`F${row}`).style("horizontalAlignment", "right");
+    sheet.range(`E${row}:F${row}`).style("horizontalAlignment", "right");
     sheet.cell(`G${row}`).style("horizontalAlignment", "right");
     sheet.cell(`G${row}`).style("numberFormat", numberFormat);
   }
-  sheet.cell("F37").style("bold", true);
+  sheet.range("E37:F37").style("bold", true);
   sheet.cell("G37").style("bold", true);
 
-  ["G14:H14", "G34:H34", "G35:H35", "G36:H36", "G37:H37"].forEach((range) => {
+  [
+    "E34:F34",
+    "E35:F35",
+    "E36:F36",
+    "E37:F37",
+    "G14:H14",
+    "G34:H34",
+    "G35:H35",
+    "G36:H36",
+    "G37:H37",
+  ].forEach((range) => {
     sheet.range(range).merged(true);
     sheet.range(range).style("border", {
       top: true,
@@ -249,13 +264,13 @@ async function createWorkbookBuffer(payload: Payload): Promise<Buffer> {
     bottom: true,
   });
 
-  ["A", "B", "C", "D", "E"].forEach((col) => {
+  ["A", "B", "C", "D"].forEach((col) => {
     for (let row = 34; row <= 37; row += 1) {
       sheet.cell(`${col}${row}`).style("border", {});
     }
   });
   for (let row = 34; row <= 37; row += 1) {
-    sheet.cell(`F${row}`).style("border", {
+    sheet.range(`E${row}:F${row}`).style("border", {
       top: true,
       left: true,
       right: true,
