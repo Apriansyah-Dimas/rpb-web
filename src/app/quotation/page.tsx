@@ -505,7 +505,6 @@ export default function QuotationPage() {
                 </table>
 
                 <section className="terms">
-                  <div className="terms-title">Additional Information :</div>
                   <div className="terms-list plain-text">{preview.additionalLines.join("\n") || "-"}</div>
                 </section>
               </article>
