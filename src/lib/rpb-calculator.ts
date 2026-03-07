@@ -36,27 +36,32 @@ export interface CalculatedFixedItem {
   totalIdr: number;
 }
 
-export const calculateProfileBreakdown = (
-  dimensions: Dimensions,
-  panelThickness: PanelThickness,
-  items: ProfileMasterItem[],
+const calculateRowsWithSharedVariables = <
+  T extends {
+    id: string;
+    code: string;
+    name: string;
+    unit: string;
+    sortOrder: number;
+    formulaExpr: string;
+  },
+>(
+  items: T[],
+  variables: Record<string, number>,
+  getUnitPriceIdr: (item: T) => number,
 ): CalculatedFixedItem[] => {
-  const variables: Record<string, number> = {
-    ...buildFormulaContext(sanitizeDimensions(dimensions), panelThickness),
-  };
-
   const rows: CalculatedFixedItem[] = [];
   for (const item of items.slice().sort((a, b) => a.sortOrder - b.sortOrder)) {
     const qty = evaluateFormulaQuantity(item.formulaExpr, variables);
-    const unitPriceIdr = panelThickness === 45 ? item.priceIdr45 : item.priceIdr30;
+    const unitPriceIdr = safe(getUnitPriceIdr(item));
     rows.push({
       id: item.id,
       code: item.code,
       name: item.name,
       unit: item.unit,
       qty,
-      unitPriceIdr: safe(unitPriceIdr),
-      totalIdr: safe(qty) * safe(unitPriceIdr),
+      unitPriceIdr,
+      totalIdr: safe(qty) * unitPriceIdr,
     });
     variables[item.code] = qty;
   }
@@ -64,31 +69,56 @@ export const calculateProfileBreakdown = (
   return rows;
 };
 
-export const calculateKonstruksiBreakdown = (
+export const calculateFixedBreakdowns = (
   dimensions: Dimensions,
   panelThickness: PanelThickness,
-  items: KonstruksiMasterItem[],
-): CalculatedFixedItem[] => {
+  profileItems: ProfileMasterItem[],
+  konstruksiItems: KonstruksiMasterItem[],
+): {
+  profileRows: CalculatedFixedItem[];
+  konstruksiRows: CalculatedFixedItem[];
+  profileTotalIdr: number;
+  konstruksiTotalIdr: number;
+} => {
   const variables: Record<string, number> = {
     ...buildFormulaContext(sanitizeDimensions(dimensions), panelThickness),
   };
 
-  const rows: CalculatedFixedItem[] = [];
-  for (const item of items.slice().sort((a, b) => a.sortOrder - b.sortOrder)) {
-    const qty = evaluateFormulaQuantity(item.formulaExpr, variables);
-    rows.push({
-      id: item.id,
-      code: item.code,
-      name: item.name,
-      unit: item.unit,
-      qty,
-      unitPriceIdr: safe(item.unitPriceIdr),
-      totalIdr: safe(qty) * safe(item.unitPriceIdr),
-    });
-    variables[item.code] = qty;
-  }
+  const profileRows = calculateRowsWithSharedVariables(
+    profileItems,
+    variables,
+    (item) => (panelThickness === 45 ? item.priceIdr45 : item.priceIdr30),
+  );
+  const konstruksiRows = calculateRowsWithSharedVariables(
+    konstruksiItems,
+    variables,
+    (item) => item.unitPriceIdr,
+  );
 
-  return rows;
+  return {
+    profileRows,
+    konstruksiRows,
+    profileTotalIdr: profileRows.reduce((sum, item) => sum + item.totalIdr, 0),
+    konstruksiTotalIdr: konstruksiRows.reduce((sum, item) => sum + item.totalIdr, 0),
+  };
+};
+
+export const calculateProfileBreakdown = (
+  dimensions: Dimensions,
+  panelThickness: PanelThickness,
+  items: ProfileMasterItem[],
+): CalculatedFixedItem[] => {
+  return calculateFixedBreakdowns(dimensions, panelThickness, items, []).profileRows;
+};
+
+export const calculateKonstruksiBreakdown = (
+  dimensions: Dimensions,
+  panelThickness: PanelThickness,
+  items: KonstruksiMasterItem[],
+  profileItemsContext: ProfileMasterItem[] = [],
+): CalculatedFixedItem[] => {
+  return calculateFixedBreakdowns(dimensions, panelThickness, profileItemsContext, items)
+    .konstruksiRows;
 };
 
 export const calculateProfileTotalIdr = (
@@ -106,8 +136,9 @@ export const calculateKonstruksiTotalIdr = (
   dimensions: Dimensions,
   panelThickness: PanelThickness,
   items: KonstruksiMasterItem[] = [],
+  profileItemsContext: ProfileMasterItem[] = [],
 ): number =>
-  calculateKonstruksiBreakdown(dimensions, panelThickness, items).reduce(
+  calculateKonstruksiBreakdown(dimensions, panelThickness, items, profileItemsContext).reduce(
     (sum, item) => sum + item.totalIdr,
     0,
   );

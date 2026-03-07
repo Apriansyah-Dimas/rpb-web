@@ -154,7 +154,8 @@ function FormulaHelpBox() {
       <p className="mt-1">
         Variabel yang bisa dipakai: <span className="font-mono">width</span>,{" "}
         <span className="font-mono">length</span>, <span className="font-mono">height</span>,{" "}
-        <span className="font-mono">panel_thickness</span>, dan kode item sebelumnya.
+        <span className="font-mono">panel_thickness</span>, dan kode item sebelumnya (termasuk
+        kode profile untuk dipakai di formula konstruksi).
       </p>
       <div className="mt-2 overflow-x-auto rounded-lg border border-rpb-border bg-white">
         <table className="w-full min-w-[680px] table-fixed text-xs">
@@ -383,7 +384,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
     }),
     [dimensions.height, dimensions.length, dimensions.width],
   );
-  const profileQtyPreview = useMemo(() => {
+  const { profileQtyPreview, konstruksiQtyPreview } = useMemo(() => {
     const ctx: Record<string, number> = {
       panel_thickness: 30,
       panelThickness: 30,
@@ -391,14 +392,14 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
       length: defaultVariablePreviewValues.length,
       height: defaultVariablePreviewValues.height,
     };
-    profileVariables.forEach((variable) => {
+    [...profileVariables, ...konstruksiVariables].forEach((variable) => {
       if (variable.key === "width" || variable.key === "length" || variable.key === "height") {
         return;
       }
       ctx[variable.key] = Number.isFinite(variable.defaultValue) ? variable.defaultValue : 0;
     });
 
-    return profileRows.reduce<Record<string, number>>((acc, row) => {
+    const profileQtyPreviewMap = profileRows.reduce<Record<string, number>>((acc, row) => {
       const qty = evaluateFormulaQuantity(row.formulaExpr, ctx);
       acc[row.id] = qty;
       if (!isReservedFormulaKey(row.code)) {
@@ -406,31 +407,29 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
       }
       return acc;
     }, {});
-  }, [defaultVariablePreviewValues.height, defaultVariablePreviewValues.length, defaultVariablePreviewValues.width, profileRows, profileVariables]);
-  const konstruksiQtyPreview = useMemo(() => {
-    const ctx: Record<string, number> = {
-      panel_thickness: 30,
-      panelThickness: 30,
-      width: defaultVariablePreviewValues.width,
-      length: defaultVariablePreviewValues.length,
-      height: defaultVariablePreviewValues.height,
+
+    const konstruksiQtyPreviewMap = konstruksiRows.reduce<Record<string, number>>((acc, row) => {
+      const qty = evaluateFormulaQuantity(row.formulaExpr, ctx);
+      acc[row.id] = qty;
+      if (!isReservedFormulaKey(row.code)) {
+        ctx[row.code] = qty;
+      }
+      return acc;
+    }, {});
+
+    return {
+      profileQtyPreview: profileQtyPreviewMap,
+      konstruksiQtyPreview: konstruksiQtyPreviewMap,
     };
-    konstruksiVariables.forEach((variable) => {
-      if (variable.key === "width" || variable.key === "length" || variable.key === "height") {
-        return;
-      }
-      ctx[variable.key] = Number.isFinite(variable.defaultValue) ? variable.defaultValue : 0;
-    });
-
-    return konstruksiRows.reduce<Record<string, number>>((acc, row) => {
-      const qty = evaluateFormulaQuantity(row.formulaExpr, ctx);
-      acc[row.id] = qty;
-      if (!isReservedFormulaKey(row.code)) {
-        ctx[row.code] = qty;
-      }
-      return acc;
-    }, {});
-  }, [defaultVariablePreviewValues.height, defaultVariablePreviewValues.length, defaultVariablePreviewValues.width, konstruksiRows, konstruksiVariables]);
+  }, [
+    defaultVariablePreviewValues.height,
+    defaultVariablePreviewValues.length,
+    defaultVariablePreviewValues.width,
+    konstruksiRows,
+    konstruksiVariables,
+    profileRows,
+    profileVariables,
+  ]);
 
   const saveAllProfile = async () => {
     for (const row of profileRows) {

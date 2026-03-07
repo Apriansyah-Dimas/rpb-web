@@ -1,6 +1,5 @@
 import {
-  calculateKonstruksiTotalIdr,
-  calculateProfileTotalIdr,
+  calculateFixedBreakdowns,
 } from "@/lib/rpb-calculator";
 import type {
   CustomOtherItem,
@@ -35,8 +34,8 @@ export const buildSummaryLineItems = (params: {
     customOtherItems,
   } = params;
 
-  const profileIdr = calculateProfileTotalIdr(dimensions, panelThickness, profileItems);
-  const konstruksiIdr = calculateKonstruksiTotalIdr(dimensions, panelThickness, konstruksiItems);
+  const { profileTotalIdr: profileIdr, konstruksiTotalIdr: konstruksiIdr } =
+    calculateFixedBreakdowns(dimensions, panelThickness, profileItems, konstruksiItems);
 
   const baseItems: SummaryLineItem[] = [
     {

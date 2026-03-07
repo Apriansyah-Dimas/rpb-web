@@ -1,5 +1,4 @@
 export const DEFAULT_TERMS_CONDITION_LINES = [
-  "- The above price Excluding PPn 11%",
   "- The above price loco Jakarta on truck",
   "- The above price Excluding OUTDOOR",
   "- Price Excluded Installation",
@@ -14,7 +13,10 @@ export const DEFAULT_TERMS_PAYMENT_LINES = [
 ];
 
 export const DEFAULT_ADDITIONAL_INFORMATION = [
+  "**Term and Condition :**",
   ...DEFAULT_TERMS_CONDITION_LINES,
+  "",
+  "**Term Payment :**",
   ...DEFAULT_TERMS_PAYMENT_LINES,
 ].join("\n");
 

@@ -1,10 +1,7 @@
 "use client";
 
 import {
-  calculateKonstruksiBreakdown,
-  calculateKonstruksiTotalIdr,
-  calculateProfileBreakdown,
-  calculateProfileTotalIdr,
+  calculateFixedBreakdowns,
   type CalculatedFixedItem,
   formatRupiah,
 } from "@/lib/rpb-calculator";
@@ -160,37 +157,27 @@ export default function HomePage() {
     return ["Semua", ...categories];
   }, [otherItems]);
 
-  const profileIdr = useMemo(
-    () => calculateProfileTotalIdr(dimensions, panelThickness, masterData?.profileItems ?? []),
-    [dimensions, masterData?.profileItems, panelThickness],
+  const { profileRows, konstruksiRows, profileTotalIdr, konstruksiTotalIdr } = useMemo(
+    () =>
+      calculateFixedBreakdowns(
+        dimensions,
+        panelThickness,
+        masterData?.profileItems ?? [],
+        masterData?.konstruksiItems ?? [],
+      ),
+    [dimensions, masterData?.konstruksiItems, masterData?.profileItems, panelThickness],
   );
 
+  const profileIdr = profileTotalIdr;
   const profileBreakdown = useMemo(
-    () =>
-      calculateProfileBreakdown(dimensions, panelThickness, masterData?.profileItems ?? []).filter(
-        (item) => item.qty > 0,
-      ),
-    [dimensions, masterData?.profileItems, panelThickness],
+    () => profileRows.filter((item) => item.qty > 0),
+    [profileRows],
   );
 
-  const konstruksiIdr = useMemo(
-    () =>
-      calculateKonstruksiTotalIdr(
-        dimensions,
-        panelThickness,
-        masterData?.konstruksiItems ?? [],
-      ),
-    [dimensions, masterData?.konstruksiItems, panelThickness],
-  );
-
+  const konstruksiIdr = konstruksiTotalIdr;
   const konstruksiBreakdown = useMemo(
-    () =>
-      calculateKonstruksiBreakdown(
-        dimensions,
-        panelThickness,
-        masterData?.konstruksiItems ?? [],
-      ).filter((item) => item.qty > 0),
-    [dimensions, masterData?.konstruksiItems, panelThickness],
+    () => konstruksiRows.filter((item) => item.qty > 0),
+    [konstruksiRows],
   );
 
   const filteredOtherItems = useMemo(() => {
