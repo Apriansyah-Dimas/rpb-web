@@ -344,6 +344,36 @@ export async function DELETE(request: Request) {
     }
 
     const adminClient = getSupabaseAdminClient();
+
+    const { data: targetProfile, error: targetProfileError } = await adminClient
+      .from("user_profiles")
+      .select("role")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (targetProfileError) {
+      return NextResponse.json({ error: targetProfileError.message }, { status: 400 });
+    }
+
+    const targetRole = normalizeRole(targetProfile?.role);
+    if (targetRole === "admin") {
+      const { count: adminCount, error: adminCountError } = await adminClient
+        .from("user_profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "admin");
+
+      if (adminCountError) {
+        return NextResponse.json({ error: adminCountError.message }, { status: 400 });
+      }
+
+      if ((adminCount ?? 0) <= 1) {
+        return NextResponse.json(
+          { error: "Tidak bisa menghapus admin terakhir. Tambahkan admin lain terlebih dulu." },
+          { status: 400 },
+        );
+      }
+    }
+
     const { error: deleteError } = await adminClient.auth.admin.deleteUser(id);
     if (deleteError) {
       return NextResponse.json({ error: deleteError.message }, { status: 400 });
