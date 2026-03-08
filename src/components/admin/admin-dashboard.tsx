@@ -9,7 +9,7 @@ export function AdminDashboard() {
       <section className="grid gap-3 md:grid-cols-2">
         <Link
           href="/admin/config"
-          className="rpb-section block rounded-2xl p-5 transition hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(45,52,116,0.16)]"
+          className="rpb-section block rounded-2xl p-5 transition duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(45,52,116,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(46,49,146,0.25)]"
         >
           <p className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-rpb-primary-soft text-rpb-primary">
             <Settings2 size={18} />
@@ -22,7 +22,7 @@ export function AdminDashboard() {
 
         <Link
           href="/admin/users"
-          className="rpb-section block rounded-2xl p-5 transition hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(45,52,116,0.16)]"
+          className="rpb-section block rounded-2xl p-5 transition duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(45,52,116,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(46,49,146,0.25)]"
         >
           <p className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-rpb-primary-soft text-rpb-primary">
             <Users size={18} />

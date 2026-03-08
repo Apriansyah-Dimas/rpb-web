@@ -4,7 +4,7 @@ import logoRpbHeader from "@/app/logorpb-header.svg";
 export function RpbAppHeader({ className = "" }: { className?: string }) {
   return (
     <header
-      className={`rpb-fixed-header fixed top-0 right-0 left-0 z-[60] h-[92px] text-white md:h-[106px] ${className}`.trim()}
+      className={`rpb-fixed-header fixed top-0 right-0 left-0 z-[60] h-[92px] text-white shadow-[0_8px_24px_rgba(30,36,88,0.18)] md:h-[106px] ${className}`.trim()}
     >
       <div className="flex h-[72px] items-center justify-center px-4 md:h-[82px] md:px-6">
         <Image

@@ -340,7 +340,7 @@ function LoginPageContent() {
           --login-card-border: rgba(0, 0, 0, 0.07);
           --login-accent-primary: #2e3192;
           --login-accent-hover: #2e3192;
-          --login-accent-focus-ring: rgba(0, 143, 213, 0.25);
+          --login-accent-focus-ring: rgba(46, 49, 146, 0.24);
           --login-text-main: #1a1a2e;
           --login-text-muted: #6b6b80;
           --login-text-error: #dc2626;
@@ -552,6 +552,7 @@ function LoginPageContent() {
           color: white;
           border: none;
           border-radius: var(--login-radius-input);
+          min-height: 44px;
           padding: 12px;
           font-size: 15px;
           font-weight: 600;
@@ -612,6 +613,7 @@ function LoginPageContent() {
           background: transparent;
           border: 1px solid var(--login-input-border);
           border-radius: var(--login-radius-input);
+          min-height: 44px;
           color: var(--login-text-main);
           padding: 12px;
           font-size: 15px;
@@ -638,6 +640,18 @@ function LoginPageContent() {
           .login-page button[type="submit"],
           .login-page .secondary-action {
             font-size: 14px;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .login-page .card,
+          .login-page .error-message,
+          .login-page button[type="submit"],
+          .login-page .secondary-action,
+          .login-page .spinner {
+            animation: none !important;
+            transition: none !important;
+            transform: none !important;
           }
         }
       `}</style>

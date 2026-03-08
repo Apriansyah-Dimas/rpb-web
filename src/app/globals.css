@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #f7f9ff;
   --foreground: #1f2340;
   --rpb-primary: #2e3192;
   --rpb-primary-dark: #2e3192;
@@ -9,6 +9,8 @@
   --rpb-border: #dfe3f3;
   --rpb-surface: #ffffff;
   --rpb-ink-soft: #4e5275;
+  --rpb-focus-ring: rgba(46, 49, 146, 0.2);
+  --rpb-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @theme inline {
@@ -31,6 +33,12 @@ body {
   font-family: var(--font-manrope), sans-serif;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html,
 body {
   -ms-overflow-style: none;
@@ -45,12 +53,12 @@ body::-webkit-scrollbar {
 
 .page-bg {
   min-height: 100vh;
-  background: #fff;
+  background: var(--background);
 }
 
 .rpb-shell {
   border: 0;
-  background: #fff;
+  background: var(--rpb-surface);
   box-shadow: none;
 }
 
@@ -73,16 +81,24 @@ body::-webkit-scrollbar {
   width: 100%;
   border: 1px solid var(--rpb-border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--rpb-surface);
+  min-height: 44px;
   padding: 10px 12px;
   color: var(--foreground);
   outline: none;
-  transition: border-color 120ms ease, box-shadow 120ms ease;
+  transition: border-color 180ms var(--rpb-ease-out), box-shadow 180ms var(--rpb-ease-out),
+    background-color 180ms var(--rpb-ease-out);
 }
 
 .rpb-input:focus {
   border-color: var(--rpb-primary);
-  box-shadow: 0 0 0 4px rgba(46, 49, 146, 0.16);
+  box-shadow: 0 0 0 4px var(--rpb-focus-ring);
+}
+
+.rpb-input:disabled {
+  cursor: not-allowed;
+  background: color-mix(in oklab, var(--rpb-surface) 78%, var(--rpb-primary-soft));
+  color: color-mix(in oklab, var(--foreground) 72%, white);
 }
 
 .rpb-input-with-icon {
@@ -99,19 +115,78 @@ body::-webkit-scrollbar {
   border-radius: 10px;
   background: var(--rpb-primary);
   color: #fff;
-  transition: background-color 120ms ease, transform 120ms ease;
+  min-height: 44px;
+  transition: background-color 180ms var(--rpb-ease-out), transform 180ms var(--rpb-ease-out),
+    box-shadow 180ms var(--rpb-ease-out);
 }
 
 .rpb-btn-primary:hover {
   background: var(--rpb-primary-dark);
   transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(46, 49, 146, 0.2);
+}
+
+.rpb-btn-primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--rpb-focus-ring);
+}
+
+.rpb-btn-primary:disabled {
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.72;
 }
 
 .rpb-btn-ghost {
   border: 1px solid var(--rpb-border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--rpb-surface);
+  min-height: 44px;
   color: var(--foreground);
+  transition: border-color 180ms var(--rpb-ease-out), color 180ms var(--rpb-ease-out),
+    background-color 180ms var(--rpb-ease-out), transform 180ms var(--rpb-ease-out);
+}
+
+.rpb-btn-ghost:hover {
+  border-color: color-mix(in oklab, var(--rpb-border) 72%, var(--rpb-primary));
+  color: var(--rpb-primary);
+  background: color-mix(in oklab, var(--rpb-surface) 85%, var(--rpb-primary-soft));
+}
+
+.rpb-btn-ghost:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--rpb-focus-ring);
+}
+
+.rpb-btn-ghost:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.rpb-alert {
+  border-radius: 12px;
+  border: 1px solid var(--rpb-border);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.rpb-alert-error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.rpb-alert-success {
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.rpb-alert-info {
+  background: var(--rpb-surface);
+  color: var(--rpb-ink-soft);
 }
 
 .rpb-section {
@@ -132,7 +207,15 @@ body::-webkit-scrollbar {
 .rpb-grid-card {
   border: 1px solid var(--rpb-border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--rpb-surface);
+  transition: border-color 180ms var(--rpb-ease-out), transform 180ms var(--rpb-ease-out),
+    box-shadow 180ms var(--rpb-ease-out);
+}
+
+.rpb-grid-card:hover {
+  border-color: color-mix(in oklab, var(--rpb-border) 68%, var(--rpb-primary));
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(30, 36, 88, 0.08);
 }
 
 .rpb-key-card {
@@ -262,6 +345,17 @@ body::-webkit-scrollbar {
 
   .rpb-doc-canvas {
     padding: 18px 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

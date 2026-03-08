@@ -9,6 +9,7 @@ import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
 import { buildSummaryLineItems } from "@/lib/rpb-line-items";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useRpbStore } from "@/store/rpb-store";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -473,7 +474,14 @@ export default function QuotationPage() {
             <div className="a4-stage">
               <article className="a4-page">
                 <header className="sheet-head">
-                  <img src="/assets/template-logo.png" alt="Company Logo" className="sheet-logo" />
+                  <Image
+                    src="/assets/template-logo.png"
+                    alt="Company Logo"
+                    className="sheet-logo"
+                    width={175}
+                    height={58}
+                    priority
+                  />
                   <div className="sheet-head-right">
                     <h3 className="sheet-title">QUOTATION</h3>
                     <table className="meta-table">
@@ -953,7 +961,7 @@ export default function QuotationPage() {
           .item-grid th,
           .item-grid td {
             padding: 2px;
-            font-size: 8.5px;
+            font-size: 9px;
           }
           .item-grid .w-no {
             width: 7%;
@@ -1004,7 +1012,7 @@ export default function QuotationPage() {
           }
           .item-grid th,
           .item-grid td {
-            font-size: 8px;
+            font-size: 8.75px;
           }
         }
       `}</style>

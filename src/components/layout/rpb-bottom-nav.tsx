@@ -65,7 +65,7 @@ export function RpbBottomNav() {
 
   return (
     <nav className="no-print fixed right-0 bottom-0 left-0 z-50 border-t border-rpb-border bg-white/98 shadow-[0_-8px_24px_rgba(30,36,88,0.14)] backdrop-blur">
-      <div className="w-full px-5 pt-1.5 pb-[calc(0.45rem+env(safe-area-inset-bottom))] sm:px-10 md:px-28 lg:px-40 xl:px-52 2xl:px-64">
+      <div className="mx-auto w-full max-w-screen-2xl px-4 pt-1.5 pb-[calc(0.45rem+env(safe-area-inset-bottom))] sm:px-6 md:px-10 lg:px-14 xl:px-20 2xl:px-24">
         <div className={gridClassName}>
           {items.map((item) => {
             const Icon = item.icon;
@@ -75,10 +75,10 @@ export function RpbBottomNav() {
               <Link
                 key={item.key}
                 href={item.href}
-                className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg bg-transparent px-1 text-[11px] font-semibold transition-colors md:min-h-12 md:text-xs active:bg-transparent focus:bg-transparent hover:bg-transparent [-webkit-tap-highlight-color:transparent] ${
+                className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg bg-transparent px-1 text-[11px] font-semibold transition-all duration-200 ease-out md:min-h-12 md:text-xs active:translate-y-0 focus:bg-transparent hover:-translate-y-0.5 [-webkit-tap-highlight-color:transparent] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(46,49,146,0.25)] ${
                   active
-                    ? "text-rpb-primary"
-                    : "text-rpb-ink-soft hover:text-rpb-primary"
+                    ? "bg-rpb-primary-soft/70 text-rpb-primary"
+                    : "text-rpb-ink-soft hover:bg-rpb-primary-soft/45 hover:text-rpb-primary"
                 }`}
                 aria-current={active ? "page" : undefined}
               >

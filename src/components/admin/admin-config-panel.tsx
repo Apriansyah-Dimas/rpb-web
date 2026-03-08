@@ -631,10 +631,10 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
     <div className="space-y-4 p-3 md:p-6">
       {loading ? <div className="rpb-section rpb-delayed-loader p-4 text-sm text-rpb-ink-soft">Memuat data master...</div> : null}
       {error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+        <div className="rpb-alert rpb-alert-error">{error}</div>
       ) : null}
       {message ? (
-        <div className="rounded-xl border border-rpb-border bg-white px-4 py-3 text-sm text-rpb-ink-soft">
+        <div className="rpb-alert rpb-alert-info">
           {message}
         </div>
       ) : null}

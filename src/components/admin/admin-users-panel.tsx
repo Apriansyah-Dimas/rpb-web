@@ -285,12 +285,12 @@ export function AdminUsersPanel({ initialUsers }: AdminUsersPanelProps) {
   return (
     <div className="space-y-4 p-4 md:p-6">
       {message ? (
-        <div className="rounded-xl border border-rpb-border bg-white px-4 py-3 text-sm text-rpb-ink-soft">
+        <div className="rpb-alert rpb-alert-info">
           {message}
         </div>
       ) : null}
       {error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rpb-alert rpb-alert-error">
           {error}
         </div>
       ) : null}
@@ -563,7 +563,7 @@ export function AdminUsersPanel({ initialUsers }: AdminUsersPanelProps) {
                         </button>
                         <button
                           type="button"
-                          className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700"
+                          className="rpb-btn-ghost inline-flex items-center gap-2 border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
                           onClick={() => void deleteUser(managedUser.id)}
                           disabled={busyAction === `delete:${managedUser.id}`}
                         >

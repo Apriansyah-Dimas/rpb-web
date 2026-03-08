@@ -317,12 +317,12 @@ export default function SummaryPage() {
             </div>
           ) : null}
           {masterError ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="rpb-alert rpb-alert-error">
               {masterError}
             </div>
           ) : null}
           {saveMessage ? (
-            <div className="rounded-xl border border-rpb-border bg-white px-4 py-3 text-sm text-rpb-ink-soft">
+            <div className="rpb-alert rpb-alert-info">
               {saveMessage}
             </div>
           ) : null}
