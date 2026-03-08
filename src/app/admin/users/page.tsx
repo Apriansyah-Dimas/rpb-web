@@ -50,13 +50,13 @@ export default async function AdminUsersPage() {
     <RpbPageFrame>
       <div className="space-y-4 pt-4 pb-0 md:pt-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="rpb-h-title text-lg font-semibold">User Management</h2>
+          <h2 className="rpb-h-title text-lg font-semibold">User</h2>
           <Link
             href="/admin"
             className="rpb-btn-ghost inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold"
           >
             <ArrowLeft size={14} />
-            Kembali ke Admin
+            Kembali
           </Link>
         </div>
       </div>
