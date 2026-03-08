@@ -70,6 +70,7 @@ export function AdminUsersPanel({ initialUsers }: AdminUsersPanelProps) {
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [listNotice, setListNotice] = useState<InlineNotice | null>(null);
   const [createNotice, setCreateNotice] = useState<InlineNotice | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [createForm, setCreateForm] = useState<CreateFormState>(() => defaultCreateForm());
 
   const sortedUsers = useMemo(
@@ -151,15 +152,16 @@ export function AdminUsersPanel({ initialUsers }: AdminUsersPanelProps) {
 
       const createdEmail = body.user?.email ?? normalizeEmail(createForm.email);
       setCreateForm(defaultCreateForm());
+      setShowCreateModal(false);
 
       try {
         await refreshUsers();
-        setCreateNotice({
+        setListNotice({
           tone: "success",
           text: `${createdEmail} dibuat.`,
         });
       } catch {
-        setCreateNotice({
+        setListNotice({
           tone: "info",
           text: `${createdEmail} dibuat. Refresh list.`,
         });
@@ -179,14 +181,27 @@ export function AdminUsersPanel({ initialUsers }: AdminUsersPanelProps) {
       <section className="rpb-section p-4">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="rpb-h-title text-base font-semibold">User</h2>
-          <button
-            type="button"
-            className="rpb-btn-ghost px-3 py-2 text-xs font-semibold"
-            onClick={() => void handleManualRefresh()}
-            disabled={loading}
-          >
-            {loading ? "Memuat..." : "Refresh"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="rpb-btn-primary inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold"
+              onClick={() => {
+                setCreateNotice(null);
+                setShowCreateModal(true);
+              }}
+            >
+              <Plus size={14} />
+              Add User
+            </button>
+            <button
+              type="button"
+              className="rpb-btn-ghost px-3 py-2 text-xs font-semibold"
+              onClick={() => void handleManualRefresh()}
+              disabled={loading}
+            >
+              {loading ? "Memuat..." : "Refresh"}
+            </button>
+          </div>
         </div>
         <p className="text-xs text-rpb-ink-soft">{sortedUsers.length} user.</p>
 
@@ -232,104 +247,128 @@ export function AdminUsersPanel({ initialUsers }: AdminUsersPanelProps) {
         )}
       </section>
 
-      <section className="rpb-section p-4">
-        <h2 className="rpb-h-title text-base font-semibold">User Baru</h2>
-
-        {createNotice ? (
-          <div className={`${noticeClassName(createNotice.tone)} mt-3`} role={createNotice.tone === "error" ? "alert" : "status"}>
-            {createNotice.text}
-          </div>
-        ) : null}
-
-        <form className="mt-3 grid gap-3 md:grid-cols-2" onSubmit={createUser}>
-          <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft md:col-span-2">
-            Email
-            <input
-              className="rpb-input"
-              type="email"
-              value={createForm.email}
-              onChange={(event) =>
-                setCreateForm((value) => ({ ...value, email: event.target.value }))
-              }
-              required
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
-            Username
-            <input
-              className="rpb-input"
-              type="text"
-              value={createForm.username}
-              onChange={(event) =>
-                setCreateForm((value) => ({ ...value, username: event.target.value }))
-              }
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
-            Nama
-            <input
-              className="rpb-input"
-              type="text"
-              value={createForm.fullName}
-              onChange={(event) =>
-                setCreateForm((value) => ({ ...value, fullName: event.target.value }))
-              }
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
-            Phone
-            <input
-              className="rpb-input"
-              type="text"
-              value={createForm.phoneNumber}
-              onChange={(event) =>
-                setCreateForm((value) => ({ ...value, phoneNumber: event.target.value }))
-              }
-            />
-          </label>
-          <fieldset className="rounded-xl border border-rpb-border px-3 py-2">
-            <legend className="px-1 text-xs font-semibold text-rpb-ink-soft">Role</legend>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                className={`rpb-btn-ghost px-3 py-1.5 text-xs font-semibold ${createForm.role === "user" ? "border-rpb-primary text-rpb-primary" : ""}`}
-                onClick={() => setCreateForm((value) => ({ ...value, role: "user" }))}
-              >
-                User
-              </button>
-              <button
-                type="button"
-                className={`rpb-btn-ghost px-3 py-1.5 text-xs font-semibold ${createForm.role === "admin" ? "border-rpb-primary text-rpb-primary" : ""}`}
-                onClick={() => setCreateForm((value) => ({ ...value, role: "admin" }))}
-              >
-                Admin
-              </button>
+      {showCreateModal ? (
+        <div className="rpb-modal-backdrop fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-[#15172b]/45 p-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] backdrop-blur-[2px] md:items-center md:pb-6">
+          <div className="rpb-modal-panel w-full max-w-lg overflow-hidden rounded-xl border border-rpb-border bg-white shadow-xl">
+            <div className="border-b border-rpb-border px-4 py-3">
+              <h3 className="rpb-h-title text-base font-semibold text-foreground">Add User</h3>
             </div>
-          </fieldset>
-          <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft md:col-span-2">
-            Password
-            <input
-              className="rpb-input"
-              type="password"
-              value={createForm.password}
-              onChange={(event) =>
-                setCreateForm((value) => ({ ...value, password: event.target.value }))
-              }
-              required
-            />
-          </label>
-          <div className="md:col-span-2">
-            <button
-              type="submit"
-              className="rpb-btn-primary inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
-              disabled={busyAction === "create"}
-            >
-              <Plus size={15} />
-              {busyAction === "create" ? "Menyimpan..." : "Simpan"}
-            </button>
+
+            <form className="grid gap-3 px-4 py-4 md:grid-cols-2" onSubmit={createUser}>
+              {createNotice ? (
+                <div
+                  className={`${noticeClassName(createNotice.tone)} md:col-span-2`}
+                  role={createNotice.tone === "error" ? "alert" : "status"}
+                >
+                  {createNotice.text}
+                </div>
+              ) : null}
+
+              <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft md:col-span-2">
+                Email
+                <input
+                  className="rpb-input"
+                  type="email"
+                  value={createForm.email}
+                  onChange={(event) =>
+                    setCreateForm((value) => ({ ...value, email: event.target.value }))
+                  }
+                  required
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
+                Username
+                <input
+                  className="rpb-input"
+                  type="text"
+                  value={createForm.username}
+                  onChange={(event) =>
+                    setCreateForm((value) => ({ ...value, username: event.target.value }))
+                  }
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
+                Nama
+                <input
+                  className="rpb-input"
+                  type="text"
+                  value={createForm.fullName}
+                  onChange={(event) =>
+                    setCreateForm((value) => ({ ...value, fullName: event.target.value }))
+                  }
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
+                Phone
+                <input
+                  className="rpb-input"
+                  type="text"
+                  value={createForm.phoneNumber}
+                  onChange={(event) =>
+                    setCreateForm((value) => ({ ...value, phoneNumber: event.target.value }))
+                  }
+                />
+              </label>
+              <fieldset className="rounded-xl border border-rpb-border px-3 py-2">
+                <legend className="px-1 text-xs font-semibold text-rpb-ink-soft">Role</legend>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className={`rpb-btn-ghost px-3 py-1.5 text-xs font-semibold ${createForm.role === "user" ? "border-rpb-primary text-rpb-primary" : ""}`}
+                    onClick={() => setCreateForm((value) => ({ ...value, role: "user" }))}
+                  >
+                    User
+                  </button>
+                  <button
+                    type="button"
+                    className={`rpb-btn-ghost px-3 py-1.5 text-xs font-semibold ${createForm.role === "admin" ? "border-rpb-primary text-rpb-primary" : ""}`}
+                    onClick={() => setCreateForm((value) => ({ ...value, role: "admin" }))}
+                  >
+                    Admin
+                  </button>
+                </div>
+              </fieldset>
+              <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft md:col-span-2">
+                Password
+                <input
+                  className="rpb-input"
+                  type="password"
+                  value={createForm.password}
+                  onChange={(event) =>
+                    setCreateForm((value) => ({ ...value, password: event.target.value }))
+                  }
+                  required
+                />
+              </label>
+
+              <div className="flex flex-wrap justify-end gap-2 border-t border-rpb-border pt-3 md:col-span-2">
+                <button
+                  type="button"
+                  className="rpb-btn-ghost px-4 py-2 text-sm font-semibold"
+                  onClick={() => {
+                    if (busyAction === "create") {
+                      return;
+                    }
+                    setCreateNotice(null);
+                    setShowCreateModal(false);
+                  }}
+                  disabled={busyAction === "create"}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="rpb-btn-primary inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+                  disabled={busyAction === "create"}
+                >
+                  <Plus size={15} />
+                  {busyAction === "create" ? "Menyimpan..." : "Simpan"}
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
-      </section>
+        </div>
+      ) : null}
     </div>
   );
 }
