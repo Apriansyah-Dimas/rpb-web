@@ -1180,8 +1180,8 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
           </div>
 
           {isOtherModalOpen ? (
-            <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#15172b]/45 p-4 backdrop-blur-[2px]">
-              <div className="w-full max-w-4xl rounded-xl border border-rpb-border bg-white p-4 shadow-xl">
+            <div className="rpb-modal-backdrop fixed inset-0 z-[70] flex items-center justify-center bg-[#15172b]/45 p-4 backdrop-blur-[2px]">
+              <div className="rpb-modal-panel w-full max-w-4xl rounded-xl border border-rpb-border bg-white p-4 shadow-xl">
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <h3 className="rpb-h-title text-base font-semibold">Tambah Item Other</h3>
                   <button

@@ -320,14 +320,76 @@ body::-webkit-scrollbar {
 }
 
 @keyframes rpb-delayed-loader-show {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rpb-loader-sweep {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes rpb-modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
   to {
     opacity: 1;
   }
 }
 
+@keyframes rpb-modal-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .rpb-delayed-loader {
   opacity: 0;
-  animation: rpb-delayed-loader-show 0s linear 220ms forwards;
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  animation: rpb-delayed-loader-show 280ms var(--rpb-ease-out) 140ms forwards;
+}
+
+.rpb-delayed-loader::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.42) 50%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  animation: rpb-loader-sweep 1.45s var(--rpb-ease-out) 240ms infinite;
+  pointer-events: none;
+}
+
+.rpb-modal-backdrop {
+  animation: rpb-modal-backdrop-in 180ms var(--rpb-ease-out) both;
+}
+
+.rpb-modal-panel {
+  transform-origin: top center;
+  will-change: transform, opacity;
+  animation: rpb-modal-panel-in 260ms var(--rpb-ease-out) both;
 }
 
 @media (min-width: 1024px) {
