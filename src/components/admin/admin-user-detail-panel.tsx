@@ -459,20 +459,30 @@ export function AdminUserDetailPanel({ initialUser, initialAdminCount }: AdminUs
               onChange={(event) => updateDraft({ phoneNumber: event.target.value })}
             />
           </label>
-          <fieldset className="rounded-xl border border-rpb-border px-3 py-2 md:col-span-2">
-            <legend className="px-1 text-xs font-semibold text-rpb-ink-soft">Role</legend>
-            <div className="flex flex-wrap gap-2">
+          <fieldset className="flex flex-col gap-1 md:col-span-2">
+            <legend className="text-sm font-semibold text-rpb-ink-soft">Role</legend>
+            <div className="inline-flex w-fit items-center gap-1 rounded-2xl border border-rpb-border bg-[#f3f4f6] p-1">
               <button
                 type="button"
-                className={`rpb-btn-ghost px-3 py-1.5 text-xs font-semibold ${draft.role === "user" ? "border-rpb-primary text-rpb-primary" : ""}`}
+                className={`min-w-[84px] rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${
+                  draft.role === "user"
+                    ? "border-[#d5dae4] bg-white text-[#0f2a55] shadow-sm"
+                    : "border-transparent text-rpb-ink-soft hover:bg-white/80"
+                }`}
                 onClick={() => updateDraft({ role: "user" })}
+                aria-pressed={draft.role === "user"}
               >
                 User
               </button>
               <button
                 type="button"
-                className={`rpb-btn-ghost px-3 py-1.5 text-xs font-semibold ${draft.role === "admin" ? "border-rpb-primary text-rpb-primary" : ""}`}
+                className={`min-w-[84px] rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${
+                  draft.role === "admin"
+                    ? "border-[#d5dae4] bg-white text-[#0f2a55] shadow-sm"
+                    : "border-transparent text-rpb-ink-soft hover:bg-white/80"
+                }`}
                 onClick={() => updateDraft({ role: "admin" })}
+                aria-pressed={draft.role === "admin"}
               >
                 Admin
               </button>

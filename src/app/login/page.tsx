@@ -653,6 +653,11 @@ function LoginPageContent() {
             transition: none !important;
             transform: none !important;
           }
+
+          .login-page .card,
+          .login-page .error-message {
+            opacity: 1 !important;
+          }
         }
       `}</style>
     </>
