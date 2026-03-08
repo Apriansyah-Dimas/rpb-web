@@ -1,9 +1,9 @@
 "use client";
 
 import { useAuthSession } from "@/hooks/use-auth-session";
-import { ChevronDown, ChevronUp, Plus, Save, Trash2, UserRound } from "lucide-react";
+import { Plus, Save, Trash2, UserRound } from "lucide-react";
 import type { FormEvent } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type AdminRole = "admin" | "user";
 
@@ -147,8 +147,7 @@ export function AdminUsersPanel({ initialUsers }: AdminUsersPanelProps) {
   const { user } = useAuthSession();
   const [users, setUsers] = useState<ManagedUser[]>(initialUsers);
   const [drafts, setDrafts] = useState<Record<string, UserDraft>>(() => toDraftMap(initialUsers));
-  const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(initialUsers[0]?.id ?? null);
   const [loading, setLoading] = useState(false);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [listNotice, setListNotice] = useState<InlineNotice | null>(null);
@@ -182,6 +181,21 @@ export function AdminUsersPanel({ initialUsers }: AdminUsersPanelProps) {
     () => users.filter((item) => item.role === "admin").length,
     [users],
   );
+
+  useEffect(() => {
+    if (sortedUsers.length === 0) {
+      if (selectedUserId !== null) {
+        setSelectedUserId(null);
+      }
+      return;
+    }
+
+    if (selectedUserId && sortedUsers.some((item) => item.id === selectedUserId)) {
+      return;
+    }
+
+    setSelectedUserId(sortedUsers[0].id);
+  }, [selectedUserId, sortedUsers]);
 
   const setRowNotice = (id: string, notice: InlineNotice) => {
     setRowNotices((prev) => ({
@@ -227,9 +241,9 @@ export function AdminUsersPanel({ initialUsers }: AdminUsersPanelProps) {
         }
         return next;
       });
-      setExpandedUserId((current) => {
+      setSelectedUserId((current) => {
         if (!current) {
-          return null;
+          return nextUsers[0]?.id ?? null;
         }
         return nextUsers.some((item) => item.id === current) ? current : null;
       });
@@ -341,12 +355,11 @@ export function AdminUsersPanel({ initialUsers }: AdminUsersPanelProps) {
         password: "",
         role: "user",
       });
-      setShowCreateForm(false);
 
       try {
         await refreshUsers();
         if (createdUserId) {
-          setExpandedUserId(createdUserId);
+          setSelectedUserId(createdUserId);
         }
         setCreateNotice({
           tone: "success",
@@ -545,9 +558,7 @@ export function AdminUsersPanel({ initialUsers }: AdminUsersPanelProps) {
       }
 
       setDeleteDialog(null);
-      if (expandedUserId === deletingId) {
-        setExpandedUserId(null);
-      }
+      setSelectedUserId((current) => (current === deletingId ? null : current));
 
       try {
         await refreshUsers();
@@ -587,6 +598,29 @@ export function AdminUsersPanel({ initialUsers }: AdminUsersPanelProps) {
   const deleteDialogTypedMatch = deleteDialog
     ? normalizeEmail(deleteDialog.typedEmail) === normalizeEmail(deleteDialog.email)
     : false;
+  const selectedUser = selectedUserId
+    ? sortedUsers.find((item) => item.id === selectedUserId) ?? null
+    : null;
+  const selectedDraft = selectedUser ? drafts[selectedUser.id] : null;
+  const selectedRowNotice = selectedUser ? rowNotices[selectedUser.id] : null;
+  const selectedIsCurrentUser = selectedUser ? selectedUser.id === user?.id : false;
+  const selectedIsLastRemainingAdmin = selectedUser
+    ? selectedUser.role === "admin" && adminCount <= 1
+    : false;
+  const selectedDeleteBlockedReason = selectedUser
+    ? selectedIsCurrentUser
+      ? "Akun yang sedang login tidak bisa dihapus."
+      : selectedIsLastRemainingAdmin
+        ? "Admin terakhir tidak bisa dihapus."
+        : null
+    : null;
+  const selectedProfileDirty = selectedUser && selectedDraft
+    ? hasProfileChanges(selectedUser, selectedDraft)
+    : false;
+  const selectedPasswordValidation = selectedDraft
+    ? getPasswordValidation(selectedDraft)
+    : null;
+  const selectedPasswordDirty = Boolean(selectedPasswordValidation?.hasInput);
 
   return (
     <div className="space-y-4 p-4 md:p-6">
@@ -595,7 +629,7 @@ export function AdminUsersPanel({ initialUsers }: AdminUsersPanelProps) {
           <div>
             <h2 className="rpb-h-title text-base font-semibold">User Management</h2>
             <p className="mt-1 text-xs text-rpb-ink-soft">
-              {sortedUsers.length} user terdaftar. Buka user untuk edit profil, reset password, atau hapus akun.
+              {sortedUsers.length} user terdaftar. Pilih user di kiri untuk edit profil, reset password, atau hapus akun.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -621,303 +655,292 @@ export function AdminUsersPanel({ initialUsers }: AdminUsersPanelProps) {
         ) : sortedUsers.length === 0 ? (
           <p className="mt-3 text-sm text-rpb-ink-soft">Belum ada user terdaftar.</p>
         ) : (
-          <div className="mt-3 space-y-3">
-            {sortedUsers.map((managedUser) => {
-              const draft = drafts[managedUser.id];
-              if (!draft) {
-                return null;
-              }
+          <div className="mt-3 grid gap-4 xl:grid-cols-[minmax(280px,360px)_1fr]">
+            <aside className="space-y-2 rounded-xl border border-rpb-border bg-white p-2">
+              {sortedUsers.map((managedUser) => {
+                const draft = drafts[managedUser.id];
+                if (!draft) {
+                  return null;
+                }
 
-              const expanded = expandedUserId === managedUser.id;
-              const isCurrentUser = managedUser.id === user?.id;
-              const isLastRemainingAdmin = managedUser.role === "admin" && adminCount <= 1;
-              const deleteBlockedReason = isCurrentUser
-                ? "Akun yang sedang login tidak bisa dihapus."
-                : isLastRemainingAdmin
-                  ? "Admin terakhir tidak bisa dihapus."
-                  : null;
-              const profileDirty = hasProfileChanges(managedUser, draft);
-              const passwordValidation = getPasswordValidation(draft);
-              const passwordDirty = passwordValidation.hasInput;
-              const rowNotice = rowNotices[managedUser.id];
+                const isActive = selectedUserId === managedUser.id;
+                const isCurrentUser = managedUser.id === user?.id;
+                const profileDirty = hasProfileChanges(managedUser, draft);
+                const passwordDirty = getPasswordValidation(draft).hasInput;
 
-              return (
-                <article key={managedUser.id} className="rounded-2xl border border-rpb-border bg-white">
+                return (
                   <button
+                    key={managedUser.id}
                     type="button"
-                    className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left"
-                    onClick={() =>
-                      setExpandedUserId((current) =>
-                        current === managedUser.id ? null : managedUser.id,
-                      )
-                    }
+                    onClick={() => setSelectedUserId(managedUser.id)}
+                    className={`w-full rounded-xl border px-3 py-3 text-left transition-colors ${
+                      isActive
+                        ? "border-rpb-primary bg-rpb-primary-soft"
+                        : "border-rpb-border bg-white hover:border-rpb-primary/40 hover:bg-rpb-primary-soft/40"
+                    }`}
                   >
-                    <div className="min-w-0 space-y-1">
-                      <p className="truncate text-sm font-semibold text-foreground">
-                        {buildUserLabel(managedUser)}
-                      </p>
-                      <p className="truncate text-xs text-rpb-ink-soft">{managedUser.email}</p>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="rpb-chip px-2 py-0.5 text-[11px] font-semibold text-rpb-ink-soft">
-                          {managedUser.role.toUpperCase()}
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {buildUserLabel(managedUser)}
+                    </p>
+                    <p className="truncate text-xs text-rpb-ink-soft">{managedUser.email}</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span className="rpb-chip px-2 py-0.5 text-[11px] font-semibold text-rpb-ink-soft">
+                        {managedUser.role.toUpperCase()}
+                      </span>
+                      {isCurrentUser ? (
+                        <span className="rounded-full bg-rpb-primary-soft px-2 py-0.5 text-[11px] font-semibold text-rpb-primary">
+                          Anda
                         </span>
-                        {isCurrentUser ? (
-                          <span className="rounded-full bg-rpb-primary-soft px-2 py-0.5 text-[11px] font-semibold text-rpb-primary">
-                            Anda
-                          </span>
-                        ) : null}
-                        {profileDirty || passwordDirty ? (
-                          <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                            Perubahan belum disimpan
-                          </span>
-                        ) : null}
-                      </div>
-                      <p className="truncate text-xs text-rpb-ink-soft">
-                        Phone: {managedUser.phoneNumber || "-"}
-                      </p>
-                    </div>
-                    {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                  </button>
-
-                  {expanded ? (
-                    <div className="space-y-4 border-t border-rpb-border px-4 py-4">
-                      {rowNotice ? (
-                        <div className={noticeClassName(rowNotice.tone)} role={rowNotice.tone === "error" ? "alert" : "status"}>
-                          {rowNotice.text}
-                        </div>
                       ) : null}
+                      {profileDirty || passwordDirty ? (
+                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                          Perubahan belum disimpan
+                        </span>
+                      ) : null}
+                    </div>
+                  </button>
+                );
+              })}
+            </aside>
 
-                      <div className="grid gap-4 xl:grid-cols-2">
-                        <section className="space-y-3 rounded-xl border border-rpb-border bg-white p-3">
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <h3 className="rpb-h-title text-sm font-semibold text-foreground">Profil</h3>
-                            <span className="text-xs text-rpb-ink-soft">
-                              {profileDirty ? "Perubahan belum disimpan" : "Tidak ada perubahan"}
-                            </span>
-                          </div>
+            <div className="rounded-xl border border-rpb-border bg-white p-4">
+              {selectedUser && selectedDraft && selectedPasswordValidation ? (
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <h3 className="rpb-h-title text-base font-semibold text-foreground">
+                      {buildUserLabel(selectedUser)}
+                    </h3>
+                    <p className="text-xs text-rpb-ink-soft">{selectedUser.email}</p>
+                  </div>
 
-                          <div className="grid gap-3 md:grid-cols-2">
-                            <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
-                              Email
-                              <input
-                                className="rpb-input"
-                                type="email"
-                                value={draft.email}
-                                onChange={(event) =>
-                                  updateDraft(managedUser.id, { email: event.target.value })
-                                }
-                              />
-                            </label>
-                            <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
-                              Nama User
-                              <input
-                                className="rpb-input"
-                                type="text"
-                                value={draft.username}
-                                onChange={(event) =>
-                                  updateDraft(managedUser.id, { username: event.target.value })
-                                }
-                              />
-                            </label>
-                            <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
-                              Nama Lengkap
-                              <input
-                                className="rpb-input"
-                                type="text"
-                                value={draft.fullName}
-                                onChange={(event) =>
-                                  updateDraft(managedUser.id, { fullName: event.target.value })
-                                }
-                              />
-                            </label>
-                            <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
-                              Phone Number
-                              <input
-                                className="rpb-input"
-                                type="text"
-                                value={draft.phoneNumber}
-                                onChange={(event) =>
-                                  updateDraft(managedUser.id, { phoneNumber: event.target.value })
-                                }
-                              />
-                            </label>
-                            <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft md:col-span-2">
-                              Role
-                              <select
-                                className="rpb-input"
-                                value={draft.role}
-                                onChange={(event) =>
-                                  updateDraft(managedUser.id, {
-                                    role: event.target.value as AdminRole,
-                                  })
-                                }
-                              >
-                                <option value="user">user</option>
-                                <option value="admin">admin</option>
-                              </select>
-                            </label>
-                          </div>
-
-                          <div className="flex flex-wrap gap-2">
-                            <button
-                              type="button"
-                              className="rpb-btn-primary inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
-                              onClick={() => void saveUserInfo(managedUser.id)}
-                              disabled={!profileDirty || busyAction === `save:${managedUser.id}`}
-                            >
-                              <Save size={14} />
-                              {busyAction === `save:${managedUser.id}` ? "Menyimpan..." : "Simpan Profil"}
-                            </button>
-                            <button
-                              type="button"
-                              className="rpb-btn-ghost px-4 py-2 text-sm font-semibold"
-                              onClick={() => resetProfileDraft(managedUser)}
-                              disabled={!profileDirty || busyAction === `save:${managedUser.id}`}
-                            >
-                              Reset Profil
-                            </button>
-                          </div>
-                        </section>
-
-                        <section className="space-y-3 rounded-xl border border-rpb-border bg-white p-3">
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <h3 className="rpb-h-title text-sm font-semibold text-foreground">Security</h3>
-                            <span className="text-xs text-rpb-ink-soft">
-                              {passwordDirty ? "Draft password belum diproses" : "Kosongkan jika tidak diubah"}
-                            </span>
-                          </div>
-
-                          <div className="grid gap-3 md:grid-cols-2">
-                            <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
-                              Password Baru
-                              <input
-                                className={`rpb-input ${passwordValidation.passwordError ? "border-red-300" : ""}`}
-                                type="password"
-                                value={draft.password}
-                                onChange={(event) =>
-                                  updateDraft(managedUser.id, { password: event.target.value })
-                                }
-                                placeholder="Minimal 6 karakter"
-                              />
-                              <span className={`text-xs ${passwordValidation.passwordError ? "text-red-700" : "text-rpb-ink-soft"}`}>
-                                {passwordValidation.passwordError ||
-                                  "Gunakan kombinasi minimal 6 karakter yang sulit ditebak."}
-                              </span>
-                            </label>
-                            <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
-                              Konfirmasi Password
-                              <input
-                                className={`rpb-input ${passwordValidation.confirmError ? "border-red-300" : ""}`}
-                                type="password"
-                                value={draft.confirmPassword}
-                                onChange={(event) =>
-                                  updateDraft(managedUser.id, {
-                                    confirmPassword: event.target.value,
-                                  })
-                                }
-                                placeholder="Ulangi password baru"
-                              />
-                              <span className={`text-xs ${passwordValidation.confirmError ? "text-red-700" : "text-rpb-ink-soft"}`}>
-                                {passwordValidation.confirmError ||
-                                  "Masukkan ulang password baru agar tidak salah ketik."}
-                              </span>
-                            </label>
-                          </div>
-
-                          <div className="flex flex-wrap gap-2">
-                            <button
-                              type="button"
-                              className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
-                              onClick={() => void changePassword(managedUser.id)}
-                              disabled={!passwordValidation.canSubmit || busyAction === `password:${managedUser.id}`}
-                            >
-                              <UserRound size={14} />
-                              {busyAction === `password:${managedUser.id}` ? "Memproses..." : "Simpan Password Baru"}
-                            </button>
-                            <button
-                              type="button"
-                              className="rpb-btn-ghost px-4 py-2 text-sm font-semibold"
-                              onClick={() => clearPasswordDraft(managedUser.id)}
-                              disabled={!passwordDirty || busyAction === `password:${managedUser.id}`}
-                            >
-                              Bersihkan Password
-                            </button>
-                          </div>
-
-                          <div className="rounded-lg border border-red-200 bg-red-50 p-3">
-                            <p className="text-xs font-semibold uppercase tracking-[0.04em] text-red-700">
-                              Danger Zone
-                            </p>
-                            <p className="mt-1 text-xs text-red-700">
-                              Menghapus user bersifat permanen dan tidak bisa dibatalkan.
-                            </p>
-                            {deleteBlockedReason ? (
-                              <p className="mt-2 text-xs font-semibold text-red-700">
-                                {deleteBlockedReason}
-                              </p>
-                            ) : (
-                              <button
-                                type="button"
-                                className="rpb-btn-ghost mt-3 inline-flex items-center gap-2 border-red-300 px-4 py-2 text-sm font-semibold text-red-700 hover:border-red-400 hover:bg-red-100 hover:text-red-700"
-                                onClick={() => openDeleteDialog(managedUser)}
-                                disabled={busyAction === `delete:${managedUser.id}`}
-                              >
-                                <Trash2 size={14} />
-                                {busyAction === `delete:${managedUser.id}` ? "Menghapus..." : "Hapus User"}
-                              </button>
-                            )}
-                          </div>
-                        </section>
-                      </div>
-
-                      <div className="grid gap-2 text-xs text-rpb-ink-soft md:grid-cols-3">
-                        <div>
-                          <p className="font-semibold">Dibuat</p>
-                          <p>{formatDateTime(managedUser.createdAt)}</p>
-                        </div>
-                        <div>
-                          <p className="font-semibold">Update</p>
-                          <p>{formatDateTime(managedUser.updatedAt)}</p>
-                        </div>
-                        <div>
-                          <p className="font-semibold">Login Terakhir</p>
-                          <p>{formatDateTime(managedUser.lastSignInAt)}</p>
-                        </div>
-                      </div>
-
+                  {selectedRowNotice ? (
+                    <div className={noticeClassName(selectedRowNotice.tone)} role={selectedRowNotice.tone === "error" ? "alert" : "status"}>
+                      {selectedRowNotice.text}
                     </div>
                   ) : null}
-                </article>
-              );
-            })}
+
+                  <div className="grid gap-4 xl:grid-cols-2">
+                    <section className="space-y-3 rounded-xl border border-rpb-border bg-white p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <h4 className="rpb-h-title text-sm font-semibold text-foreground">Profil</h4>
+                        <span className="text-xs text-rpb-ink-soft">
+                          {selectedProfileDirty ? "Perubahan belum disimpan" : "Tidak ada perubahan"}
+                        </span>
+                      </div>
+
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
+                          Email
+                          <input
+                            className="rpb-input"
+                            type="email"
+                            value={selectedDraft.email}
+                            onChange={(event) =>
+                              updateDraft(selectedUser.id, { email: event.target.value })
+                            }
+                          />
+                        </label>
+                        <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
+                          Nama User
+                          <input
+                            className="rpb-input"
+                            type="text"
+                            value={selectedDraft.username}
+                            onChange={(event) =>
+                              updateDraft(selectedUser.id, { username: event.target.value })
+                            }
+                          />
+                        </label>
+                        <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
+                          Nama Lengkap
+                          <input
+                            className="rpb-input"
+                            type="text"
+                            value={selectedDraft.fullName}
+                            onChange={(event) =>
+                              updateDraft(selectedUser.id, { fullName: event.target.value })
+                            }
+                          />
+                        </label>
+                        <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
+                          Phone Number
+                          <input
+                            className="rpb-input"
+                            type="text"
+                            value={selectedDraft.phoneNumber}
+                            onChange={(event) =>
+                              updateDraft(selectedUser.id, { phoneNumber: event.target.value })
+                            }
+                          />
+                        </label>
+                        <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft md:col-span-2">
+                          Role
+                          <select
+                            className="rpb-input"
+                            value={selectedDraft.role}
+                            onChange={(event) =>
+                              updateDraft(selectedUser.id, {
+                                role: event.target.value as AdminRole,
+                              })
+                            }
+                          >
+                            <option value="user">user</option>
+                            <option value="admin">admin</option>
+                          </select>
+                        </label>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          className="rpb-btn-primary inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+                          onClick={() => void saveUserInfo(selectedUser.id)}
+                          disabled={!selectedProfileDirty || busyAction === `save:${selectedUser.id}`}
+                        >
+                          <Save size={14} />
+                          {busyAction === `save:${selectedUser.id}` ? "Menyimpan..." : "Simpan Profil"}
+                        </button>
+                        <button
+                          type="button"
+                          className="rpb-btn-ghost px-4 py-2 text-sm font-semibold"
+                          onClick={() => resetProfileDraft(selectedUser)}
+                          disabled={!selectedProfileDirty || busyAction === `save:${selectedUser.id}`}
+                        >
+                          Reset Profil
+                        </button>
+                      </div>
+                    </section>
+
+                    <section className="space-y-3 rounded-xl border border-rpb-border bg-white p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <h4 className="rpb-h-title text-sm font-semibold text-foreground">Security</h4>
+                        <span className="text-xs text-rpb-ink-soft">
+                          {selectedPasswordDirty ? "Draft password belum diproses" : "Kosongkan jika tidak diubah"}
+                        </span>
+                      </div>
+
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
+                          Password Baru
+                          <input
+                            className={`rpb-input ${selectedPasswordValidation.passwordError ? "border-red-300" : ""}`}
+                            type="password"
+                            value={selectedDraft.password}
+                            onChange={(event) =>
+                              updateDraft(selectedUser.id, { password: event.target.value })
+                            }
+                            placeholder="Minimal 6 karakter"
+                          />
+                          <span className={`text-xs ${selectedPasswordValidation.passwordError ? "text-red-700" : "text-rpb-ink-soft"}`}>
+                            {selectedPasswordValidation.passwordError ||
+                              "Gunakan kombinasi minimal 6 karakter yang sulit ditebak."}
+                          </span>
+                        </label>
+                        <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
+                          Konfirmasi Password
+                          <input
+                            className={`rpb-input ${selectedPasswordValidation.confirmError ? "border-red-300" : ""}`}
+                            type="password"
+                            value={selectedDraft.confirmPassword}
+                            onChange={(event) =>
+                              updateDraft(selectedUser.id, {
+                                confirmPassword: event.target.value,
+                              })
+                            }
+                            placeholder="Ulangi password baru"
+                          />
+                          <span className={`text-xs ${selectedPasswordValidation.confirmError ? "text-red-700" : "text-rpb-ink-soft"}`}>
+                            {selectedPasswordValidation.confirmError ||
+                              "Masukkan ulang password baru agar tidak salah ketik."}
+                          </span>
+                        </label>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+                          onClick={() => void changePassword(selectedUser.id)}
+                          disabled={!selectedPasswordValidation.canSubmit || busyAction === `password:${selectedUser.id}`}
+                        >
+                          <UserRound size={14} />
+                          {busyAction === `password:${selectedUser.id}` ? "Memproses..." : "Simpan Password Baru"}
+                        </button>
+                        <button
+                          type="button"
+                          className="rpb-btn-ghost px-4 py-2 text-sm font-semibold"
+                          onClick={() => clearPasswordDraft(selectedUser.id)}
+                          disabled={!selectedPasswordDirty || busyAction === `password:${selectedUser.id}`}
+                        >
+                          Bersihkan Password
+                        </button>
+                      </div>
+
+                      <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.04em] text-red-700">
+                          Danger Zone
+                        </p>
+                        <p className="mt-1 text-xs text-red-700">
+                          Menghapus user bersifat permanen dan tidak bisa dibatalkan.
+                        </p>
+                        {selectedDeleteBlockedReason ? (
+                          <p className="mt-2 text-xs font-semibold text-red-700">
+                            {selectedDeleteBlockedReason}
+                          </p>
+                        ) : (
+                          <button
+                            type="button"
+                            className="rpb-btn-ghost mt-3 inline-flex items-center gap-2 border-red-300 px-4 py-2 text-sm font-semibold text-red-700 hover:border-red-400 hover:bg-red-100 hover:text-red-700"
+                            onClick={() => openDeleteDialog(selectedUser)}
+                            disabled={busyAction === `delete:${selectedUser.id}`}
+                          >
+                            <Trash2 size={14} />
+                            {busyAction === `delete:${selectedUser.id}` ? "Menghapus..." : "Hapus User"}
+                          </button>
+                        )}
+                      </div>
+                    </section>
+                  </div>
+
+                  <div className="grid gap-2 text-xs text-rpb-ink-soft md:grid-cols-3">
+                    <div>
+                      <p className="font-semibold">Dibuat</p>
+                      <p>{formatDateTime(selectedUser.createdAt)}</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold">Update</p>
+                      <p>{formatDateTime(selectedUser.updatedAt)}</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold">Login Terakhir</p>
+                      <p>{formatDateTime(selectedUser.lastSignInAt)}</p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-rpb-ink-soft">
+                  Pilih user dari daftar untuk melihat detail dan melakukan perubahan.
+                </p>
+              )}
+            </div>
           </div>
         )}
       </section>
 
       <section className="rpb-section p-4">
-        <button
-          type="button"
-          className="flex w-full items-center justify-between gap-2 text-left"
-          onClick={() => setShowCreateForm((value) => !value)}
-        >
-          <div>
-            <h2 className="rpb-h-title text-base font-semibold">Tambah User Baru</h2>
-            <p className="mt-1 text-xs text-rpb-ink-soft">
-              Panel sekunder untuk membuat akun baru. Gunakan hanya untuk user internal.
-            </p>
-          </div>
-          {showCreateForm ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-        </button>
+        <h2 className="rpb-h-title text-base font-semibold">Tambah User Baru</h2>
+        <p className="mt-1 text-xs text-rpb-ink-soft">
+          Form ini untuk menambahkan akun internal baru.
+        </p>
 
-        {showCreateForm ? (
-          <div className="mt-4 space-y-3">
-            {createNotice ? (
-              <div className={noticeClassName(createNotice.tone)} role={createNotice.tone === "error" ? "alert" : "status"}>
-                {createNotice.text}
-              </div>
-            ) : null}
+        <div className="mt-4 space-y-3">
+          {createNotice ? (
+            <div className={noticeClassName(createNotice.tone)} role={createNotice.tone === "error" ? "alert" : "status"}>
+              {createNotice.text}
+            </div>
+          ) : null}
 
-            <form className="grid gap-3 md:grid-cols-2" onSubmit={createUser}>
+          <form className="grid gap-3 md:grid-cols-2" onSubmit={createUser}>
               <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft md:col-span-2">
                 Email
                 <input
@@ -1009,9 +1032,8 @@ export function AdminUsersPanel({ initialUsers }: AdminUsersPanelProps) {
                   {busyAction === "create" ? "Membuat..." : "Buat User"}
                 </button>
               </div>
-            </form>
-          </div>
-        ) : null}
+          </form>
+        </div>
       </section>
 
       {deleteDialog ? (
