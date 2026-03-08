@@ -145,7 +145,7 @@ function FormulaHelpBox() {
   ];
 
   return (
-    <div className="mt-3 rounded-xl border border-rpb-border bg-[#e9f4fa] p-3 text-xs text-rpb-ink-soft">
+    <div className="mt-4 rounded-xl border border-rpb-border bg-[#e9f4fa] p-3.5 text-sm text-rpb-ink-soft">
       <p className="font-semibold text-foreground">Fungsi Formula yang didukung</p>
       <p className="mt-1">
         Operator: <span className="font-mono">+, -, *, /, ^</span>, kurung, dan literal persen
@@ -177,7 +177,7 @@ function FormulaHelpBox() {
           </tbody>
         </table>
       </div>
-      <p className="mt-2 font-mono text-[11px]">Contoh: ROUND(((width * length) / 1000000), 2)</p>
+      <p className="mt-2 font-mono text-xs">Contoh: ROUND(((width * length) / 1000000), 2)</p>
     </div>
   );
 }
@@ -229,12 +229,12 @@ function VariableSettingsCard({
   const customRows = rows.filter((row) => !row.isDefault);
 
   return (
-    <div className="mt-4 rounded-xl border border-rpb-border bg-white p-3">
+    <div className="mt-4 rounded-xl border border-rpb-border bg-white p-3.5">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-foreground">{title}</h3>
         <button
           type="button"
-          className="rpb-btn-ghost inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold"
+          className="rpb-btn-ghost inline-flex items-center gap-1 px-3 py-2 text-xs font-semibold"
           onClick={onAdd}
         >
           <Plus size={14} />
@@ -283,7 +283,7 @@ function VariableSettingsCard({
                   value={row.defaultValue}
                   onChange={(event) => onChange(row.id, { defaultValue: parseDecimalInput(event.target.value) })}
                 />
-                <div className="flex items-center justify-end gap-1">
+                <div className="flex items-center justify-end gap-1.5">
                   <button
                     type="button"
                     className="rpb-btn-primary px-3 py-2 text-xs font-semibold"
@@ -294,7 +294,7 @@ function VariableSettingsCard({
                   </button>
                   <button
                     type="button"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-600"
+                    className="rpb-btn-ghost inline-flex h-11 w-11 items-center justify-center border-red-200 p-0 text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
                     onClick={() => void onDelete(row)}
                     disabled={busy === deleteBusyKey}
                     aria-label={`Hapus variabel ${row.label || row.key}`}
@@ -628,7 +628,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
   };
 
   return (
-    <div className="space-y-4 p-3 md:p-6">
+    <div className="space-y-4 pb-3 md:pb-4">
       {loading ? <div className="rpb-section rpb-delayed-loader p-4 text-sm text-rpb-ink-soft">Memuat data master...</div> : null}
       {error ? (
         <div className="rpb-alert rpb-alert-error">{error}</div>
@@ -639,7 +639,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
         </div>
       ) : null}
 
-      <nav className="rpb-section p-2">
+      <nav className="rpb-section p-2.5" aria-label="Navigasi konfigurasi RPB">
         <div className="overflow-x-auto">
           <div className="inline-flex min-w-full rounded-xl border border-rpb-border bg-[#e9f4fa] p-1">
             {CONFIG_NAV_ITEMS.map((item) => {
@@ -648,14 +648,16 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
                 <button
                   key={item.key}
                   type="button"
-                  className={`flex-1 rounded-lg px-3 py-2 text-left transition ${
-                    isActive ? "bg-rpb-primary text-white" : "text-rpb-ink-soft hover:text-rpb-primary"
+                  className={`flex min-h-11 flex-1 flex-col justify-center rounded-lg px-3 py-2 text-left transition duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(46,49,146,0.25)] ${
+                    isActive
+                      ? "bg-rpb-primary text-white shadow-[0_6px_14px_rgba(46,49,146,0.2)]"
+                      : "text-rpb-ink-soft hover:bg-white hover:text-rpb-primary"
                   }`}
                   onClick={() => setActiveSection(item.key)}
                   aria-pressed={isActive}
                 >
                   <div className="text-sm font-semibold">{item.label}</div>
-                  <div className={`text-[11px] ${isActive ? "text-white/85" : "text-rpb-ink-soft"}`}>
+                  <div className={`text-xs ${isActive ? "text-white/85" : "text-rpb-ink-soft"}`}>
                     {item.description}
                   </div>
                 </button>
@@ -666,12 +668,12 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
       </nav>
 
       {activeSection === "profile" ? (
-        <section className="rpb-section p-3 md:p-4">
+        <section className="rpb-section p-3.5 md:p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="rpb-h-title text-base font-semibold">PROFILE</h2>
+            <h2 className="rpb-h-title text-base font-semibold">Profile</h2>
             <button
               type="button"
-              className="rpb-btn-primary px-4 py-2 text-sm font-semibold"
+              className="rpb-btn-primary inline-flex items-center justify-center px-4 py-2 text-sm font-semibold"
               onClick={() => void saveAllProfile()}
               disabled={busy === "profile"}
             >
@@ -681,7 +683,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
 
           <div className="space-y-2 md:hidden">
             {profileRows.map((row) => (
-              <article key={row.id} className="rounded-xl border border-rpb-border p-3">
+              <article key={row.id} className="rounded-xl border border-rpb-border bg-white p-3.5 shadow-[0_4px_12px_rgba(30,36,88,0.04)]">
                 <p className="text-xs text-rpb-ink-soft">{row.code}</p>
                 <p className="text-sm font-semibold">{row.name}</p>
                 <p className="text-xs text-rpb-ink-soft">Unit: {row.unit}</p>
@@ -833,12 +835,12 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
       ) : null}
 
       {activeSection === "konstruksi" ? (
-        <section className="rpb-section p-3 md:p-4">
+        <section className="rpb-section p-3.5 md:p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="rpb-h-title text-base font-semibold">KONSTRUKSI</h2>
+            <h2 className="rpb-h-title text-base font-semibold">Konstruksi</h2>
             <button
               type="button"
-              className="rpb-btn-primary px-4 py-2 text-sm font-semibold"
+              className="rpb-btn-primary inline-flex items-center justify-center px-4 py-2 text-sm font-semibold"
               onClick={() => void saveAllKonstruksi()}
               disabled={busy === "konstruksi"}
             >
@@ -848,7 +850,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
 
           <div className="space-y-2 md:hidden">
             {konstruksiRows.map((row) => (
-              <article key={row.id} className="rounded-xl border border-rpb-border p-3">
+              <article key={row.id} className="rounded-xl border border-rpb-border bg-white p-3.5 shadow-[0_4px_12px_rgba(30,36,88,0.04)]">
                 <p className="text-xs text-rpb-ink-soft">{row.code}</p>
                 <p className="text-sm font-semibold">{row.name}</p>
                 <p className="text-xs text-rpb-ink-soft">Unit: {row.unit}</p>
@@ -966,9 +968,9 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
       ) : null}
 
       {activeSection === "other" ? (
-        <section className="rpb-section p-3 md:p-4">
+        <section className="rpb-section p-3.5 md:p-4">
           <div className="mb-4 flex items-center justify-between gap-2">
-            <h2 className="rpb-h-title text-base font-semibold">OTHER (permanen)</h2>
+            <h2 className="rpb-h-title text-base font-semibold">Other (Permanen)</h2>
             <button
               type="button"
               className="rpb-btn-primary inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold"
@@ -990,7 +992,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
 
           <div className="space-y-2 md:hidden">
             {otherRows.map((row) => (
-              <article key={row.id} className="rounded-xl border border-rpb-border p-3">
+              <article key={row.id} className="rounded-xl border border-rpb-border bg-white p-3.5 shadow-[0_4px_12px_rgba(30,36,88,0.04)]">
                 <div className="grid gap-2 md:grid-cols-2">
                   <input
                     className="rpb-input"
@@ -1049,7 +1051,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
                   />
                   <button
                     type="button"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#2e3192] text-white"
+                    className="rpb-btn-primary inline-flex h-11 w-11 items-center justify-center p-0"
                     onClick={() => void saveOtherRow(row)}
                     disabled={busy === `other:${row.id}`}
                     aria-label={`Simpan item ${row.name}`}
@@ -1058,7 +1060,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
                   </button>
                   <button
                     type="button"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-600"
+                    className="rpb-btn-ghost inline-flex h-11 w-11 items-center justify-center border-red-200 p-0 text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
                     onClick={() => void deleteOtherRow(row)}
                     disabled={busy === `other:delete:${row.id}`}
                     aria-label={`Hapus item ${row.name}`}
@@ -1152,7 +1154,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#2e3192] text-white"
+                            className="rpb-btn-primary inline-flex h-11 w-11 items-center justify-center p-0"
                             onClick={() => void saveOtherRow(row)}
                             disabled={busy === `other:${row.id}`}
                             aria-label={`Simpan item ${row.name}`}
@@ -1161,7 +1163,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
                           </button>
                           <button
                             type="button"
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-600"
+                            className="rpb-btn-ghost inline-flex h-11 w-11 items-center justify-center border-red-200 p-0 text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
                             onClick={() => void deleteOtherRow(row)}
                             disabled={busy === `other:delete:${row.id}`}
                             aria-label={`Hapus item ${row.name}`}
