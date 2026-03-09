@@ -658,9 +658,12 @@ export default function QuotationPage() {
         .quotation-grid {
           display: grid;
           width: 100%;
-          grid-template-columns: minmax(360px, 1fr) minmax(420px, 1.4fr);
+          grid-template-columns: 1fr;
           gap: 16px;
           align-items: start;
+        }
+        .quotation-grid > * {
+          min-width: 0;
         }
         .quotation-page {
           width: 100%;
@@ -680,6 +683,7 @@ export default function QuotationPage() {
           background: #fff;
           padding: 20px;
           box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+          min-width: 0;
         }
         .quotation-panel h1,
         .quotation-panel h2,
@@ -785,6 +789,7 @@ export default function QuotationPage() {
         }
         .a4-page-shell {
           width: 100%;
+          min-width: 0;
           display: flex;
           justify-content: center;
           align-items: flex-start;
@@ -957,9 +962,9 @@ export default function QuotationPage() {
           margin-top: 20px !important;
         }
 
-        @media (max-width: 980px) {
+        @media (min-width: 981px) {
           .quotation-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(360px, 1fr) minmax(420px, 1.4fr);
           }
         }
 
