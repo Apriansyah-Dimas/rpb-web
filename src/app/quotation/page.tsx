@@ -29,6 +29,8 @@ const currencyFormatter = new Intl.NumberFormat("id-ID", {
   currency: "IDR",
   maximumFractionDigits: 0,
 });
+const A4_WIDTH_PX = 794;
+const A4_HEIGHT_PX = 1123;
 
 const pctToValue = (subtotal: number, pct: number): number => subtotal * (pct / 100);
 
@@ -103,9 +105,55 @@ export default function QuotationPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
+  const a4StageRef = useRef<HTMLDivElement>(null);
+  const [a4Scale, setA4Scale] = useState(1);
 
   useEffect(() => {
     setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    const stage = a4StageRef.current;
+    if (!stage || typeof window === "undefined") {
+      return;
+    }
+
+    let frameId: number | null = null;
+    const updateScale = (width: number) => {
+      const nextScale = Math.max(0.2, Math.min(1, width / A4_WIDTH_PX));
+      setA4Scale((prev) => (Math.abs(prev - nextScale) < 0.001 ? prev : nextScale));
+    };
+
+    const measureNow = () => {
+      updateScale(stage.clientWidth);
+    };
+
+    measureNow();
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measureNow);
+      return () => {
+        window.removeEventListener("resize", measureNow);
+      };
+    }
+
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width ?? stage.clientWidth;
+      if (frameId !== null) {
+        cancelAnimationFrame(frameId);
+      }
+      frameId = requestAnimationFrame(() => {
+        updateScale(width);
+      });
+    });
+    observer.observe(stage);
+
+    return () => {
+      if (frameId !== null) {
+        cancelAnimationFrame(frameId);
+      }
+      observer.disconnect();
+    };
   }, []);
 
   useEffect(() => {
@@ -471,8 +519,9 @@ export default function QuotationPage() {
           <section className="quotation-panel preview">
             <h2>Preview</h2>
 
-            <div className="a4-stage">
-              <article className="a4-page">
+            <div className="a4-stage" ref={a4StageRef}>
+              <div className="a4-page-shell" style={{ height: `${A4_HEIGHT_PX * a4Scale}px` }}>
+                <article className="a4-page" style={{ transform: `scale(${a4Scale})` }}>
                 <header className="sheet-head">
                   <Image
                     src="/assets/template-logo.png"
@@ -589,7 +638,8 @@ export default function QuotationPage() {
                   <div className="sign-company">PT Klimatek</div>
                   <div className="sign-email">Email : {accountEmail || "-"}</div>
                 </footer>
-              </article>
+                </article>
+              </div>
             </div>
           </section>
         </div>
@@ -730,18 +780,26 @@ export default function QuotationPage() {
           border-radius: 10px;
           background: #eef2f7;
           overflow: hidden;
+          display: flex;
+          justify-content: center;
+        }
+        .a4-page-shell {
+          width: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: flex-start;
         }
         .a4-page {
-          width: min(100%, 210mm);
-          min-height: 297mm;
-          margin: 0 auto;
+          width: ${A4_WIDTH_PX}px;
+          min-height: ${A4_HEIGHT_PX}px;
           background: #fff;
           color: #111;
           font-family: Calibri, Arial, sans-serif;
-          font-size: clamp(9px, 1.7vw, 11px);
+          font-size: 11px;
           line-height: 1.2;
           padding: 10mm;
           box-shadow: 0 14px 24px rgba(15, 23, 42, 0.14);
+          transform-origin: top center;
         }
         .sheet-head {
           display: flex;
@@ -922,75 +980,6 @@ export default function QuotationPage() {
           .a4-stage {
             padding: 8px;
           }
-          .a4-page {
-            min-height: 0;
-            padding: 14px;
-            font-size: 9px;
-            line-height: 1.3;
-            box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
-          }
-          .sheet-head {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
-          }
-          .sheet-logo {
-            width: 130px;
-            max-width: 100%;
-            max-height: 46px;
-          }
-          .sheet-head-right {
-            width: 100%;
-            max-width: 100%;
-          }
-          .sheet-title {
-            text-align: left;
-            font-size: 13px;
-          }
-          .meta-table {
-            margin-left: 0;
-          }
-          .meta-table td {
-            padding: 0 2px;
-            font-size: 9px;
-          }
-          .info-line {
-            grid-template-columns: 88px 8px 1fr;
-            column-gap: 2px;
-          }
-          .item-grid th,
-          .item-grid td {
-            padding: 2px;
-            font-size: 9px;
-          }
-          .item-grid .w-no {
-            width: 7%;
-          }
-          .item-grid .w-desc {
-            width: 34%;
-          }
-          .item-grid .w-qty {
-            width: 12%;
-          }
-          .item-grid .w-price {
-            width: 22%;
-          }
-          .item-grid .w-total {
-            width: 22%;
-          }
-          .item-grid .item-row td:nth-child(2) {
-            min-height: 110px;
-          }
-          .terms {
-            font-size: 9px;
-          }
-          .sign-block {
-            margin-top: 14px;
-            font-size: 9px;
-          }
-          .sign-name {
-            margin-top: 14px !important;
-          }
         }
 
         @media (max-width: 375px) {
@@ -1003,16 +992,6 @@ export default function QuotationPage() {
           }
           .a4-stage {
             padding: 6px;
-          }
-          .a4-page {
-            padding: 10px;
-          }
-          .info-line {
-            grid-template-columns: 78px 7px 1fr;
-          }
-          .item-grid th,
-          .item-grid td {
-            font-size: 8.75px;
           }
         }
       `}</style>
