@@ -53,6 +53,14 @@ const buildUserLabel = (user: Pick<ManagedUser, "fullName" | "username" | "email
 const normalizeEmail = (value: string): string =>
   value.trim().toLowerCase();
 
+const normalizeUsernameInput = (value: string): string => {
+  const noSpace = value.replace(/\s+/g, "");
+  if (!noSpace) {
+    return "";
+  }
+  return `${noSpace.charAt(0).toUpperCase()}${noSpace.slice(1).toLowerCase()}`;
+};
+
 const noticeClassName = (tone: InlineNotice["tone"]): string => {
   if (tone === "error") {
     return "rpb-alert rpb-alert-error";
@@ -283,9 +291,15 @@ export function AdminUsersPanel({ initialUsers }: AdminUsersPanelProps) {
                   type="text"
                   value={createForm.username}
                   onChange={(event) =>
-                    setCreateForm((value) => ({ ...value, username: event.target.value }))
+                    setCreateForm((value) => ({
+                      ...value,
+                      username: normalizeUsernameInput(event.target.value),
+                    }))
                   }
                 />
+                <span className="text-xs font-normal text-rpb-ink-soft">
+                  Tanpa spasi. Huruf pertama kapital.
+                </span>
               </label>
               <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
                 Nama

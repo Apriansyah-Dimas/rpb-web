@@ -116,10 +116,10 @@ function LoginPageContent() {
   const router = useRouter();
   const headerRef = useRef<HTMLHeadingElement>(null);
 
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [errorEmail, setErrorEmail] = useState("");
+  const [errorIdentifier, setErrorIdentifier] = useState("");
   const [errorPassword, setErrorPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [headerText, setHeaderText] = useState("Masuk");
@@ -167,7 +167,7 @@ function LoginPageContent() {
     };
   }, [headerText]);
 
-  const validateEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+  const validateIdentifier = (value: string) => value.trim().length > 0;
   const validatePassword = (value: string) => value.length >= 6;
 
   const handleCancel = () => {
@@ -175,9 +175,9 @@ function LoginPageContent() {
       return;
     }
 
-    setEmail("");
+    setIdentifier("");
     setPassword("");
-    setErrorEmail("");
+    setErrorIdentifier("");
     setErrorPassword("");
   };
 
@@ -188,11 +188,11 @@ function LoginPageContent() {
     }
 
     let valid = true;
-    setErrorEmail("");
+    setErrorIdentifier("");
     setErrorPassword("");
 
-    if (!validateEmail(email)) {
-      setErrorEmail("Masukkan alamat email yang valid.");
+    if (!validateIdentifier(identifier)) {
+      setErrorIdentifier("Masukkan username atau email.");
       valid = false;
     }
 
@@ -208,9 +208,30 @@ function LoginPageContent() {
     setLoading(true);
 
     try {
+      const normalizedIdentifier = identifier.trim();
+      const resolveResponse = await fetch("/api/auth/resolve-login-identifier", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          identifier: normalizedIdentifier,
+        }),
+      });
+
+      if (!resolveResponse.ok) {
+        throw new Error("Username/email atau kata sandi tidak valid.");
+      }
+
+      const resolveBody = (await resolveResponse.json()) as { email?: string };
+      const resolvedEmail = String(resolveBody.email ?? "").trim().toLowerCase();
+      if (!resolvedEmail) {
+        throw new Error("Username/email atau kata sandi tidak valid.");
+      }
+
       const supabase = getSupabaseBrowserClient();
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: resolvedEmail,
         password,
       });
 
@@ -221,7 +242,7 @@ function LoginPageContent() {
       router.replace(nextPath);
       router.refresh();
     } catch (err) {
-      setErrorPassword(err instanceof Error ? err.message : "Email atau kata sandi tidak valid.");
+      setErrorPassword(err instanceof Error ? err.message : "Username/email atau kata sandi tidak valid.");
     } finally {
       setLoading(false);
     }
@@ -241,31 +262,31 @@ function LoginPageContent() {
 
             <form onSubmit={handleSubmit} noValidate>
               <div className="input-group">
-                <label htmlFor="email">Alamat Email</label>
+                <label htmlFor="identifier">Username atau Email</label>
                 <div className="input-wrapper">
                   <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="name@company.com"
-                    autoComplete="email"
-                    value={email}
+                    id="identifier"
+                    name="identifier"
+                    type="text"
+                    placeholder="Masukkan username atau email"
+                    autoComplete="username"
+                    value={identifier}
                     onChange={(e) => {
-                      setEmail(e.target.value);
-                      if (errorEmail) {
-                        setErrorEmail("");
+                      setIdentifier(e.target.value);
+                      if (errorIdentifier) {
+                        setErrorIdentifier("");
                       }
                     }}
                     onBlur={() => {
-                      if (email && !validateEmail(email)) {
-                        setErrorEmail("Masukkan alamat email yang valid.");
+                      if (!validateIdentifier(identifier)) {
+                        setErrorIdentifier("Masukkan username atau email.");
                       }
                     }}
-                    className={errorEmail ? "input-error" : ""}
+                    className={errorIdentifier ? "input-error" : ""}
                     disabled={loading}
                   />
                 </div>
-                <span className={`error-message ${errorEmail ? "visible" : ""}`}>{errorEmail}</span>
+                <span className={`error-message ${errorIdentifier ? "visible" : ""}`}>{errorIdentifier}</span>
               </div>
 
               <div className="input-group">

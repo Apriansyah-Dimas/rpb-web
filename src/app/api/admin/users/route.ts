@@ -43,6 +43,28 @@ const normalizeRole = (value?: string): AdminRole =>
 const normalizeTextField = (value?: string): string =>
   value?.trim() ?? "";
 
+const normalizeUsername = (value?: string): string => {
+  const trimmed = value?.trim() ?? "";
+  if (!trimmed) {
+    return "";
+  }
+  return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()}`;
+};
+
+const assertUsername = (rawValue?: string): string | null => {
+  const trimmed = rawValue?.trim() ?? "";
+  if (!trimmed) {
+    return null;
+  }
+  if (/\s/.test(trimmed)) {
+    return "Username tidak boleh mengandung spasi.";
+  }
+  if (!/^[A-Z][a-z]*$/.test(normalizeUsername(trimmed))) {
+    return "Username hanya boleh huruf, dengan huruf pertama kapital.";
+  }
+  return null;
+};
+
 const assertPassword = (value: string): string | null => {
   if (value.length < 6) {
     return "Password minimal 6 karakter.";
@@ -142,7 +164,7 @@ export async function POST(request: Request) {
     const email = normalizeEmail(body.email);
     const password = body.password ?? "";
     const role = normalizeRole(body.role);
-    const username = normalizeTextField(body.username);
+    const username = normalizeUsername(body.username);
     const fullName = normalizeTextField(body.fullName);
     const phoneNumber = normalizeTextField(body.phoneNumber);
 
@@ -153,6 +175,10 @@ export async function POST(request: Request) {
     const passwordError = assertPassword(password);
     if (passwordError) {
       return NextResponse.json({ error: passwordError }, { status: 400 });
+    }
+    const usernameError = assertUsername(body.username);
+    if (usernameError) {
+      return NextResponse.json({ error: usernameError }, { status: 400 });
     }
     const phoneError = assertPhoneNumber(phoneNumber);
     if (phoneError) {
@@ -227,7 +253,7 @@ export async function PATCH(request: Request) {
     const hasUsername = Object.prototype.hasOwnProperty.call(body, "username");
     const hasFullName = Object.prototype.hasOwnProperty.call(body, "fullName");
     const hasPhoneNumber = Object.prototype.hasOwnProperty.call(body, "phoneNumber");
-    const nextUsername = hasUsername ? normalizeTextField(body.username) : undefined;
+    const nextUsername = hasUsername ? normalizeUsername(body.username) : undefined;
     const nextFullName = hasFullName ? normalizeTextField(body.fullName) : undefined;
     const nextPhoneNumber = hasPhoneNumber ? normalizeTextField(body.phoneNumber) : undefined;
 
@@ -246,6 +272,12 @@ export async function PATCH(request: Request) {
       const passwordError = assertPassword(nextPassword);
       if (passwordError) {
         return NextResponse.json({ error: passwordError }, { status: 400 });
+      }
+    }
+    if (hasUsername) {
+      const usernameError = assertUsername(body.username);
+      if (usernameError) {
+        return NextResponse.json({ error: usernameError }, { status: 400 });
       }
     }
     if (nextPhoneNumber !== undefined) {

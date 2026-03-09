@@ -47,6 +47,14 @@ const normalizeEmail = (value: string): string =>
 const normalizeText = (value: string): string =>
   value.trim();
 
+const normalizeUsernameInput = (value: string): string => {
+  const noSpace = value.replace(/\s+/g, "");
+  if (!noSpace) {
+    return "";
+  }
+  return `${noSpace.charAt(0).toUpperCase()}${noSpace.slice(1).toLowerCase()}`;
+};
+
 const toDraft = (user: ManagedUser): UserDraft => ({
   email: user.email,
   username: user.username,
@@ -438,8 +446,11 @@ export function AdminUserDetailPanel({ initialUser, initialAdminCount }: AdminUs
               className="rpb-input"
               type="text"
               value={draft.username}
-              onChange={(event) => updateDraft({ username: event.target.value })}
+              onChange={(event) => updateDraft({ username: normalizeUsernameInput(event.target.value) })}
             />
+            <span className="text-xs font-normal text-rpb-ink-soft">
+              Tanpa spasi. Huruf pertama kapital.
+            </span>
           </label>
           <label className="flex flex-col gap-1 text-sm font-semibold text-rpb-ink-soft">
             Nama

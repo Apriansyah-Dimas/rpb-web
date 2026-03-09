@@ -1,5 +1,5 @@
 import Image from "next/image";
-import logoRpbHeader from "@/app/logorpb-header.svg";
+import logoRpbHeader from "@/app/logorpb_putih.svg";
 
 export function RpbAppHeader({ className = "" }: { className?: string }) {
   return (
