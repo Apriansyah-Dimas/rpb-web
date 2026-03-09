@@ -105,7 +105,7 @@ export default function QuotationPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
-  const a4StageRef = useRef<HTMLDivElement>(null);
+  const a4ShellRef = useRef<HTMLDivElement>(null);
   const [a4Scale, setA4Scale] = useState(1);
 
   useEffect(() => {
@@ -113,8 +113,8 @@ export default function QuotationPage() {
   }, []);
 
   useEffect(() => {
-    const stage = a4StageRef.current;
-    if (!stage || typeof window === "undefined") {
+    const shell = a4ShellRef.current;
+    if (!shell || typeof window === "undefined") {
       return;
     }
 
@@ -125,7 +125,7 @@ export default function QuotationPage() {
     };
 
     const measureNow = () => {
-      updateScale(stage.clientWidth);
+      updateScale(shell.clientWidth);
     };
 
     measureNow();
@@ -138,7 +138,7 @@ export default function QuotationPage() {
     }
 
     const observer = new ResizeObserver((entries) => {
-      const width = entries[0]?.contentRect.width ?? stage.clientWidth;
+      const width = entries[0]?.contentRect.width ?? shell.clientWidth;
       if (frameId !== null) {
         cancelAnimationFrame(frameId);
       }
@@ -146,7 +146,7 @@ export default function QuotationPage() {
         updateScale(width);
       });
     });
-    observer.observe(stage);
+    observer.observe(shell);
 
     return () => {
       if (frameId !== null) {
@@ -519,8 +519,8 @@ export default function QuotationPage() {
           <section className="quotation-panel preview">
             <h2>Preview</h2>
 
-            <div className="a4-stage" ref={a4StageRef}>
-              <div className="a4-page-shell" style={{ height: `${A4_HEIGHT_PX * a4Scale}px` }}>
+            <div className="a4-stage">
+              <div className="a4-page-shell" ref={a4ShellRef} style={{ height: `${A4_HEIGHT_PX * a4Scale}px` }}>
                 <article className="a4-page" style={{ transform: `scale(${a4Scale})` }}>
                 <header className="sheet-head">
                   <Image
@@ -792,6 +792,7 @@ export default function QuotationPage() {
         .a4-page {
           width: ${A4_WIDTH_PX}px;
           min-height: ${A4_HEIGHT_PX}px;
+          box-sizing: border-box;
           background: #fff;
           color: #111;
           font-family: Calibri, Arial, sans-serif;
