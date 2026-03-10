@@ -113,6 +113,16 @@ export default function QuotationPage() {
   }, []);
 
   useEffect(() => {
+    const onlyStars = (value: string): boolean => /^\s*\*+\s*$/.test(value);
+    setForm((prev) => ({
+      ...prev,
+      attn: onlyStars(prev.attn) ? "" : prev.attn,
+      itemDescription: onlyStars(prev.itemDescription) ? "" : prev.itemDescription,
+      additionalInformation: onlyStars(prev.additionalInformation) ? "" : prev.additionalInformation,
+    }));
+  }, []);
+
+  useEffect(() => {
     const shell = a4ShellRef.current;
     if (!shell || typeof window === "undefined") {
       return;
@@ -295,12 +305,7 @@ export default function QuotationPage() {
     const selected = currentValue.slice(start, end);
 
     if (!selected) {
-      const nextValue = `${currentValue.slice(0, start)}****${currentValue.slice(end)}`;
-      setField(field, nextValue);
-      requestAnimationFrame(() => {
-        control.focus();
-        control.setSelectionRange(start + 2, start + 2);
-      });
+      control.focus();
       return;
     }
 
