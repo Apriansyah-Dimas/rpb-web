@@ -10,9 +10,9 @@ import {
   deleteFormulaVariableSetting,
   fetchRpbMasterData,
   upsertFormulaVariableSetting,
-  upsertKonstruksiMasterItems,
+  upsertKonstruksiMasterItem,
   upsertOtherMasterItem,
-  upsertProfileMasterItems,
+  upsertProfileMasterItem,
 } from "@/lib/rpb-db";
 import { evaluateFormulaQuantity, validateFormulaExpression } from "@/lib/rpb-formula";
 import { useRpbStore } from "@/store/rpb-store";
@@ -100,6 +100,23 @@ const newOtherDefault = {
   model: "",
   unit: "",
   priceIdr: 0,
+};
+
+const newProfileDefault = {
+  code: "",
+  name: "",
+  unit: "pc",
+  formulaExpr: "0",
+  priceIdr30: 0,
+  priceIdr45: 0,
+};
+
+const newKonstruksiDefault = {
+  code: "",
+  name: "",
+  unit: "pc",
+  formulaExpr: "0",
+  unitPriceIdr: 0,
 };
 
 const makeClientUuid = (): string => {
@@ -337,6 +354,10 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
   const [variableRows, setVariableRows] = useState<FormulaVariableSetting[]>([]);
   const [newOther, setNewOther] = useState(newOtherDefault);
   const [isOtherModalOpen, setIsOtherModalOpen] = useState(false);
+  const [newProfile, setNewProfile] = useState(newProfileDefault);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [newKonstruksi, setNewKonstruksi] = useState(newKonstruksiDefault);
+  const [isKonstruksiModalOpen, setIsKonstruksiModalOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<ConfigSection>("profile");
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -440,39 +461,98 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
     profileVariables,
   ]);
 
-  const addProfileRow = () => {
-    const nextSortOrder = Math.max(0, ...profileRows.map((row) => row.sortOrder)) + 1;
-    setProfileRows((rows) => [
-      ...rows,
-      {
-        id: makeClientUuid(),
-        code: "",
-        name: "",
-        unit: "pc",
-        sortOrder: nextSortOrder,
-        formulaExpr: "0",
-        priceIdr30: 0,
-        priceIdr45: 0,
-        isActive: true,
-      },
-    ]);
+  const validateProfileRow = (row: ProfileMasterItem): string | null => {
+    const normalizedCode = row.code.trim().toLowerCase();
+    if (!normalizedCode) {
+      return "Code item Profile wajib diisi.";
+    }
+    if (profileRows.some((item) => item.id !== row.id && item.code.trim().toLowerCase() === normalizedCode)) {
+      return `Code Profile duplikat: ${row.code}`;
+    }
+    if (!row.name.trim()) {
+      return `Name item Profile (${row.code}) wajib diisi.`;
+    }
+    if (!row.unit.trim()) {
+      return `Unit item Profile (${row.code}) wajib diisi.`;
+    }
+    const formulaError = validateFormulaExpression(row.formulaExpr);
+    if (formulaError) {
+      return `Formula PROFILE ${row.code} tidak valid: ${formulaError}`;
+    }
+    return null;
   };
 
-  const addKonstruksiRow = () => {
-    const nextSortOrder = Math.max(0, ...konstruksiRows.map((row) => row.sortOrder)) + 1;
-    setKonstruksiRows((rows) => [
-      ...rows,
-      {
-        id: makeClientUuid(),
-        code: "",
-        name: "",
-        unit: "pc",
-        sortOrder: nextSortOrder,
-        formulaExpr: "0",
-        unitPriceIdr: 0,
-        isActive: true,
-      },
-    ]);
+  const validateKonstruksiRow = (row: KonstruksiMasterItem): string | null => {
+    const normalizedCode = row.code.trim().toLowerCase();
+    if (!normalizedCode) {
+      return "Code item Konstruksi wajib diisi.";
+    }
+    if (konstruksiRows.some((item) => item.id !== row.id && item.code.trim().toLowerCase() === normalizedCode)) {
+      return `Code Konstruksi duplikat: ${row.code}`;
+    }
+    if (!row.name.trim()) {
+      return `Name item Konstruksi (${row.code}) wajib diisi.`;
+    }
+    if (!row.unit.trim()) {
+      return `Unit item Konstruksi (${row.code}) wajib diisi.`;
+    }
+    const formulaError = validateFormulaExpression(row.formulaExpr);
+    if (formulaError) {
+      return `Formula KONSTRUKSI ${row.code} tidak valid: ${formulaError}`;
+    }
+    return null;
+  };
+
+  const saveProfileRow = async (row: ProfileMasterItem) => {
+    const validation = validateProfileRow(row);
+    if (validation) {
+      setMessage(validation);
+      return;
+    }
+
+    setBusy(`profile:${row.id}`);
+    setMessage(null);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await upsertProfileMasterItem(supabase, {
+        ...row,
+        code: row.code.trim(),
+        name: row.name.trim(),
+        unit: row.unit.trim(),
+      });
+      setMessage(`Item Profile ${row.name || row.code} berhasil disimpan.`);
+      await refresh();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Gagal simpan item Profile.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const saveKonstruksiRow = async (row: KonstruksiMasterItem) => {
+    const validation = validateKonstruksiRow(row);
+    if (validation) {
+      setMessage(validation);
+      return;
+    }
+
+    setBusy(`konstruksi:${row.id}`);
+    setMessage(null);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await upsertKonstruksiMasterItem(supabase, {
+        ...row,
+        code: row.code.trim(),
+        name: row.name.trim(),
+        unit: row.unit.trim(),
+      });
+      setMessage(`Item Konstruksi ${row.name || row.code} berhasil disimpan.`);
+      await refresh();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Gagal simpan item Konstruksi.");
+    } finally {
+      setBusy(null);
+    }
   };
 
   const deleteProfileRow = async (row: ProfileMasterItem) => {
@@ -524,90 +604,6 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
       await refresh();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Gagal hapus item Konstruksi.");
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const saveAllProfile = async () => {
-    const codeSet = new Set<string>();
-    for (const row of profileRows) {
-      const normalizedCode = row.code.trim().toLowerCase();
-      if (!normalizedCode) {
-        setMessage("Code item Profile wajib diisi.");
-        return;
-      }
-      if (codeSet.has(normalizedCode)) {
-        setMessage(`Code Profile duplikat: ${row.code}`);
-        return;
-      }
-      codeSet.add(normalizedCode);
-      if (!row.name.trim()) {
-        setMessage(`Name item Profile (${row.code}) wajib diisi.`);
-        return;
-      }
-      if (!row.unit.trim()) {
-        setMessage(`Unit item Profile (${row.code}) wajib diisi.`);
-        return;
-      }
-      const validation = validateFormulaExpression(row.formulaExpr);
-      if (validation) {
-        setMessage(`Formula PROFILE ${row.code} tidak valid: ${validation}`);
-        return;
-      }
-    }
-
-    setBusy("profile");
-    setMessage(null);
-    try {
-      const supabase = getSupabaseBrowserClient();
-      await upsertProfileMasterItems(supabase, profileRows);
-      setMessage("Konfigurasi PROFILE berhasil disimpan.");
-      await refresh();
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Gagal simpan PROFILE.");
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const saveAllKonstruksi = async () => {
-    const codeSet = new Set<string>();
-    for (const row of konstruksiRows) {
-      const normalizedCode = row.code.trim().toLowerCase();
-      if (!normalizedCode) {
-        setMessage("Code item Konstruksi wajib diisi.");
-        return;
-      }
-      if (codeSet.has(normalizedCode)) {
-        setMessage(`Code Konstruksi duplikat: ${row.code}`);
-        return;
-      }
-      codeSet.add(normalizedCode);
-      if (!row.name.trim()) {
-        setMessage(`Name item Konstruksi (${row.code}) wajib diisi.`);
-        return;
-      }
-      if (!row.unit.trim()) {
-        setMessage(`Unit item Konstruksi (${row.code}) wajib diisi.`);
-        return;
-      }
-      const validation = validateFormulaExpression(row.formulaExpr);
-      if (validation) {
-        setMessage(`Formula KONSTRUKSI ${row.code} tidak valid: ${validation}`);
-        return;
-      }
-    }
-
-    setBusy("konstruksi");
-    setMessage(null);
-    try {
-      const supabase = getSupabaseBrowserClient();
-      await upsertKonstruksiMasterItems(supabase, konstruksiRows);
-      setMessage("Konfigurasi KONSTRUKSI berhasil disimpan.");
-      await refresh();
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Gagal simpan KONSTRUKSI.");
     } finally {
       setBusy(null);
     }
@@ -715,6 +711,77 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
     }
   };
 
+  const addProfilePermanent = async () => {
+    const nextSortOrder = Math.max(0, ...profileRows.map((row) => row.sortOrder)) + 1;
+    const newRow: ProfileMasterItem = {
+      id: makeClientUuid(),
+      code: newProfile.code.trim(),
+      name: newProfile.name.trim(),
+      unit: (newProfile.unit.trim() || "pc"),
+      sortOrder: nextSortOrder,
+      formulaExpr: newProfile.formulaExpr.trim() || "0",
+      priceIdr30: Math.max(0, newProfile.priceIdr30),
+      priceIdr45: Math.max(0, newProfile.priceIdr45),
+      isActive: true,
+    };
+
+    const validation = validateProfileRow(newRow);
+    if (validation) {
+      setMessage(validation);
+      return;
+    }
+
+    setBusy("profile:new");
+    setMessage(null);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await upsertProfileMasterItem(supabase, newRow);
+      setNewProfile(newProfileDefault);
+      setIsProfileModalOpen(false);
+      setMessage(`Item Profile ${newRow.name || newRow.code} berhasil ditambahkan.`);
+      await refresh();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Gagal menambah item Profile.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const addKonstruksiPermanent = async () => {
+    const nextSortOrder = Math.max(0, ...konstruksiRows.map((row) => row.sortOrder)) + 1;
+    const newRow: KonstruksiMasterItem = {
+      id: makeClientUuid(),
+      code: newKonstruksi.code.trim(),
+      name: newKonstruksi.name.trim(),
+      unit: (newKonstruksi.unit.trim() || "pc"),
+      sortOrder: nextSortOrder,
+      formulaExpr: newKonstruksi.formulaExpr.trim() || "0",
+      unitPriceIdr: Math.max(0, newKonstruksi.unitPriceIdr),
+      isActive: true,
+    };
+
+    const validation = validateKonstruksiRow(newRow);
+    if (validation) {
+      setMessage(validation);
+      return;
+    }
+
+    setBusy("konstruksi:new");
+    setMessage(null);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await upsertKonstruksiMasterItem(supabase, newRow);
+      setNewKonstruksi(newKonstruksiDefault);
+      setIsKonstruksiModalOpen(false);
+      setMessage(`Item Konstruksi ${newRow.name || newRow.code} berhasil ditambahkan.`);
+      await refresh();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Gagal menambah item Konstruksi.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const addOtherPermanent = async () => {
     if (!newOther.name.trim()) {
       setMessage("Nama item other wajib diisi.");
@@ -807,24 +874,17 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
         <section className="rpb-section p-3.5 md:p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="rpb-h-title text-base font-semibold">Profile</h2>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="rpb-btn-ghost inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-semibold"
-                onClick={addProfileRow}
-              >
-                <Plus size={14} />
-                Tambah Item
-              </button>
-              <button
-                type="button"
-                className="rpb-btn-primary inline-flex items-center justify-center px-4 py-2 text-sm font-semibold"
-                onClick={() => void saveAllProfile()}
-                disabled={busy === "profile"}
-              >
-                {busy === "profile" ? "Menyimpan..." : "Simpan Semua"}
-              </button>
-            </div>
+            <button
+              type="button"
+              className="rpb-btn-primary inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-semibold"
+              onClick={() => {
+                setNewProfile(newProfileDefault);
+                setIsProfileModalOpen(true);
+              }}
+            >
+              <Plus size={14} />
+              Tambah Item
+            </button>
           </div>
 
           <div className="space-y-2 md:hidden">
@@ -833,7 +893,16 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
                 <div className="mb-2 flex justify-end">
                   <button
                     type="button"
-                    className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 text-[#b42318]"
+                    className="rpb-btn-primary inline-flex h-9 w-9 items-center justify-center p-0"
+                    onClick={() => void saveProfileRow(row)}
+                    disabled={busy === `profile:${row.id}`}
+                    aria-label={`Simpan item Profile ${row.name || row.code || ""}`}
+                  >
+                    {busy === `profile:${row.id}` ? "..." : <Save size={14} />}
+                  </button>
+                  <button
+                    type="button"
+                    className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center border-red-200 p-0 text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
                     onClick={() => void deleteProfileRow(row)}
                     disabled={busy === `profile:delete:${row.id}`}
                     aria-label={`Hapus item Profile ${row.name || row.code || ""}`}
@@ -955,7 +1024,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
                     <th className="w-[30%] px-3 py-2">Formula Qty</th>
                     <th className="w-[14%] px-3 py-2">Harga 30</th>
                     <th className="w-[14%] px-3 py-2">Harga 45</th>
-                    <th className="w-[6%] px-3 py-2 text-center">Aksi</th>
+                    <th className="w-[10%] px-3 py-2 text-center">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1047,15 +1116,26 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
                         />
                       </td>
                       <td className="px-3 py-2 text-center">
-                        <button
-                          type="button"
-                          className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 text-[#b42318]"
-                          onClick={() => void deleteProfileRow(row)}
-                          disabled={busy === `profile:delete:${row.id}`}
-                          aria-label={`Hapus item Profile ${row.name || row.code || ""}`}
-                        >
-                          {busy === `profile:delete:${row.id}` ? "..." : <Trash2 size={14} />}
-                        </button>
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            type="button"
+                            className="rpb-btn-primary inline-flex h-9 w-9 items-center justify-center p-0"
+                            onClick={() => void saveProfileRow(row)}
+                            disabled={busy === `profile:${row.id}`}
+                            aria-label={`Simpan item Profile ${row.name || row.code || ""}`}
+                          >
+                            {busy === `profile:${row.id}` ? "..." : <Save size={14} />}
+                          </button>
+                          <button
+                            type="button"
+                            className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center border-red-200 p-0 text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
+                            onClick={() => void deleteProfileRow(row)}
+                            disabled={busy === `profile:delete:${row.id}`}
+                            aria-label={`Hapus item Profile ${row.name || row.code || ""}`}
+                          >
+                            {busy === `profile:delete:${row.id}` ? "..." : <Trash2 size={14} />}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1080,28 +1160,112 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
         </section>
       ) : null}
 
+      {isProfileModalOpen ? (
+        <div className="rpb-modal-backdrop fixed inset-0 z-[70] flex items-center justify-center bg-[#15172b]/45 p-4 backdrop-blur-[2px]">
+          <div className="rpb-modal-panel w-full max-w-4xl rounded-xl border border-rpb-border bg-white p-4 shadow-xl">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h3 className="rpb-h-title text-base font-semibold">Tambah Item Profile</h3>
+              <button
+                type="button"
+                className="rpb-btn-ghost px-3 py-2 text-xs font-semibold"
+                onClick={() => setIsProfileModalOpen(false)}
+              >
+                Tutup
+              </button>
+            </div>
+            <form
+              className="grid gap-3 md:grid-cols-6"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void addProfilePermanent();
+              }}
+            >
+              <label>
+                <span className="mb-1 block text-xs font-semibold text-rpb-ink-soft">Code</span>
+                <input
+                  className="rpb-input"
+                  value={newProfile.code}
+                  onChange={(event) => setNewProfile((value) => ({ ...value, code: event.target.value }))}
+                />
+              </label>
+              <label className="md:col-span-2">
+                <span className="mb-1 block text-xs font-semibold text-rpb-ink-soft">Name</span>
+                <input
+                  className="rpb-input"
+                  value={newProfile.name}
+                  onChange={(event) => setNewProfile((value) => ({ ...value, name: event.target.value }))}
+                />
+              </label>
+              <label>
+                <span className="mb-1 block text-xs font-semibold text-rpb-ink-soft">Unit</span>
+                <input
+                  className="rpb-input"
+                  value={newProfile.unit}
+                  onChange={(event) => setNewProfile((value) => ({ ...value, unit: event.target.value }))}
+                />
+              </label>
+              <label className="md:col-span-2">
+                <span className="mb-1 block text-xs font-semibold text-rpb-ink-soft">Formula Qty</span>
+                <input
+                  className="rpb-input font-mono"
+                  value={newProfile.formulaExpr}
+                  onChange={(event) => setNewProfile((value) => ({ ...value, formulaExpr: event.target.value }))}
+                />
+              </label>
+              <label>
+                <span className="mb-1 block text-xs font-semibold text-rpb-ink-soft">Harga 30</span>
+                <input
+                  className="rpb-input"
+                  type="text"
+                  inputMode="numeric"
+                  value={formatIdrInput(newProfile.priceIdr30)}
+                  onChange={(event) =>
+                    setNewProfile((value) => ({ ...value, priceIdr30: parseIdrInput(event.target.value) }))
+                  }
+                />
+              </label>
+              <label>
+                <span className="mb-1 block text-xs font-semibold text-rpb-ink-soft">Harga 45</span>
+                <input
+                  className="rpb-input"
+                  type="text"
+                  inputMode="numeric"
+                  value={formatIdrInput(newProfile.priceIdr45)}
+                  onChange={(event) =>
+                    setNewProfile((value) => ({ ...value, priceIdr45: parseIdrInput(event.target.value) }))
+                  }
+                />
+              </label>
+              <div className="flex justify-end md:col-span-6">
+                <button
+                  type="submit"
+                  className="rpb-btn-primary inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold"
+                  disabled={busy === "profile:new"}
+                >
+                  <Plus size={14} />
+                  {busy === "profile:new" ? "..." : "Tambah"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
       {activeSection === "konstruksi" ? (
         <section className="rpb-section p-3.5 md:p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="rpb-h-title text-base font-semibold">Konstruksi</h2>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="rpb-btn-ghost inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-semibold"
-                onClick={addKonstruksiRow}
-              >
-                <Plus size={14} />
-                Tambah Item
-              </button>
-              <button
-                type="button"
-                className="rpb-btn-primary inline-flex items-center justify-center px-4 py-2 text-sm font-semibold"
-                onClick={() => void saveAllKonstruksi()}
-                disabled={busy === "konstruksi"}
-              >
-                {busy === "konstruksi" ? "Menyimpan..." : "Simpan Semua"}
-              </button>
-            </div>
+            <button
+              type="button"
+              className="rpb-btn-primary inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-semibold"
+              onClick={() => {
+                setNewKonstruksi(newKonstruksiDefault);
+                setIsKonstruksiModalOpen(true);
+              }}
+            >
+              <Plus size={14} />
+              Tambah Item
+            </button>
           </div>
 
           <div className="space-y-2 md:hidden">
@@ -1110,7 +1274,16 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
                 <div className="mb-2 flex justify-end">
                   <button
                     type="button"
-                    className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 text-[#b42318]"
+                    className="rpb-btn-primary inline-flex h-9 w-9 items-center justify-center p-0"
+                    onClick={() => void saveKonstruksiRow(row)}
+                    disabled={busy === `konstruksi:${row.id}`}
+                    aria-label={`Simpan item Konstruksi ${row.name || row.code || ""}`}
+                  >
+                    {busy === `konstruksi:${row.id}` ? "..." : <Save size={14} />}
+                  </button>
+                  <button
+                    type="button"
+                    className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center border-red-200 p-0 text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
                     onClick={() => void deleteKonstruksiRow(row)}
                     disabled={busy === `konstruksi:delete:${row.id}`}
                     aria-label={`Hapus item Konstruksi ${row.name || row.code || ""}`}
@@ -1213,7 +1386,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
                     <th className="w-[10%] px-3 py-2">Unit</th>
                     <th className="w-[32%] px-3 py-2">Formula Qty</th>
                     <th className="w-[20%] px-3 py-2">Harga Satuan</th>
-                    <th className="w-[6%] px-3 py-2 text-center">Aksi</th>
+                    <th className="w-[10%] px-3 py-2 text-center">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1290,15 +1463,26 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
                         />
                       </td>
                       <td className="px-3 py-2 text-center">
-                        <button
-                          type="button"
-                          className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 text-[#b42318]"
-                          onClick={() => void deleteKonstruksiRow(row)}
-                          disabled={busy === `konstruksi:delete:${row.id}`}
-                          aria-label={`Hapus item Konstruksi ${row.name || row.code || ""}`}
-                        >
-                          {busy === `konstruksi:delete:${row.id}` ? "..." : <Trash2 size={14} />}
-                        </button>
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            type="button"
+                            className="rpb-btn-primary inline-flex h-9 w-9 items-center justify-center p-0"
+                            onClick={() => void saveKonstruksiRow(row)}
+                            disabled={busy === `konstruksi:${row.id}`}
+                            aria-label={`Simpan item Konstruksi ${row.name || row.code || ""}`}
+                          >
+                            {busy === `konstruksi:${row.id}` ? "..." : <Save size={14} />}
+                          </button>
+                          <button
+                            type="button"
+                            className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center border-red-200 p-0 text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
+                            onClick={() => void deleteKonstruksiRow(row)}
+                            disabled={busy === `konstruksi:delete:${row.id}`}
+                            aria-label={`Hapus item Konstruksi ${row.name || row.code || ""}`}
+                          >
+                            {busy === `konstruksi:delete:${row.id}` ? "..." : <Trash2 size={14} />}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1321,6 +1505,96 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
           />
           <FormulaHelpBox />
         </section>
+      ) : null}
+
+      {isKonstruksiModalOpen ? (
+        <div className="rpb-modal-backdrop fixed inset-0 z-[70] flex items-center justify-center bg-[#15172b]/45 p-4 backdrop-blur-[2px]">
+          <div className="rpb-modal-panel w-full max-w-4xl rounded-xl border border-rpb-border bg-white p-4 shadow-xl">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h3 className="rpb-h-title text-base font-semibold">Tambah Item Konstruksi</h3>
+              <button
+                type="button"
+                className="rpb-btn-ghost px-3 py-2 text-xs font-semibold"
+                onClick={() => setIsKonstruksiModalOpen(false)}
+              >
+                Tutup
+              </button>
+            </div>
+            <form
+              className="grid gap-3 md:grid-cols-5"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void addKonstruksiPermanent();
+              }}
+            >
+              <label>
+                <span className="mb-1 block text-xs font-semibold text-rpb-ink-soft">Code</span>
+                <input
+                  className="rpb-input"
+                  value={newKonstruksi.code}
+                  onChange={(event) =>
+                    setNewKonstruksi((value) => ({ ...value, code: event.target.value }))
+                  }
+                />
+              </label>
+              <label className="md:col-span-2">
+                <span className="mb-1 block text-xs font-semibold text-rpb-ink-soft">Name</span>
+                <input
+                  className="rpb-input"
+                  value={newKonstruksi.name}
+                  onChange={(event) =>
+                    setNewKonstruksi((value) => ({ ...value, name: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                <span className="mb-1 block text-xs font-semibold text-rpb-ink-soft">Unit</span>
+                <input
+                  className="rpb-input"
+                  value={newKonstruksi.unit}
+                  onChange={(event) =>
+                    setNewKonstruksi((value) => ({ ...value, unit: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                <span className="mb-1 block text-xs font-semibold text-rpb-ink-soft">Harga Satuan</span>
+                <input
+                  className="rpb-input"
+                  type="text"
+                  inputMode="numeric"
+                  value={formatIdrInput(newKonstruksi.unitPriceIdr)}
+                  onChange={(event) =>
+                    setNewKonstruksi((value) => ({
+                      ...value,
+                      unitPriceIdr: parseIdrInput(event.target.value),
+                    }))
+                  }
+                />
+              </label>
+              <label className="md:col-span-4">
+                <span className="mb-1 block text-xs font-semibold text-rpb-ink-soft">Formula Qty</span>
+                <input
+                  className="rpb-input font-mono"
+                  value={newKonstruksi.formulaExpr}
+                  onChange={(event) =>
+                    setNewKonstruksi((value) => ({ ...value, formulaExpr: event.target.value }))
+                  }
+                />
+              </label>
+              <div className="flex justify-end md:col-span-5">
+                <button
+                  type="submit"
+                  className="rpb-btn-primary inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold"
+                  disabled={busy === "konstruksi:new"}
+                >
+                  <Plus size={14} />
+                  {busy === "konstruksi:new" ? "..." : "Tambah"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       ) : null}
 
       {activeSection === "other" ? (
