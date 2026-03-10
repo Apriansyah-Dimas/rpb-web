@@ -20,7 +20,7 @@ interface MasterDataCachePayload {
 }
 
 const MASTER_DATA_CACHE_KEY = "rpb-master-data-cache-v2";
-const MASTER_DATA_CACHE_MAX_AGE_MS = 5 * 60 * 1000;
+const MASTER_DATA_INVALIDATED_EVENT = "rpb-master-data-invalidated";
 
 const normalizeMasterData = (value: unknown): RpbMasterData | null => {
   if (!value || typeof value !== "object") {
@@ -45,6 +45,7 @@ export const invalidateRpbMasterDataCache = (): void => {
   }
   try {
     window.localStorage.removeItem(MASTER_DATA_CACHE_KEY);
+    window.dispatchEvent(new Event(MASTER_DATA_INVALIDATED_EVENT));
   } catch {
     // ignore cache clear failures
   }
@@ -113,14 +114,6 @@ const writeCache = (payload: MasterDataCachePayload) => {
   }
 };
 
-const isCacheFresh = (payload: MasterDataCachePayload | null): boolean => {
-  if (!payload) {
-    return false;
-  }
-
-  return Date.now() - payload.fetchedAt <= MASTER_DATA_CACHE_MAX_AGE_MS;
-};
-
 export const useRpbMasterData = (): MasterDataState => {
   const initialCache = getCachedMasterData();
 
@@ -161,12 +154,29 @@ export const useRpbMasterData = (): MasterDataState => {
 
   useEffect(() => {
     const cached = getCachedMasterData();
+    void refresh(Boolean(cached));
 
-    if (isCacheFresh(cached)) {
+    if (typeof window === "undefined") {
       return;
     }
 
-    void refresh(Boolean(cached));
+    const handleInvalidated = () => {
+      void refresh(true);
+    };
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === MASTER_DATA_CACHE_KEY && event.newValue === null) {
+        void refresh(true);
+      }
+    };
+
+    window.addEventListener(MASTER_DATA_INVALIDATED_EVENT, handleInvalidated);
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener(MASTER_DATA_INVALIDATED_EVENT, handleInvalidated);
+      window.removeEventListener("storage", handleStorage);
+    };
   }, []);
 
   return { data, role, loading, error, refresh: () => refresh(false) };
