@@ -4,7 +4,9 @@ import type { TextareaHTMLAttributes } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Save, Trash2 } from "lucide-react";
 import {
+  deleteKonstruksiMasterItem,
   deleteOtherMasterItem,
+  deleteProfileMasterItem,
   deleteFormulaVariableSetting,
   fetchRpbMasterData,
   upsertFormulaVariableSetting,
@@ -98,6 +100,13 @@ const newOtherDefault = {
   model: "",
   unit: "",
   priceIdr: 0,
+};
+
+const makeClientUuid = (): string => {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `temp-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 };
 
 function FormulaHelpBox() {
@@ -431,8 +440,116 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
     profileVariables,
   ]);
 
+  const addProfileRow = () => {
+    const nextSortOrder = Math.max(0, ...profileRows.map((row) => row.sortOrder)) + 1;
+    setProfileRows((rows) => [
+      ...rows,
+      {
+        id: makeClientUuid(),
+        code: "",
+        name: "",
+        unit: "pc",
+        sortOrder: nextSortOrder,
+        formulaExpr: "0",
+        priceIdr30: 0,
+        priceIdr45: 0,
+        isActive: true,
+      },
+    ]);
+  };
+
+  const addKonstruksiRow = () => {
+    const nextSortOrder = Math.max(0, ...konstruksiRows.map((row) => row.sortOrder)) + 1;
+    setKonstruksiRows((rows) => [
+      ...rows,
+      {
+        id: makeClientUuid(),
+        code: "",
+        name: "",
+        unit: "pc",
+        sortOrder: nextSortOrder,
+        formulaExpr: "0",
+        unitPriceIdr: 0,
+        isActive: true,
+      },
+    ]);
+  };
+
+  const deleteProfileRow = async (row: ProfileMasterItem) => {
+    const confirmed = window.confirm(`Hapus item Profile "${row.name || row.code || "(baru)"}"?`);
+    if (!confirmed) {
+      return;
+    }
+
+    const existsInDb = data.profileItems.some((item) => item.id === row.id);
+    if (!existsInDb) {
+      setProfileRows((rows) => rows.filter((item) => item.id !== row.id));
+      setMessage("Item Profile draft dihapus.");
+      return;
+    }
+
+    setBusy(`profile:delete:${row.id}`);
+    setMessage(null);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await deleteProfileMasterItem(supabase, row.id);
+      setMessage(`Item Profile ${row.name || row.code} berhasil dihapus.`);
+      await refresh();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Gagal hapus item Profile.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const deleteKonstruksiRow = async (row: KonstruksiMasterItem) => {
+    const confirmed = window.confirm(`Hapus item Konstruksi "${row.name || row.code || "(baru)"}"?`);
+    if (!confirmed) {
+      return;
+    }
+
+    const existsInDb = data.konstruksiItems.some((item) => item.id === row.id);
+    if (!existsInDb) {
+      setKonstruksiRows((rows) => rows.filter((item) => item.id !== row.id));
+      setMessage("Item Konstruksi draft dihapus.");
+      return;
+    }
+
+    setBusy(`konstruksi:delete:${row.id}`);
+    setMessage(null);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await deleteKonstruksiMasterItem(supabase, row.id);
+      setMessage(`Item Konstruksi ${row.name || row.code} berhasil dihapus.`);
+      await refresh();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Gagal hapus item Konstruksi.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const saveAllProfile = async () => {
+    const codeSet = new Set<string>();
     for (const row of profileRows) {
+      const normalizedCode = row.code.trim().toLowerCase();
+      if (!normalizedCode) {
+        setMessage("Code item Profile wajib diisi.");
+        return;
+      }
+      if (codeSet.has(normalizedCode)) {
+        setMessage(`Code Profile duplikat: ${row.code}`);
+        return;
+      }
+      codeSet.add(normalizedCode);
+      if (!row.name.trim()) {
+        setMessage(`Name item Profile (${row.code}) wajib diisi.`);
+        return;
+      }
+      if (!row.unit.trim()) {
+        setMessage(`Unit item Profile (${row.code}) wajib diisi.`);
+        return;
+      }
       const validation = validateFormulaExpression(row.formulaExpr);
       if (validation) {
         setMessage(`Formula PROFILE ${row.code} tidak valid: ${validation}`);
@@ -455,7 +572,26 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
   };
 
   const saveAllKonstruksi = async () => {
+    const codeSet = new Set<string>();
     for (const row of konstruksiRows) {
+      const normalizedCode = row.code.trim().toLowerCase();
+      if (!normalizedCode) {
+        setMessage("Code item Konstruksi wajib diisi.");
+        return;
+      }
+      if (codeSet.has(normalizedCode)) {
+        setMessage(`Code Konstruksi duplikat: ${row.code}`);
+        return;
+      }
+      codeSet.add(normalizedCode);
+      if (!row.name.trim()) {
+        setMessage(`Name item Konstruksi (${row.code}) wajib diisi.`);
+        return;
+      }
+      if (!row.unit.trim()) {
+        setMessage(`Unit item Konstruksi (${row.code}) wajib diisi.`);
+        return;
+      }
       const validation = validateFormulaExpression(row.formulaExpr);
       if (validation) {
         setMessage(`Formula KONSTRUKSI ${row.code} tidak valid: ${validation}`);
@@ -671,22 +807,84 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
         <section className="rpb-section p-3.5 md:p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="rpb-h-title text-base font-semibold">Profile</h2>
-            <button
-              type="button"
-              className="rpb-btn-primary inline-flex items-center justify-center px-4 py-2 text-sm font-semibold"
-              onClick={() => void saveAllProfile()}
-              disabled={busy === "profile"}
-            >
-              {busy === "profile" ? "Menyimpan..." : "Simpan Semua"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="rpb-btn-ghost inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-semibold"
+                onClick={addProfileRow}
+              >
+                <Plus size={14} />
+                Tambah Item
+              </button>
+              <button
+                type="button"
+                className="rpb-btn-primary inline-flex items-center justify-center px-4 py-2 text-sm font-semibold"
+                onClick={() => void saveAllProfile()}
+                disabled={busy === "profile"}
+              >
+                {busy === "profile" ? "Menyimpan..." : "Simpan Semua"}
+              </button>
+            </div>
           </div>
 
           <div className="space-y-2 md:hidden">
             {profileRows.map((row) => (
               <article key={row.id} className="rounded-xl border border-rpb-border bg-white p-3.5 shadow-[0_4px_12px_rgba(30,36,88,0.04)]">
-                <p className="text-xs text-rpb-ink-soft">{row.code}</p>
-                <p className="text-sm font-semibold">{row.name}</p>
-                <p className="text-xs text-rpb-ink-soft">Unit: {row.unit}</p>
+                <div className="mb-2 flex justify-end">
+                  <button
+                    type="button"
+                    className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 text-[#b42318]"
+                    onClick={() => void deleteProfileRow(row)}
+                    disabled={busy === `profile:delete:${row.id}`}
+                    aria-label={`Hapus item Profile ${row.name || row.code || ""}`}
+                  >
+                    {busy === `profile:delete:${row.id}` ? "..." : <Trash2 size={14} />}
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="text-xs font-semibold text-rpb-ink-soft">
+                    Code
+                    <input
+                      className="rpb-input mt-1"
+                      value={row.code}
+                      onChange={(event) =>
+                        setProfileRows((list) =>
+                          list.map((item) =>
+                            item.id === row.id ? { ...item, code: event.target.value } : item,
+                          ),
+                        )
+                      }
+                    />
+                  </label>
+                  <label className="text-xs font-semibold text-rpb-ink-soft">
+                    Unit
+                    <input
+                      className="rpb-input mt-1"
+                      value={row.unit}
+                      onChange={(event) =>
+                        setProfileRows((list) =>
+                          list.map((item) =>
+                            item.id === row.id ? { ...item, unit: event.target.value } : item,
+                          ),
+                        )
+                      }
+                    />
+                  </label>
+                </div>
+                <label className="mt-2 block text-xs font-semibold text-rpb-ink-soft">
+                  Name
+                  <input
+                    className="rpb-input mt-1"
+                    value={row.name}
+                    onChange={(event) =>
+                      setProfileRows((list) =>
+                        list.map((item) =>
+                          item.id === row.id ? { ...item, name: event.target.value } : item,
+                        ),
+                      )
+                    }
+                  />
+                </label>
                 <label className="mt-2 block text-xs font-semibold text-rpb-ink-soft">
                   <span className="flex items-center justify-between gap-2">
                     <span>Formula Qty</span>
@@ -752,19 +950,56 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
                 <thead className="bg-[#e9f4fa]">
                   <tr className="text-left text-xs font-semibold text-rpb-ink-soft">
                     <th className="w-[12%] px-3 py-2">Code</th>
-                    <th className="w-[14%] px-3 py-2">Name</th>
+                    <th className="w-[16%] px-3 py-2">Name</th>
                     <th className="w-[8%] px-3 py-2">Unit</th>
-                    <th className="w-[35%] px-3 py-2">Formula Qty</th>
-                    <th className="w-[15.5%] px-3 py-2">Harga 30</th>
-                    <th className="w-[15.5%] px-3 py-2">Harga 45</th>
+                    <th className="w-[30%] px-3 py-2">Formula Qty</th>
+                    <th className="w-[14%] px-3 py-2">Harga 30</th>
+                    <th className="w-[14%] px-3 py-2">Harga 45</th>
+                    <th className="w-[6%] px-3 py-2 text-center">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
                   {profileRows.map((row) => (
                     <tr key={row.id} className="border-t border-rpb-border align-top">
-                      <td className="px-3 py-2 text-xs text-rpb-ink-soft break-all">{row.code}</td>
-                      <td className="px-3 py-2 break-words">{row.name}</td>
-                      <td className="px-3 py-2 break-words">{row.unit}</td>
+                      <td className="px-3 py-2">
+                        <input
+                          className="rpb-input w-full"
+                          value={row.code}
+                          onChange={(event) =>
+                            setProfileRows((list) =>
+                              list.map((item) =>
+                                item.id === row.id ? { ...item, code: event.target.value } : item,
+                              ),
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          className="rpb-input w-full"
+                          value={row.name}
+                          onChange={(event) =>
+                            setProfileRows((list) =>
+                              list.map((item) =>
+                                item.id === row.id ? { ...item, name: event.target.value } : item,
+                              ),
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          className="rpb-input w-full"
+                          value={row.unit}
+                          onChange={(event) =>
+                            setProfileRows((list) =>
+                              list.map((item) =>
+                                item.id === row.id ? { ...item, unit: event.target.value } : item,
+                              ),
+                            )
+                          }
+                        />
+                      </td>
                       <td className="px-3 py-2">
                         <div className="grid grid-cols-[minmax(0,1fr)_84px] gap-2">
                           <AutoSizeFormulaTextarea
@@ -811,6 +1046,17 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
                           }
                         />
                       </td>
+                      <td className="px-3 py-2 text-center">
+                        <button
+                          type="button"
+                          className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 text-[#b42318]"
+                          onClick={() => void deleteProfileRow(row)}
+                          disabled={busy === `profile:delete:${row.id}`}
+                          aria-label={`Hapus item Profile ${row.name || row.code || ""}`}
+                        >
+                          {busy === `profile:delete:${row.id}` ? "..." : <Trash2 size={14} />}
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -838,22 +1084,84 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
         <section className="rpb-section p-3.5 md:p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="rpb-h-title text-base font-semibold">Konstruksi</h2>
-            <button
-              type="button"
-              className="rpb-btn-primary inline-flex items-center justify-center px-4 py-2 text-sm font-semibold"
-              onClick={() => void saveAllKonstruksi()}
-              disabled={busy === "konstruksi"}
-            >
-              {busy === "konstruksi" ? "Menyimpan..." : "Simpan Semua"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="rpb-btn-ghost inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-semibold"
+                onClick={addKonstruksiRow}
+              >
+                <Plus size={14} />
+                Tambah Item
+              </button>
+              <button
+                type="button"
+                className="rpb-btn-primary inline-flex items-center justify-center px-4 py-2 text-sm font-semibold"
+                onClick={() => void saveAllKonstruksi()}
+                disabled={busy === "konstruksi"}
+              >
+                {busy === "konstruksi" ? "Menyimpan..." : "Simpan Semua"}
+              </button>
+            </div>
           </div>
 
           <div className="space-y-2 md:hidden">
             {konstruksiRows.map((row) => (
               <article key={row.id} className="rounded-xl border border-rpb-border bg-white p-3.5 shadow-[0_4px_12px_rgba(30,36,88,0.04)]">
-                <p className="text-xs text-rpb-ink-soft">{row.code}</p>
-                <p className="text-sm font-semibold">{row.name}</p>
-                <p className="text-xs text-rpb-ink-soft">Unit: {row.unit}</p>
+                <div className="mb-2 flex justify-end">
+                  <button
+                    type="button"
+                    className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 text-[#b42318]"
+                    onClick={() => void deleteKonstruksiRow(row)}
+                    disabled={busy === `konstruksi:delete:${row.id}`}
+                    aria-label={`Hapus item Konstruksi ${row.name || row.code || ""}`}
+                  >
+                    {busy === `konstruksi:delete:${row.id}` ? "..." : <Trash2 size={14} />}
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="text-xs font-semibold text-rpb-ink-soft">
+                    Code
+                    <input
+                      className="rpb-input mt-1"
+                      value={row.code}
+                      onChange={(event) =>
+                        setKonstruksiRows((list) =>
+                          list.map((item) =>
+                            item.id === row.id ? { ...item, code: event.target.value } : item,
+                          ),
+                        )
+                      }
+                    />
+                  </label>
+                  <label className="text-xs font-semibold text-rpb-ink-soft">
+                    Unit
+                    <input
+                      className="rpb-input mt-1"
+                      value={row.unit}
+                      onChange={(event) =>
+                        setKonstruksiRows((list) =>
+                          list.map((item) =>
+                            item.id === row.id ? { ...item, unit: event.target.value } : item,
+                          ),
+                        )
+                      }
+                    />
+                  </label>
+                </div>
+                <label className="mt-2 block text-xs font-semibold text-rpb-ink-soft">
+                  Name
+                  <input
+                    className="rpb-input mt-1"
+                    value={row.name}
+                    onChange={(event) =>
+                      setKonstruksiRows((list) =>
+                        list.map((item) =>
+                          item.id === row.id ? { ...item, name: event.target.value } : item,
+                        ),
+                      )
+                    }
+                  />
+                </label>
                 <label className="mt-2 block text-xs font-semibold text-rpb-ink-soft">
                   <span className="flex items-center justify-between gap-2">
                     <span>Formula Qty</span>
@@ -901,18 +1209,55 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
                 <thead className="bg-[#e9f4fa]">
                   <tr className="text-left text-xs font-semibold text-rpb-ink-soft">
                     <th className="w-[12%] px-3 py-2">Code</th>
-                    <th className="w-[18%] px-3 py-2">Name</th>
+                    <th className="w-[20%] px-3 py-2">Name</th>
                     <th className="w-[10%] px-3 py-2">Unit</th>
-                    <th className="w-[36%] px-3 py-2">Formula Qty</th>
-                    <th className="w-[24%] px-3 py-2">Harga Satuan</th>
+                    <th className="w-[32%] px-3 py-2">Formula Qty</th>
+                    <th className="w-[20%] px-3 py-2">Harga Satuan</th>
+                    <th className="w-[6%] px-3 py-2 text-center">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
                   {konstruksiRows.map((row) => (
                     <tr key={row.id} className="border-t border-rpb-border align-top">
-                      <td className="px-3 py-2 text-xs text-rpb-ink-soft break-all">{row.code}</td>
-                      <td className="px-3 py-2 break-words">{row.name}</td>
-                      <td className="px-3 py-2 break-words">{row.unit}</td>
+                      <td className="px-3 py-2">
+                        <input
+                          className="rpb-input w-full"
+                          value={row.code}
+                          onChange={(event) =>
+                            setKonstruksiRows((list) =>
+                              list.map((item) =>
+                                item.id === row.id ? { ...item, code: event.target.value } : item,
+                              ),
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          className="rpb-input w-full"
+                          value={row.name}
+                          onChange={(event) =>
+                            setKonstruksiRows((list) =>
+                              list.map((item) =>
+                                item.id === row.id ? { ...item, name: event.target.value } : item,
+                              ),
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          className="rpb-input w-full"
+                          value={row.unit}
+                          onChange={(event) =>
+                            setKonstruksiRows((list) =>
+                              list.map((item) =>
+                                item.id === row.id ? { ...item, unit: event.target.value } : item,
+                              ),
+                            )
+                          }
+                        />
+                      </td>
                       <td className="px-3 py-2">
                         <div className="grid grid-cols-[minmax(0,1fr)_84px] gap-2">
                           <AutoSizeFormulaTextarea
@@ -943,6 +1288,17 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
                             )
                           }
                         />
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <button
+                          type="button"
+                          className="rpb-btn-ghost inline-flex h-9 w-9 items-center justify-center p-0 text-[#b42318]"
+                          onClick={() => void deleteKonstruksiRow(row)}
+                          disabled={busy === `konstruksi:delete:${row.id}`}
+                          aria-label={`Hapus item Konstruksi ${row.name || row.code || ""}`}
+                        >
+                          {busy === `konstruksi:delete:${row.id}` ? "..." : <Trash2 size={14} />}
+                        </button>
                       </td>
                     </tr>
                   ))}

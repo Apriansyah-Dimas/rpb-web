@@ -367,6 +367,26 @@ export const upsertKonstruksiMasterItems = async (
   }
 };
 
+export const deleteProfileMasterItem = async (
+  supabase: SupabaseClient,
+  id: string,
+): Promise<void> => {
+  const { error } = await supabase.from("rpb_profile_items").delete().eq("id", id);
+  if (error) {
+    throw error;
+  }
+};
+
+export const deleteKonstruksiMasterItem = async (
+  supabase: SupabaseClient,
+  id: string,
+): Promise<void> => {
+  const { error } = await supabase.from("rpb_konstruksi_items").delete().eq("id", id);
+  if (error) {
+    throw error;
+  }
+};
+
 export const upsertOtherMasterItem = async (
   supabase: SupabaseClient,
   item: {
