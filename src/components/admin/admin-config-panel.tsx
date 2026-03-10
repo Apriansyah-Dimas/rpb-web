@@ -17,6 +17,7 @@ import {
 import { evaluateFormulaQuantity, validateFormulaExpression } from "@/lib/rpb-formula";
 import { useRpbStore } from "@/store/rpb-store";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { invalidateRpbMasterDataCache } from "@/hooks/use-rpb-master-data";
 import type {
   FormulaVariableSection,
   FormulaVariableSetting,
@@ -520,6 +521,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
         name: row.name.trim(),
         unit: row.unit.trim(),
       });
+      invalidateRpbMasterDataCache();
       setMessage(`Item Profile ${row.name || row.code} berhasil disimpan.`);
       await refresh();
     } catch (err) {
@@ -546,6 +548,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
         name: row.name.trim(),
         unit: row.unit.trim(),
       });
+      invalidateRpbMasterDataCache();
       setMessage(`Item Konstruksi ${row.name || row.code} berhasil disimpan.`);
       await refresh();
     } catch (err) {
@@ -573,6 +576,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
     try {
       const supabase = getSupabaseBrowserClient();
       await deleteProfileMasterItem(supabase, row.id);
+      invalidateRpbMasterDataCache();
       setMessage(`Item Profile ${row.name || row.code} berhasil dihapus.`);
       await refresh();
     } catch (err) {
@@ -600,6 +604,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
     try {
       const supabase = getSupabaseBrowserClient();
       await deleteKonstruksiMasterItem(supabase, row.id);
+      invalidateRpbMasterDataCache();
       setMessage(`Item Konstruksi ${row.name || row.code} berhasil dihapus.`);
       await refresh();
     } catch (err) {
@@ -702,6 +707,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
         unit: row.unit,
         priceIdr: row.priceIdr,
       });
+      invalidateRpbMasterDataCache();
       setMessage(`Item ${row.name} berhasil disimpan.`);
       await refresh();
     } catch (err) {
@@ -736,6 +742,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
     try {
       const supabase = getSupabaseBrowserClient();
       await upsertProfileMasterItem(supabase, newRow);
+      invalidateRpbMasterDataCache();
       setNewProfile(newProfileDefault);
       setIsProfileModalOpen(false);
       setMessage(`Item Profile ${newRow.name || newRow.code} berhasil ditambahkan.`);
@@ -771,6 +778,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
     try {
       const supabase = getSupabaseBrowserClient();
       await upsertKonstruksiMasterItem(supabase, newRow);
+      invalidateRpbMasterDataCache();
       setNewKonstruksi(newKonstruksiDefault);
       setIsKonstruksiModalOpen(false);
       setMessage(`Item Konstruksi ${newRow.name || newRow.code} berhasil ditambahkan.`);
@@ -799,6 +807,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
         unit: newOther.unit.trim() || "pc",
         priceIdr: Math.max(0, newOther.priceIdr),
       });
+      invalidateRpbMasterDataCache();
       setNewOther(newOtherDefault);
       setIsOtherModalOpen(false);
       setMessage("Item other permanen berhasil ditambahkan.");
@@ -821,6 +830,7 @@ export function AdminConfigPanel({ initialData }: { initialData: RpbMasterData }
     try {
       const supabase = getSupabaseBrowserClient();
       await deleteOtherMasterItem(supabase, row.id);
+      invalidateRpbMasterDataCache();
       setMessage(`Item ${row.name} berhasil dihapus.`);
       await refresh();
     } catch (err) {

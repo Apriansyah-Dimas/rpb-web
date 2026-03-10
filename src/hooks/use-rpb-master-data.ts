@@ -38,6 +38,18 @@ const normalizeMasterData = (value: unknown): RpbMasterData | null => {
 
 let memoryCache: MasterDataCachePayload | null = null;
 
+export const invalidateRpbMasterDataCache = (): void => {
+  memoryCache = null;
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    window.localStorage.removeItem(MASTER_DATA_CACHE_KEY);
+  } catch {
+    // ignore cache clear failures
+  }
+};
+
 const readStorageCache = (): MasterDataCachePayload | null => {
   if (typeof window === "undefined") {
     return null;
