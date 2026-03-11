@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  calculateFixedBreakdowns,
   formatRupiah,
 } from "@/lib/rpb-calculator";
 import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
@@ -58,6 +59,21 @@ interface CalculationRow {
   highlight?: boolean;
 }
 
+interface FixedBreakdownSection {
+  key: "profile" | "konstruksi";
+  title: string;
+  rows: {
+    id: string;
+    code: string;
+    name: string;
+    unit: string;
+    qty: number;
+    unitPriceIdr: number;
+    totalIdr: number;
+  }[];
+  totalIdr: number;
+}
+
 export default function SummaryPage() {
   const { data: masterData, loading: masterLoading, error: masterError } = useRpbMasterData();
   const customerName = useRpbStore((state) => state.customerName);
@@ -76,6 +92,9 @@ export default function SummaryPage() {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [saveTitleInput, setSaveTitleInput] = useState("");
+  const [openBreakdownKey, setOpenBreakdownKey] = useState<FixedBreakdownSection["key"] | null>(
+    "profile",
+  );
 
   const { lineItems } = useMemo(
     () =>
@@ -97,6 +116,35 @@ export default function SummaryPage() {
       panelThickness,
       selectedOther,
     ],
+  );
+
+  const { profileRows, konstruksiRows } = useMemo(
+    () =>
+      calculateFixedBreakdowns(
+        dimensions,
+        panelThickness,
+        masterData?.profileItems ?? [],
+        masterData?.konstruksiItems ?? [],
+      ),
+    [dimensions, masterData?.konstruksiItems, masterData?.profileItems, panelThickness],
+  );
+
+  const fixedBreakdownSections: FixedBreakdownSection[] = useMemo(
+    () => [
+      {
+        key: "profile",
+        title: "Detail PROFILE",
+        rows: profileRows,
+        totalIdr: profileRows.reduce((sum, row) => sum + row.totalIdr, 0),
+      },
+      {
+        key: "konstruksi",
+        title: "Detail KONSTRUKSI",
+        rows: konstruksiRows,
+        totalIdr: konstruksiRows.reduce((sum, row) => sum + row.totalIdr, 0),
+      },
+    ],
+    [konstruksiRows, profileRows],
   );
 
   const subtotalIdr = useMemo(
@@ -601,6 +649,79 @@ export default function SummaryPage() {
                   </div>
                 </div>
               </article>
+            </div>
+          </section>
+
+          <section className="rpb-section p-3 md:p-4">
+            <h3 className="rpb-h-title mb-2 text-base font-semibold">Detail Jenis</h3>
+            <p className="mb-3 text-xs text-rpb-ink-soft">
+              Breakdown komponen untuk PROFILE dan KONSTRUKSI.
+            </p>
+
+            <div className="space-y-2">
+              {fixedBreakdownSections.map((section) => {
+                const isOpen = openBreakdownKey === section.key;
+                return (
+                  <article
+                    key={section.key}
+                    className="overflow-hidden rounded-xl border border-rpb-border bg-white"
+                  >
+                    <button
+                      type="button"
+                      className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left"
+                      onClick={() =>
+                        setOpenBreakdownKey((prev) => (prev === section.key ? null : section.key))
+                      }
+                      aria-expanded={isOpen}
+                      aria-controls={`breakdown-${section.key}`}
+                    >
+                      <span className="min-w-0 text-sm font-semibold text-foreground">
+                        {section.title}
+                      </span>
+                      <span className="shrink-0 text-xs font-semibold text-rpb-ink-soft">
+                        {isOpen ? "Tutup" : "Lihat"}
+                      </span>
+                    </button>
+
+                    {isOpen ? (
+                      <div id={`breakdown-${section.key}`} className="border-t border-rpb-border p-3">
+                        {section.rows.length === 0 ? (
+                          <p className="text-xs text-rpb-ink-soft">
+                            Belum ada data komponen untuk kategori ini.
+                          </p>
+                        ) : (
+                          <div className="space-y-1.5">
+                            {section.rows.map((row, index) => (
+                              <div
+                                key={row.id}
+                                className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-lg border border-rpb-border bg-[#f8fafc] px-2.5 py-2"
+                              >
+                                <div className="min-w-0">
+                                  <p className="truncate text-[11px] font-semibold leading-tight text-foreground">
+                                    {index + 1}. {row.code} - {row.name}
+                                  </p>
+                                  <p className="text-[10px] leading-tight text-rpb-ink-soft">
+                                    Qty {row.qty} {row.unit} x {formatRupiah(row.unitPriceIdr)}
+                                  </p>
+                                </div>
+                                <p className="shrink-0 text-right text-[11px] font-semibold whitespace-nowrap text-foreground">
+                                  {formatRupiah(row.totalIdr)}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="mt-2 border-t border-rpb-border pt-2">
+                          <p className="text-right text-xs font-bold text-foreground">
+                            Total {section.title.replace("Detail ", "")}: {formatRupiah(section.totalIdr)}
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
+                  </article>
+                );
+              })}
             </div>
           </section>
 
