@@ -5,14 +5,20 @@ import {
   type CalculatedFixedItem,
   formatRupiah,
 } from "@/lib/rpb-calculator";
+import {
+  clearLatestDraft,
+  loadLatestDraft,
+  saveLatestDraft,
+  type LatestDraftPayload,
+} from "@/lib/rpb-latest-draft";
 import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
 import { useRpbStore } from "@/store/rpb-store";
 import type { DimensionKey, OtherItem, StockCategory } from "@/types/rpb";
-import { ArrowRight, ChevronDown, ChevronUp, Plus, Search } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronUp, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
 import type { FocusEvent } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type OtherFilter = "Semua" | StockCategory | string;
 
@@ -136,6 +142,8 @@ export default function HomePage() {
   const setDimension = useRpbStore((state) => state.setDimension);
   const addOtherQty = useRpbStore((state) => state.addOtherQty);
   const addCustomOtherItem = useRpbStore((state) => state.addCustomOtherItem);
+  const getSnapshot = useRpbStore((state) => state.getSnapshot);
+  const loadSnapshot = useRpbStore((state) => state.loadSnapshot);
 
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<OtherFilter>("Semua");
@@ -150,6 +158,10 @@ export default function HomePage() {
   const [customQty, setCustomQty] = useState(1);
   const [profileBreakdownOpen, setProfileBreakdownOpen] = useState(false);
   const [konstruksiBreakdownOpen, setKonstruksiBreakdownOpen] = useState(false);
+  const [latestDraft, setLatestDraft] = useState<LatestDraftPayload | null>(() =>
+    loadLatestDraft(),
+  );
+  const [draftBannerDismissed, setDraftBannerDismissed] = useState(false);
 
   const otherItems = useMemo(() => masterData?.otherItems ?? [], [masterData?.otherItems]);
   const filterOptions = useMemo<OtherFilter[]>(() => {
@@ -206,6 +218,54 @@ export default function HomePage() {
     },
     [customOtherItems, selectedOther],
   );
+
+  useEffect(() => {
+    const snapshot = getSnapshot();
+    saveLatestDraft(snapshot);
+  }, [
+    customerAddress,
+    customerName,
+    customOtherItems,
+    dimensions,
+    getSnapshot,
+    panelThickness,
+    projectName,
+    selectedOther,
+  ]);
+
+  const latestDraftLabel = useMemo(() => {
+    if (!latestDraft) {
+      return "-";
+    }
+
+    const date = new Date(latestDraft.updatedAt);
+    if (Number.isNaN(date.getTime())) {
+      return "Waktu tidak tersedia";
+    }
+
+    return new Intl.DateTimeFormat("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  }, [latestDraft]);
+
+  const handleContinueLatestDraft = () => {
+    if (!latestDraft) {
+      return;
+    }
+
+    loadSnapshot(latestDraft.snapshot);
+    setDraftBannerDismissed(true);
+  };
+
+  const handleDiscardLatestDraft = () => {
+    clearLatestDraft();
+    setLatestDraft(null);
+    setDraftBannerDismissed(true);
+  };
 
   const openAddModal = (item: OtherItem) => {
     setModalItem(item);
@@ -285,6 +345,36 @@ export default function HomePage() {
             <div className="rpb-alert rpb-alert-error">
               {masterError}
             </div>
+          ) : null}
+          {latestDraft && !draftBannerDismissed ? (
+            <section className="rpb-section border border-dashed border-rpb-border p-4">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Draft terbaru tersedia</p>
+                  <p className="text-xs text-rpb-ink-soft">
+                    Terakhir disimpan: {latestDraftLabel}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className="rpb-btn-primary inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+                    onClick={handleContinueLatestDraft}
+                  >
+                    <RotateCcw size={14} />
+                    Continue latest draft
+                  </button>
+                  <button
+                    type="button"
+                    className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+                    onClick={handleDiscardLatestDraft}
+                  >
+                    <Trash2 size={14} />
+                    Hapus draft
+                  </button>
+                </div>
+              </div>
+            </section>
           ) : null}
           <div className="grid gap-3 md:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
