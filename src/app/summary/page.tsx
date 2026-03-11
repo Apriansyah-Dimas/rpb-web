@@ -77,7 +77,6 @@ export default function SummaryPage() {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [saveTitleInput, setSaveTitleInput] = useState("");
-  const [openLineDetailId, setOpenLineDetailId] = useState<string | null>(null);
 
   const { lineItems } = useMemo(
     () =>
@@ -231,16 +230,33 @@ export default function SummaryPage() {
     const tableHead = [
       ["No", "Jenis", "Keterangan", "Satuan", "Jenis Spec", "Qty", "Harga", "Total"],
     ];
-    const tableBody = lineItems.map((item, index) => [
-      String(index + 1),
-      item.jenis,
-      item.keterangan,
-      item.satuan,
-      item.jenisSpec,
-      String(item.qty),
-      formatRupiah(item.hargaIdr),
-      formatRupiah(item.hargaIdr * item.qty),
-    ]);
+    const tableBody: RowInput[] = [];
+    lineItems.forEach((item, index) => {
+      tableBody.push([
+        String(index + 1),
+        item.jenis,
+        item.keterangan,
+        item.satuan,
+        item.jenisSpec,
+        String(item.qty),
+        formatRupiah(item.hargaIdr),
+        formatRupiah(item.hargaIdr * item.qty),
+      ]);
+
+      const fixedRows = getFixedDetailRows(item.id);
+      fixedRows.forEach((row) => {
+        tableBody.push([
+          "",
+          "DETAIL",
+          `${row.code} - ${row.name}`,
+          row.unit,
+          "-",
+          String(row.qty),
+          formatRupiah(row.unitPriceIdr),
+          formatRupiah(row.totalIdr),
+        ]);
+      });
+    });
     const tableFoot: RowInput[] = calculationRows.map((row) => {
       const fillColor = row.highlight
         ? ([46, 49, 146] as [number, number, number])
@@ -317,7 +333,16 @@ export default function SummaryPage() {
       },
       didParseCell: (data) => {
         if (data.section === "body" && data.column.index === 1) {
-          data.cell.styles.fontStyle = "bold";
+          const row = data.row.raw;
+          if (Array.isArray(row) && row[1] === "DETAIL") {
+            data.cell.styles.fontStyle = "normal";
+            data.cell.styles.textColor = [75, 82, 122];
+          } else {
+            data.cell.styles.fontStyle = "bold";
+          }
+        }
+        if (data.section === "body" && Array.isArray(data.row.raw) && data.row.raw[1] === "DETAIL") {
+          data.cell.styles.fillColor = [248, 250, 252];
         }
         if (data.section === "body" && data.column.index === 7) {
           data.cell.styles.fontStyle = "bold";
@@ -435,7 +460,6 @@ export default function SummaryPage() {
                     const isEditable =
                       item.id.startsWith("stock-") || item.id.startsWith("custom-");
                     const hasFixedDetail = item.id === "profile" || item.id === "konstruksi";
-                    const isDetailOpen = openLineDetailId === item.id;
                     const fixedDetailRows = hasFixedDetail ? getFixedDetailRows(item.id) : [];
                     const lineTotalIdr = item.qty * item.hargaIdr;
 
@@ -445,19 +469,6 @@ export default function SummaryPage() {
                           <td className="text-center align-top">{index + 1}</td>
                           <td className="align-top font-semibold leading-tight">
                             <p>{item.jenis}</p>
-                            {hasFixedDetail ? (
-                              <button
-                                type="button"
-                                className="mt-0.5 text-[10px] font-semibold text-[#2e3192] underline-offset-2 hover:underline"
-                                onClick={() =>
-                                  setOpenLineDetailId((prev) => (prev === item.id ? null : item.id))
-                                }
-                                aria-expanded={isDetailOpen}
-                                aria-controls={`line-detail-${item.id}`}
-                              >
-                                {isDetailOpen ? "Sembunyikan detail komponen" : "Lihat detail komponen"}
-                              </button>
-                            ) : null}
                           </td>
                           <td className="align-top leading-tight">
                             {item.keterangan}
@@ -502,37 +513,36 @@ export default function SummaryPage() {
                             {formatRupiah(lineTotalIdr)}
                           </td>
                         </tr>,
-                        hasFixedDetail && isDetailOpen ? (
-                          <tr key={`${item.id}-detail`} id={`line-detail-${item.id}`}>
-                            <td colSpan={8} className="bg-[#f8fafc] px-3 py-2">
-                              {fixedDetailRows.length === 0 ? (
-                                <p className="text-xs text-rpb-ink-soft">
-                                  Belum ada detail komponen untuk {item.jenis}.
-                                </p>
-                              ) : (
-                                <div className="space-y-1">
-                                  {fixedDetailRows.map((row, rowIndex) => (
-                                    <div
-                                      key={row.id}
-                                      className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-md border border-rpb-border bg-white px-2 py-1.5"
-                                    >
-                                      <p className="min-w-0 text-[11px] leading-tight text-rpb-ink-soft">
-                                        <span className="font-semibold text-foreground">
-                                          {rowIndex + 1}. {row.code} - {row.name}
-                                        </span>
-                                        <br />
-                                        Qty {row.qty} {row.unit} x {formatRupiah(row.unitPriceIdr)}
-                                      </p>
-                                      <p className="text-[11px] font-semibold whitespace-nowrap text-foreground">
-                                        {formatRupiah(row.totalIdr)}
-                                      </p>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </td>
-                          </tr>
-                        ) : null,
+                        hasFixedDetail
+                          ? fixedDetailRows.map((row, rowIndex) => (
+                              <tr key={`${item.id}-detail-${row.id}`} className="bg-[#f8fafc]">
+                                <td className="text-center align-top text-[10px] text-rpb-ink-soft">
+                                  {rowIndex + 1}
+                                </td>
+                                <td className="align-top text-[10px] font-semibold leading-tight text-rpb-ink-soft">
+                                  DETAIL
+                                </td>
+                                <td className="align-top text-[10px] leading-tight">
+                                  {row.code} - {row.name}
+                                </td>
+                                <td className="align-top text-[10px] leading-tight">
+                                  {row.unit}
+                                </td>
+                                <td className="align-top text-[10px] leading-tight">
+                                  -
+                                </td>
+                                <td className="align-top text-center text-[10px] leading-tight">
+                                  {row.qty}
+                                </td>
+                                <td className="align-top text-right text-[10px] leading-tight whitespace-nowrap">
+                                  {formatRupiah(row.unitPriceIdr)}
+                                </td>
+                                <td className="align-top text-right text-[10px] font-semibold leading-tight whitespace-nowrap">
+                                  {formatRupiah(row.totalIdr)}
+                                </td>
+                              </tr>
+                            ))
+                          : null,
                       ]
                     );
                   })}
@@ -576,7 +586,6 @@ export default function SummaryPage() {
               {lineItems.map((item, index) => {
                 const isEditable = item.id.startsWith("stock-") || item.id.startsWith("custom-");
                 const hasFixedDetail = item.id === "profile" || item.id === "konstruksi";
-                const isDetailOpen = openLineDetailId === item.id;
                 const fixedDetailRows = hasFixedDetail ? getFixedDetailRows(item.id) : [];
                 const lineTotalIdr = item.qty * item.hargaIdr;
 
@@ -590,19 +599,6 @@ export default function SummaryPage() {
                         <p className="text-[11px] font-semibold leading-tight">
                           {index + 1}. {item.jenis}
                         </p>
-                        {hasFixedDetail ? (
-                          <button
-                            type="button"
-                            className="mt-0.5 text-[10px] font-semibold text-[#2e3192]"
-                            onClick={() =>
-                              setOpenLineDetailId((prev) => (prev === item.id ? null : item.id))
-                            }
-                            aria-expanded={isDetailOpen}
-                            aria-controls={`line-detail-mobile-${item.id}`}
-                          >
-                            {isDetailOpen ? "Sembunyikan detail komponen" : "Lihat detail komponen"}
-                          </button>
-                        ) : null}
                         <p className="text-[10px] leading-tight text-rpb-ink-soft">
                           {item.keterangan}
                         </p>
@@ -656,11 +652,8 @@ export default function SummaryPage() {
                       </div>
                     </div>
 
-                    {hasFixedDetail && isDetailOpen ? (
-                      <div
-                        id={`line-detail-mobile-${item.id}`}
-                        className="mt-2 space-y-1.5 border-t border-rpb-border pt-2"
-                      >
+                    {hasFixedDetail ? (
+                      <div className="mt-2 space-y-1.5 border-t border-rpb-border pt-2">
                         {fixedDetailRows.length === 0 ? (
                           <p className="text-[10px] text-rpb-ink-soft">
                             Belum ada detail komponen untuk {item.jenis}.
