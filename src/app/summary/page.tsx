@@ -249,7 +249,7 @@ export default function SummaryPage() {
         tableBody.push([
           "",
           `DETAIL ${item.jenis}`,
-          `${row.code} - ${row.name}`,
+          row.name,
           row.unit,
           "-",
           formatQty(row.qty),
@@ -532,7 +532,7 @@ export default function SummaryPage() {
                                   DETAIL {item.jenis}
                                 </td>
                                 <td className="align-top text-[10px] leading-tight">
-                                  {rowIndex + 1}. {row.code} - {row.name}
+                                  {rowIndex + 1}. {row.name}
                                 </td>
                                 <td className="align-top text-[10px] leading-tight">
                                   {row.unit}
@@ -675,7 +675,7 @@ export default function SummaryPage() {
                             >
                               <p className="min-w-0 text-[10px] leading-tight text-rpb-ink-soft">
                                 <span className="font-semibold text-foreground">
-                                  {rowIndex + 1}. {row.code} - {row.name}
+                                  {rowIndex + 1}. {row.name}
                                 </span>
                                 <br />
                                 Qty {formatQty(row.qty)} {row.unit} x {formatRupiah(row.unitPriceIdr)}
