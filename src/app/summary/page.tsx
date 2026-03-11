@@ -381,7 +381,19 @@ export default function SummaryPage() {
     const safeProjectName = (projectName || "summary")
       .replace(/[^a-z0-9-_]+/gi, "-")
       .replace(/^-+|-+$/g, "");
-    doc.save(`RPB-${safeProjectName || "summary"}.pdf`);
+    const now = new Date();
+    const uniqueStamp = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, "0"),
+      String(now.getDate()).padStart(2, "0"),
+      "-",
+      String(now.getHours()).padStart(2, "0"),
+      String(now.getMinutes()).padStart(2, "0"),
+      String(now.getSeconds()).padStart(2, "0"),
+      "-",
+      String(now.getMilliseconds()).padStart(3, "0"),
+    ].join("");
+    doc.save(`RPB-${safeProjectName || "summary"}-${uniqueStamp}.pdf`);
   };
 
   return (
