@@ -7,7 +7,6 @@ import type {
   RpbDraftSnapshot,
 } from "@/types/rpb";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 const DEFAULT_DIMENSIONS = {
   length: 3550,
@@ -23,6 +22,7 @@ const DEFAULT_ADJUSTMENTS: AdjustmentValues = {
   services: 3,
   profit: 25,
 };
+const LEGACY_RPB_STORE_KEY = "rpb-store-v1";
 
 interface RpbStore {
   customerName: string;
@@ -73,9 +73,11 @@ const safePercent = (value: number): number => {
   return Math.max(0, Math.min(100, value));
 };
 
-export const useRpbStore = create<RpbStore>()(
-  persist(
-    (set, get) => ({
+if (typeof window !== "undefined") {
+  window.localStorage.removeItem(LEGACY_RPB_STORE_KEY);
+}
+
+export const useRpbStore = create<RpbStore>()((set, get) => ({
       customerName: "",
       projectName: "",
       customerAddress: "",
@@ -238,8 +240,4 @@ export const useRpbStore = create<RpbStore>()(
           quotationContent: "",
         }),
     }),
-    {
-      name: "rpb-store-v1",
-    },
-  ),
 );
