@@ -2,6 +2,7 @@
 
 import {
   calculateFixedBreakdowns,
+  formatQty,
   formatRupiah,
 } from "@/lib/rpb-calculator";
 import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
@@ -238,7 +239,7 @@ export default function SummaryPage() {
         item.keterangan,
         item.satuan,
         item.jenisSpec,
-        String(item.qty),
+        formatQty(item.qty),
         formatRupiah(item.hargaIdr),
         formatRupiah(item.hargaIdr * item.qty),
       ]);
@@ -247,11 +248,11 @@ export default function SummaryPage() {
       fixedRows.forEach((row) => {
         tableBody.push([
           "",
-          "DETAIL",
+          `DETAIL ${item.jenis}`,
           `${row.code} - ${row.name}`,
           row.unit,
           "-",
-          String(row.qty),
+          formatQty(row.qty),
           formatRupiah(row.unitPriceIdr),
           formatRupiah(row.totalIdr),
         ]);
@@ -334,14 +335,19 @@ export default function SummaryPage() {
       didParseCell: (data) => {
         if (data.section === "body" && data.column.index === 1) {
           const row = data.row.raw;
-          if (Array.isArray(row) && row[1] === "DETAIL") {
+          if (Array.isArray(row) && typeof row[1] === "string" && row[1].startsWith("DETAIL")) {
             data.cell.styles.fontStyle = "normal";
             data.cell.styles.textColor = [75, 82, 122];
           } else {
             data.cell.styles.fontStyle = "bold";
           }
         }
-        if (data.section === "body" && Array.isArray(data.row.raw) && data.row.raw[1] === "DETAIL") {
+        if (
+          data.section === "body" &&
+          Array.isArray(data.row.raw) &&
+          typeof data.row.raw[1] === "string" &&
+          data.row.raw[1].startsWith("DETAIL")
+        ) {
           data.cell.styles.fillColor = [248, 250, 252];
         }
         if (data.section === "body" && data.column.index === 7) {
@@ -441,15 +447,18 @@ export default function SummaryPage() {
 
           <section className="rpb-section p-3 md:p-4">
             <h3 className="rpb-h-title mb-2 text-base font-semibold">Line Items</h3>
+            <p className="mb-2 text-xs text-rpb-ink-soft">
+              Baris abu-abu menunjukkan rincian komponen PROFILE/KONSTRUKSI.
+            </p>
             <div className="hidden lg:block">
               <table className="rpb-table w-full text-sm" style={{ tableLayout: "fixed" }}>
                 <thead>
                   <tr>
                     <th style={{ width: "5%", textAlign: "center" }}>No</th>
-                    <th style={{ width: "13%", textAlign: "center" }}>Jenis</th>
-                    <th style={{ width: "22%", textAlign: "center" }}>Keterangan</th>
-                    <th style={{ width: "7%", textAlign: "center" }}>Satuan</th>
-                    <th style={{ width: "13%", textAlign: "center" }}>Jenis Spec</th>
+                    <th style={{ width: "13%", textAlign: "left" }}>Jenis</th>
+                    <th style={{ width: "22%", textAlign: "left" }}>Keterangan</th>
+                    <th style={{ width: "7%", textAlign: "left" }}>Satuan</th>
+                    <th style={{ width: "13%", textAlign: "left" }}>Jenis Spec</th>
                     <th style={{ width: "11%", textAlign: "center" }}>Qty</th>
                     <th style={{ width: "14.5%", textAlign: "right" }}>Harga</th>
                     <th style={{ width: "14.5%", textAlign: "right" }}>Total</th>
@@ -465,7 +474,7 @@ export default function SummaryPage() {
 
                     return (
                       [
-                        <tr key={item.id}>
+                        <tr key={item.id} className={index % 2 === 0 ? "bg-white" : "bg-[#fcfdff]"}>
                           <td className="text-center align-top">{index + 1}</td>
                           <td className="align-top font-semibold leading-tight">
                             <p>{item.jenis}</p>
@@ -491,7 +500,7 @@ export default function SummaryPage() {
                                   <Minus size={10} />
                                 </button>
                                 <span className="min-w-4 text-center text-xs font-semibold">
-                                  {item.qty}
+                                  {formatQty(item.qty)}
                                 </span>
                                 <button
                                   type="button"
@@ -503,7 +512,7 @@ export default function SummaryPage() {
                                 </button>
                               </div>
                             ) : (
-                              <span className="text-xs font-semibold">{item.qty}</span>
+                              <span className="text-xs font-semibold">{formatQty(item.qty)}</span>
                             )}
                           </td>
                           <td className="align-top text-right whitespace-nowrap">
@@ -515,15 +524,15 @@ export default function SummaryPage() {
                         </tr>,
                         hasFixedDetail
                           ? fixedDetailRows.map((row, rowIndex) => (
-                              <tr key={`${item.id}-detail-${row.id}`} className="bg-[#f8fafc]">
+                              <tr key={`${item.id}-detail-${row.id}`} className="bg-[#f4f7fb]">
                                 <td className="text-center align-top text-[10px] text-rpb-ink-soft">
-                                  {rowIndex + 1}
+                                  •
                                 </td>
                                 <td className="align-top text-[10px] font-semibold leading-tight text-rpb-ink-soft">
-                                  DETAIL
+                                  DETAIL {item.jenis}
                                 </td>
                                 <td className="align-top text-[10px] leading-tight">
-                                  {row.code} - {row.name}
+                                  {rowIndex + 1}. {row.code} - {row.name}
                                 </td>
                                 <td className="align-top text-[10px] leading-tight">
                                   {row.unit}
@@ -532,7 +541,7 @@ export default function SummaryPage() {
                                   -
                                 </td>
                                 <td className="align-top text-center text-[10px] leading-tight">
-                                  {row.qty}
+                                  {formatQty(row.qty)}
                                 </td>
                                 <td className="align-top text-right text-[10px] leading-tight whitespace-nowrap">
                                   {formatRupiah(row.unitPriceIdr)}
@@ -620,7 +629,7 @@ export default function SummaryPage() {
                               <Minus size={11} />
                             </button>
                             <span className="min-w-4 text-center text-[11px] font-semibold">
-                              {item.qty}
+                              {formatQty(item.qty)}
                             </span>
                             <button
                               type="button"
@@ -632,7 +641,7 @@ export default function SummaryPage() {
                             </button>
                           </div>
                         ) : (
-                          <span className="text-[11px] font-semibold">Qty {item.qty}</span>
+                          <span className="text-[11px] font-semibold">Qty {formatQty(item.qty)}</span>
                         )}
                       </div>
                     </div>
@@ -669,7 +678,7 @@ export default function SummaryPage() {
                                   {rowIndex + 1}. {row.code} - {row.name}
                                 </span>
                                 <br />
-                                Qty {row.qty} {row.unit} x {formatRupiah(row.unitPriceIdr)}
+                                Qty {formatQty(row.qty)} {row.unit} x {formatRupiah(row.unitPriceIdr)}
                               </p>
                               <p className="text-[10px] font-semibold whitespace-nowrap text-foreground">
                                 {formatRupiah(row.totalIdr)}

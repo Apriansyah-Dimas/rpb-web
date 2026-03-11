@@ -11,6 +11,10 @@ const RUPIAH_FORMATTER = new Intl.NumberFormat("id-ID", {
   currency: "IDR",
   maximumFractionDigits: 0,
 });
+const QTY_FORMATTER = new Intl.NumberFormat("id-ID", {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 1,
+});
 
 const safe = (value: number): number => {
   if (!Number.isFinite(value)) {
@@ -36,6 +40,11 @@ export interface CalculatedFixedItem {
   totalIdr: number;
 }
 
+const roundQty1Digit = (value: number): number => {
+  const safeValue = safe(value);
+  return Math.round(safeValue * 10) / 10;
+};
+
 const calculateRowsWithSharedVariables = <
   T extends {
     id: string;
@@ -52,7 +61,7 @@ const calculateRowsWithSharedVariables = <
 ): CalculatedFixedItem[] => {
   const rows: CalculatedFixedItem[] = [];
   for (const item of items.slice().sort((a, b) => a.sortOrder - b.sortOrder)) {
-    const qty = evaluateFormulaQuantity(item.formulaExpr, variables);
+    const qty = roundQty1Digit(evaluateFormulaQuantity(item.formulaExpr, variables));
     const unitPriceIdr = safe(getUnitPriceIdr(item));
     rows.push({
       id: item.id,
@@ -145,3 +154,10 @@ export const calculateKonstruksiTotalIdr = (
 
 export const formatRupiah = (value: number): string =>
   RUPIAH_FORMATTER.format(value);
+
+export const formatQty = (value: number): string => {
+  if (!Number.isFinite(value)) {
+    return "0";
+  }
+  return QTY_FORMATTER.format(value);
+};

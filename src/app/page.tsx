@@ -3,6 +3,7 @@
 import {
   calculateFixedBreakdowns,
   type CalculatedFixedItem,
+  formatQty,
   formatRupiah,
 } from "@/lib/rpb-calculator";
 import {
@@ -47,18 +48,6 @@ const parseNumberInput = (value: string): number => {
 
 const selectInputOnFocus = (event: FocusEvent<HTMLInputElement>) => {
   event.currentTarget.select();
-};
-
-const formatQty = (value: number): string => {
-  if (!Number.isFinite(value)) {
-    return "0";
-  }
-
-  if (Number.isInteger(value)) {
-    return String(value);
-  }
-
-  return value.toLocaleString("id-ID", { maximumFractionDigits: 3 });
 };
 
 const FixedBreakdownPanel = ({
