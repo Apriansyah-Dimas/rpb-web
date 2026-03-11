@@ -232,6 +232,7 @@ export default function SummaryPage() {
       ["No", "Jenis", "Keterangan", "Satuan", "Jenis Spec", "Qty", "Harga", "Total"],
     ];
     const tableBody: RowInput[] = [];
+    const pdfBodyRowKinds: Array<"main-even" | "main-odd" | "detail"> = [];
     lineItems.forEach((item, index) => {
       tableBody.push([
         String(index + 1),
@@ -243,19 +244,21 @@ export default function SummaryPage() {
         formatRupiah(item.hargaIdr),
         formatRupiah(item.hargaIdr * item.qty),
       ]);
+      pdfBodyRowKinds.push(index % 2 === 0 ? "main-even" : "main-odd");
 
       const fixedRows = getFixedDetailRows(item.id);
-      fixedRows.forEach((row) => {
+      fixedRows.forEach((row, detailIndex) => {
         tableBody.push([
-          "",
+          "•",
           `DETAIL ${item.jenis}`,
-          row.name,
+          `${detailIndex + 1}. ${row.name}`,
           row.unit,
           "-",
           formatQty(row.qty),
           formatRupiah(row.unitPriceIdr),
           formatRupiah(row.totalIdr),
         ]);
+        pdfBodyRowKinds.push("detail");
       });
     });
     const tableFoot: RowInput[] = calculationRows.map((row) => {
@@ -310,20 +313,30 @@ export default function SummaryPage() {
       body: tableBody,
       foot: tableFoot,
       showFoot: "lastPage",
-      theme: "grid",
+      theme: "plain",
       styles: {
-        fontSize: 8.5,
-        cellPadding: 2.2,
-        lineColor: [217, 219, 239],
-        lineWidth: 0.15,
+        fontSize: 9.5,
+        cellPadding: {
+          top: 2.6,
+          right: 2.1,
+          bottom: 2.6,
+          left: 2.1,
+        },
+        textColor: [31, 35, 64],
+        lineColor: [223, 227, 243],
+        lineWidth: {
+          bottom: 0.15,
+        },
       },
       headStyles: {
         fillColor: [46, 49, 146],
         textColor: [255, 255, 255],
         fontStyle: "bold",
+        halign: "center",
+        lineWidth: 0,
       },
       columnStyles: {
-        0: { cellWidth: 10, halign: "center" },
+        0: { cellWidth: 10, halign: "center", valign: "top" },
         1: { cellWidth: 22, halign: "left" },
         2: { cellWidth: 48, halign: "left" },
         3: { cellWidth: 16, halign: "left" },
@@ -333,10 +346,29 @@ export default function SummaryPage() {
         7: { cellWidth: 28, halign: "right" },
       },
       didParseCell: (data) => {
+        if (data.section === "head") {
+          data.cell.styles.halign = "center";
+          return;
+        }
+
+        if (data.section === "body") {
+          const kind = pdfBodyRowKinds[data.row.index];
+          if (kind === "main-even") {
+            data.cell.styles.fillColor = [255, 255, 255];
+          }
+          if (kind === "main-odd") {
+            data.cell.styles.fillColor = [252, 253, 255];
+          }
+          if (kind === "detail") {
+            data.cell.styles.fillColor = [244, 247, 251];
+            data.cell.styles.fontSize = 8.7;
+          }
+        }
+
         if (data.section === "body" && data.column.index === 1) {
           const row = data.row.raw;
           if (Array.isArray(row) && typeof row[1] === "string" && row[1].startsWith("DETAIL")) {
-            data.cell.styles.fontStyle = "normal";
+            data.cell.styles.fontStyle = "bold";
             data.cell.styles.textColor = [75, 82, 122];
           } else {
             data.cell.styles.fontStyle = "bold";
@@ -348,7 +380,7 @@ export default function SummaryPage() {
           typeof data.row.raw[1] === "string" &&
           data.row.raw[1].startsWith("DETAIL")
         ) {
-          data.cell.styles.fillColor = [248, 250, 252];
+          data.cell.styles.fillColor = [244, 247, 251];
         }
         if (data.section === "body" && data.column.index === 7) {
           data.cell.styles.fontStyle = "bold";
@@ -455,13 +487,13 @@ export default function SummaryPage() {
                 <thead>
                   <tr>
                     <th style={{ width: "5%", textAlign: "center" }}>No</th>
-                    <th style={{ width: "13%", textAlign: "left" }}>Jenis</th>
-                    <th style={{ width: "22%", textAlign: "left" }}>Keterangan</th>
-                    <th style={{ width: "7%", textAlign: "left" }}>Satuan</th>
-                    <th style={{ width: "13%", textAlign: "left" }}>Jenis Spec</th>
+                    <th style={{ width: "13%", textAlign: "center" }}>Jenis</th>
+                    <th style={{ width: "22%", textAlign: "center" }}>Keterangan</th>
+                    <th style={{ width: "7%", textAlign: "center" }}>Satuan</th>
+                    <th style={{ width: "13%", textAlign: "center" }}>Jenis Spec</th>
                     <th style={{ width: "11%", textAlign: "center" }}>Qty</th>
-                    <th style={{ width: "14.5%", textAlign: "right" }}>Harga</th>
-                    <th style={{ width: "14.5%", textAlign: "right" }}>Total</th>
+                    <th style={{ width: "14.5%", textAlign: "center" }}>Harga</th>
+                    <th style={{ width: "14.5%", textAlign: "center" }}>Total</th>
                   </tr>
                 </thead>
                 <tbody>
