@@ -249,11 +249,13 @@ export default function SummaryPage() {
       const fixedRows = getFixedDetailRows(item.id);
       fixedRows.forEach((row, detailIndex) => {
         tableBody.push([
-          "•",
-          `DETAIL ${item.jenis}`,
-          `${detailIndex + 1}. ${row.name}`,
+          "",
+          detailIndex === 0 ? "DETAIL" : "",
+          detailIndex === 0
+            ? `[${item.jenis}] ${detailIndex + 1}. ${row.name}`
+            : `${detailIndex + 1}. ${row.name}`,
           row.unit,
-          "-",
+          "",
           formatQty(row.qty),
           formatRupiah(row.unitPriceIdr),
           formatRupiah(row.totalIdr),
@@ -315,12 +317,12 @@ export default function SummaryPage() {
       showFoot: "lastPage",
       theme: "plain",
       styles: {
-        fontSize: 9.5,
+        fontSize: 8.3,
         cellPadding: {
-          top: 2.6,
-          right: 2.1,
-          bottom: 2.6,
-          left: 2.1,
+          top: 1.8,
+          right: 1.6,
+          bottom: 1.8,
+          left: 1.6,
         },
         textColor: [31, 35, 64],
         lineColor: [223, 227, 243],
@@ -336,14 +338,14 @@ export default function SummaryPage() {
         lineWidth: 0,
       },
       columnStyles: {
-        0: { cellWidth: 10, halign: "center", valign: "top" },
-        1: { cellWidth: 22, halign: "left" },
-        2: { cellWidth: 48, halign: "left" },
-        3: { cellWidth: 16, halign: "left" },
-        4: { cellWidth: 28, halign: "left" },
+        0: { cellWidth: 8, halign: "center", valign: "top" },
+        1: { cellWidth: 18, halign: "left" },
+        2: { cellWidth: 52, halign: "left" },
+        3: { cellWidth: 14, halign: "left" },
+        4: { cellWidth: 18, halign: "left" },
         5: { cellWidth: 12, halign: "center" },
-        6: { cellWidth: 26, halign: "right" },
-        7: { cellWidth: 28, halign: "right" },
+        6: { cellWidth: 28, halign: "right" },
+        7: { cellWidth: 30, halign: "right" },
       },
       didParseCell: (data) => {
         if (data.section === "head") {
@@ -361,26 +363,14 @@ export default function SummaryPage() {
           }
           if (kind === "detail") {
             data.cell.styles.fillColor = [244, 247, 251];
-            data.cell.styles.fontSize = 8.7;
+            data.cell.styles.fontSize = 7.8;
+            data.cell.styles.textColor = [75, 82, 122];
           }
         }
 
         if (data.section === "body" && data.column.index === 1) {
-          const row = data.row.raw;
-          if (Array.isArray(row) && typeof row[1] === "string" && row[1].startsWith("DETAIL")) {
-            data.cell.styles.fontStyle = "bold";
-            data.cell.styles.textColor = [75, 82, 122];
-          } else {
-            data.cell.styles.fontStyle = "bold";
-          }
-        }
-        if (
-          data.section === "body" &&
-          Array.isArray(data.row.raw) &&
-          typeof data.row.raw[1] === "string" &&
-          data.row.raw[1].startsWith("DETAIL")
-        ) {
-          data.cell.styles.fillColor = [244, 247, 251];
+          const kind = pdfBodyRowKinds[data.row.index];
+          data.cell.styles.fontStyle = kind === "detail" ? "bold" : "bold";
         }
         if (data.section === "body" && data.column.index === 7) {
           data.cell.styles.fontStyle = "bold";
@@ -558,12 +548,13 @@ export default function SummaryPage() {
                           ? fixedDetailRows.map((row, rowIndex) => (
                               <tr key={`${item.id}-detail-${row.id}`} className="bg-[#f4f7fb]">
                                 <td className="text-center align-top text-[10px] text-rpb-ink-soft">
-                                  •
+                                  {rowIndex === 0 ? "•" : ""}
                                 </td>
                                 <td className="align-top text-[10px] font-semibold leading-tight text-rpb-ink-soft">
-                                  DETAIL {item.jenis}
+                                  {rowIndex === 0 ? "DETAIL" : ""}
                                 </td>
                                 <td className="align-top text-[10px] leading-tight">
+                                  {rowIndex === 0 ? `[${item.jenis}] ` : ""}
                                   {rowIndex + 1}. {row.name}
                                 </td>
                                 <td className="align-top text-[10px] leading-tight">
