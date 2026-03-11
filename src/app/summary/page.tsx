@@ -604,44 +604,44 @@ export default function SummaryPage() {
             </div>
           </section>
 
-          <div className="no-print space-y-3">
-            <div className="flex items-center justify-between gap-2">
+          <section className="no-print rpb-section p-3 md:p-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <Link
                 href="/"
-                className="rpb-btn-ghost inline-flex h-11 items-center gap-2 px-4 py-2 text-sm font-semibold"
+                className="rpb-btn-ghost inline-flex h-11 items-center justify-center gap-2 px-4 py-2 text-sm font-semibold md:justify-start"
               >
                 <ArrowLeft size={16} />
                 Back
               </Link>
-              <Link
-                href="/quotation"
-                className="rpb-btn-primary inline-flex h-11 items-center justify-center gap-2 px-4 py-2 text-sm font-semibold"
-              >
-                <FileText size={15} />
-                Make Quotation
-              </Link>
-            </div>
 
-            <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap">
-              <button
-                type="button"
-                className="rpb-btn-ghost inline-flex h-11 items-center justify-center gap-2 px-3 py-2 text-sm font-semibold"
-                onClick={openSaveModal}
-                disabled={saveBusy}
-              >
-                <Save size={15} />
-                {saveBusy ? "Saving..." : "Save"}
-              </button>
-              <button
-                type="button"
-                className="rpb-btn-primary inline-flex h-11 items-center justify-center gap-2 px-4 py-2 text-sm font-semibold"
-                onClick={() => void downloadPdf()}
-              >
-                <Download size={15} />
-                Download PDF
-              </button>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 md:flex md:flex-wrap md:justify-end">
+                <button
+                  type="button"
+                  className="rpb-btn-ghost inline-flex h-11 items-center justify-center gap-2 px-4 py-2 text-sm font-semibold"
+                  onClick={openSaveModal}
+                  disabled={saveBusy}
+                >
+                  <Save size={15} />
+                  {saveBusy ? "Saving..." : "Save Draft"}
+                </button>
+                <button
+                  type="button"
+                  className="rpb-btn-ghost inline-flex h-11 items-center justify-center gap-2 px-4 py-2 text-sm font-semibold"
+                  onClick={() => void downloadPdf()}
+                >
+                  <Download size={15} />
+                  Download PDF
+                </button>
+                <Link
+                  href="/quotation"
+                  className="rpb-btn-primary inline-flex h-11 items-center justify-center gap-2 px-4 py-2 text-sm font-semibold"
+                >
+                  <FileText size={15} />
+                  Make Quotation
+                </Link>
+              </div>
             </div>
-          </div>
+          </section>
       </div>
 
       {saveModalOpen ? (
