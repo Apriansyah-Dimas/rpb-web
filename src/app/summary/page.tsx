@@ -59,21 +59,6 @@ interface CalculationRow {
   highlight?: boolean;
 }
 
-interface FixedBreakdownSection {
-  key: "profile" | "konstruksi";
-  title: string;
-  rows: {
-    id: string;
-    code: string;
-    name: string;
-    unit: string;
-    qty: number;
-    unitPriceIdr: number;
-    totalIdr: number;
-  }[];
-  totalIdr: number;
-}
-
 export default function SummaryPage() {
   const { data: masterData, loading: masterLoading, error: masterError } = useRpbMasterData();
   const customerName = useRpbStore((state) => state.customerName);
@@ -92,9 +77,7 @@ export default function SummaryPage() {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [saveTitleInput, setSaveTitleInput] = useState("");
-  const [openBreakdownKey, setOpenBreakdownKey] = useState<FixedBreakdownSection["key"] | null>(
-    "profile",
-  );
+  const [openLineDetailId, setOpenLineDetailId] = useState<string | null>(null);
 
   const { lineItems } = useMemo(
     () =>
@@ -127,24 +110,6 @@ export default function SummaryPage() {
         masterData?.konstruksiItems ?? [],
       ),
     [dimensions, masterData?.konstruksiItems, masterData?.profileItems, panelThickness],
-  );
-
-  const fixedBreakdownSections: FixedBreakdownSection[] = useMemo(
-    () => [
-      {
-        key: "profile",
-        title: "Detail PROFILE",
-        rows: profileRows,
-        totalIdr: profileRows.reduce((sum, row) => sum + row.totalIdr, 0),
-      },
-      {
-        key: "konstruksi",
-        title: "Detail KONSTRUKSI",
-        rows: konstruksiRows,
-        totalIdr: konstruksiRows.reduce((sum, row) => sum + row.totalIdr, 0),
-      },
-    ],
-    [konstruksiRows, profileRows],
   );
 
   const subtotalIdr = useMemo(
@@ -183,6 +148,16 @@ export default function SummaryPage() {
       const customId = itemId.replace("custom-", "");
       setCustomOtherItemQty(customId, Math.max(0, qty));
     }
+  };
+
+  const getFixedDetailRows = (itemId: string) => {
+    if (itemId === "profile") {
+      return profileRows;
+    }
+    if (itemId === "konstruksi") {
+      return konstruksiRows;
+    }
+    return [];
   };
 
   const submitSaveState = async (rawTitle: string) => {
@@ -459,57 +434,106 @@ export default function SummaryPage() {
                   {lineItems.map((item, index) => {
                     const isEditable =
                       item.id.startsWith("stock-") || item.id.startsWith("custom-");
+                    const hasFixedDetail = item.id === "profile" || item.id === "konstruksi";
+                    const isDetailOpen = openLineDetailId === item.id;
+                    const fixedDetailRows = hasFixedDetail ? getFixedDetailRows(item.id) : [];
                     const lineTotalIdr = item.qty * item.hargaIdr;
 
                     return (
-                      <tr key={item.id}>
-                        <td className="text-center align-top">{index + 1}</td>
-                        <td className="align-top font-semibold leading-tight">
-                          {item.jenis}
-                        </td>
-                        <td className="align-top leading-tight">
-                          {item.keterangan}
-                        </td>
-                        <td className="align-top leading-tight">
-                          {item.satuan}
-                        </td>
-                        <td className="align-top leading-tight">
-                          {item.jenisSpec || "-"}
-                        </td>
-                        <td className="align-middle text-center whitespace-nowrap">
-                          {isEditable ? (
-                            <div className="inline-flex items-center gap-1 whitespace-nowrap">
+                      [
+                        <tr key={item.id}>
+                          <td className="text-center align-top">{index + 1}</td>
+                          <td className="align-top font-semibold leading-tight">
+                            <p>{item.jenis}</p>
+                            {hasFixedDetail ? (
                               <button
                                 type="button"
-                                className="rpb-btn-ghost inline-flex h-6 w-6 items-center justify-center"
-                                onClick={() => updateQty(item.id, item.qty - 1)}
-                                aria-label={`Kurangi qty ${item.jenisSpec}`}
+                                className="mt-0.5 text-[10px] font-semibold text-[#2e3192] underline-offset-2 hover:underline"
+                                onClick={() =>
+                                  setOpenLineDetailId((prev) => (prev === item.id ? null : item.id))
+                                }
+                                aria-expanded={isDetailOpen}
+                                aria-controls={`line-detail-${item.id}`}
                               >
-                                <Minus size={10} />
+                                {isDetailOpen ? "Sembunyikan detail komponen" : "Lihat detail komponen"}
                               </button>
-                              <span className="min-w-4 text-center text-xs font-semibold">
-                                {item.qty}
-                              </span>
-                              <button
-                                type="button"
-                                className="rpb-btn-primary inline-flex h-6 w-6 items-center justify-center"
-                                onClick={() => updateQty(item.id, item.qty + 1)}
-                                aria-label={`Tambah qty ${item.jenisSpec}`}
-                              >
-                                <Plus size={10} />
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-xs font-semibold">{item.qty}</span>
-                          )}
-                        </td>
-                        <td className="align-top text-right whitespace-nowrap">
-                          {formatRupiah(item.hargaIdr)}
-                        </td>
-                        <td className="align-top text-right font-semibold whitespace-nowrap">
-                          {formatRupiah(lineTotalIdr)}
-                        </td>
-                      </tr>
+                            ) : null}
+                          </td>
+                          <td className="align-top leading-tight">
+                            {item.keterangan}
+                          </td>
+                          <td className="align-top leading-tight">
+                            {item.satuan}
+                          </td>
+                          <td className="align-top leading-tight">
+                            {item.jenisSpec || "-"}
+                          </td>
+                          <td className="align-middle text-center whitespace-nowrap">
+                            {isEditable ? (
+                              <div className="inline-flex items-center gap-1 whitespace-nowrap">
+                                <button
+                                  type="button"
+                                  className="rpb-btn-ghost inline-flex h-6 w-6 items-center justify-center"
+                                  onClick={() => updateQty(item.id, item.qty - 1)}
+                                  aria-label={`Kurangi qty ${item.jenisSpec}`}
+                                >
+                                  <Minus size={10} />
+                                </button>
+                                <span className="min-w-4 text-center text-xs font-semibold">
+                                  {item.qty}
+                                </span>
+                                <button
+                                  type="button"
+                                  className="rpb-btn-primary inline-flex h-6 w-6 items-center justify-center"
+                                  onClick={() => updateQty(item.id, item.qty + 1)}
+                                  aria-label={`Tambah qty ${item.jenisSpec}`}
+                                >
+                                  <Plus size={10} />
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-xs font-semibold">{item.qty}</span>
+                            )}
+                          </td>
+                          <td className="align-top text-right whitespace-nowrap">
+                            {formatRupiah(item.hargaIdr)}
+                          </td>
+                          <td className="align-top text-right font-semibold whitespace-nowrap">
+                            {formatRupiah(lineTotalIdr)}
+                          </td>
+                        </tr>,
+                        hasFixedDetail && isDetailOpen ? (
+                          <tr key={`${item.id}-detail`} id={`line-detail-${item.id}`}>
+                            <td colSpan={8} className="bg-[#f8fafc] px-3 py-2">
+                              {fixedDetailRows.length === 0 ? (
+                                <p className="text-xs text-rpb-ink-soft">
+                                  Belum ada detail komponen untuk {item.jenis}.
+                                </p>
+                              ) : (
+                                <div className="space-y-1">
+                                  {fixedDetailRows.map((row, rowIndex) => (
+                                    <div
+                                      key={row.id}
+                                      className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-md border border-rpb-border bg-white px-2 py-1.5"
+                                    >
+                                      <p className="min-w-0 text-[11px] leading-tight text-rpb-ink-soft">
+                                        <span className="font-semibold text-foreground">
+                                          {rowIndex + 1}. {row.code} - {row.name}
+                                        </span>
+                                        <br />
+                                        Qty {row.qty} {row.unit} x {formatRupiah(row.unitPriceIdr)}
+                                      </p>
+                                      <p className="text-[11px] font-semibold whitespace-nowrap text-foreground">
+                                        {formatRupiah(row.totalIdr)}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ) : null,
+                      ]
                     );
                   })}
                 </tbody>
@@ -551,6 +575,9 @@ export default function SummaryPage() {
             <div className="space-y-2 lg:hidden">
               {lineItems.map((item, index) => {
                 const isEditable = item.id.startsWith("stock-") || item.id.startsWith("custom-");
+                const hasFixedDetail = item.id === "profile" || item.id === "konstruksi";
+                const isDetailOpen = openLineDetailId === item.id;
+                const fixedDetailRows = hasFixedDetail ? getFixedDetailRows(item.id) : [];
                 const lineTotalIdr = item.qty * item.hargaIdr;
 
                 return (
@@ -563,6 +590,19 @@ export default function SummaryPage() {
                         <p className="text-[11px] font-semibold leading-tight">
                           {index + 1}. {item.jenis}
                         </p>
+                        {hasFixedDetail ? (
+                          <button
+                            type="button"
+                            className="mt-0.5 text-[10px] font-semibold text-[#2e3192]"
+                            onClick={() =>
+                              setOpenLineDetailId((prev) => (prev === item.id ? null : item.id))
+                            }
+                            aria-expanded={isDetailOpen}
+                            aria-controls={`line-detail-mobile-${item.id}`}
+                          >
+                            {isDetailOpen ? "Sembunyikan detail komponen" : "Lihat detail komponen"}
+                          </button>
+                        ) : null}
                         <p className="text-[10px] leading-tight text-rpb-ink-soft">
                           {item.keterangan}
                         </p>
@@ -615,6 +655,37 @@ export default function SummaryPage() {
                         </p>
                       </div>
                     </div>
+
+                    {hasFixedDetail && isDetailOpen ? (
+                      <div
+                        id={`line-detail-mobile-${item.id}`}
+                        className="mt-2 space-y-1.5 border-t border-rpb-border pt-2"
+                      >
+                        {fixedDetailRows.length === 0 ? (
+                          <p className="text-[10px] text-rpb-ink-soft">
+                            Belum ada detail komponen untuk {item.jenis}.
+                          </p>
+                        ) : (
+                          fixedDetailRows.map((row, rowIndex) => (
+                            <div
+                              key={row.id}
+                              className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-md border border-rpb-border bg-[#f8fafc] px-2 py-1.5"
+                            >
+                              <p className="min-w-0 text-[10px] leading-tight text-rpb-ink-soft">
+                                <span className="font-semibold text-foreground">
+                                  {rowIndex + 1}. {row.code} - {row.name}
+                                </span>
+                                <br />
+                                Qty {row.qty} {row.unit} x {formatRupiah(row.unitPriceIdr)}
+                              </p>
+                              <p className="text-[10px] font-semibold whitespace-nowrap text-foreground">
+                                {formatRupiah(row.totalIdr)}
+                              </p>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    ) : null}
                   </article>
                 );
               })}
@@ -649,79 +720,6 @@ export default function SummaryPage() {
                   </div>
                 </div>
               </article>
-            </div>
-          </section>
-
-          <section className="rpb-section p-3 md:p-4">
-            <h3 className="rpb-h-title mb-2 text-base font-semibold">Detail Jenis</h3>
-            <p className="mb-3 text-xs text-rpb-ink-soft">
-              Breakdown komponen untuk PROFILE dan KONSTRUKSI.
-            </p>
-
-            <div className="space-y-2">
-              {fixedBreakdownSections.map((section) => {
-                const isOpen = openBreakdownKey === section.key;
-                return (
-                  <article
-                    key={section.key}
-                    className="overflow-hidden rounded-xl border border-rpb-border bg-white"
-                  >
-                    <button
-                      type="button"
-                      className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left"
-                      onClick={() =>
-                        setOpenBreakdownKey((prev) => (prev === section.key ? null : section.key))
-                      }
-                      aria-expanded={isOpen}
-                      aria-controls={`breakdown-${section.key}`}
-                    >
-                      <span className="min-w-0 text-sm font-semibold text-foreground">
-                        {section.title}
-                      </span>
-                      <span className="shrink-0 text-xs font-semibold text-rpb-ink-soft">
-                        {isOpen ? "Tutup" : "Lihat"}
-                      </span>
-                    </button>
-
-                    {isOpen ? (
-                      <div id={`breakdown-${section.key}`} className="border-t border-rpb-border p-3">
-                        {section.rows.length === 0 ? (
-                          <p className="text-xs text-rpb-ink-soft">
-                            Belum ada data komponen untuk kategori ini.
-                          </p>
-                        ) : (
-                          <div className="space-y-1.5">
-                            {section.rows.map((row, index) => (
-                              <div
-                                key={row.id}
-                                className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-lg border border-rpb-border bg-[#f8fafc] px-2.5 py-2"
-                              >
-                                <div className="min-w-0">
-                                  <p className="truncate text-[11px] font-semibold leading-tight text-foreground">
-                                    {index + 1}. {row.code} - {row.name}
-                                  </p>
-                                  <p className="text-[10px] leading-tight text-rpb-ink-soft">
-                                    Qty {row.qty} {row.unit} x {formatRupiah(row.unitPriceIdr)}
-                                  </p>
-                                </div>
-                                <p className="shrink-0 text-right text-[11px] font-semibold whitespace-nowrap text-foreground">
-                                  {formatRupiah(row.totalIdr)}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        <div className="mt-2 border-t border-rpb-border pt-2">
-                          <p className="text-right text-xs font-bold text-foreground">
-                            Total {section.title.replace("Detail ", "")}: {formatRupiah(section.totalIdr)}
-                          </p>
-                        </div>
-                      </div>
-                    ) : null}
-                  </article>
-                );
-              })}
             </div>
           </section>
 
