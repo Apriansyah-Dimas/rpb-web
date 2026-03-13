@@ -60,6 +60,11 @@ interface CalculationRow {
   highlight?: boolean;
 }
 
+const toTitleCase = (value: string): string =>
+  value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+
+const buildDetailLabel = (itemType: string): string => `Detail ${toTitleCase(itemType)}`;
+
 export default function SummaryPage() {
   const { data: masterData, loading: masterLoading, error: masterError } = useRpbMasterData();
   const customerName = useRpbStore((state) => state.customerName);
@@ -250,10 +255,8 @@ export default function SummaryPage() {
       fixedRows.forEach((row, detailIndex) => {
         tableBody.push([
           "",
-          detailIndex === 0 ? "DETAIL" : "",
-          detailIndex === 0
-            ? `[${item.jenis}] ${detailIndex + 1}. ${row.name}`
-            : `${detailIndex + 1}. ${row.name}`,
+          detailIndex === 0 ? buildDetailLabel(item.jenis) : "",
+          `${detailIndex + 1}. ${row.name}`,
           row.unit,
           "",
           formatQty(row.qty),
@@ -563,10 +566,9 @@ export default function SummaryPage() {
                                   {rowIndex === 0 ? "•" : ""}
                                 </td>
                                 <td className="align-top text-[10px] font-semibold leading-tight text-rpb-ink-soft">
-                                  {rowIndex === 0 ? "DETAIL" : ""}
+                                  {rowIndex === 0 ? buildDetailLabel(item.jenis) : ""}
                                 </td>
                                 <td className="align-top text-[10px] leading-tight">
-                                  {rowIndex === 0 ? `[${item.jenis}] ` : ""}
                                   {rowIndex + 1}. {row.name}
                                 </td>
                                 <td className="align-top text-[10px] leading-tight">
@@ -703,23 +705,28 @@ export default function SummaryPage() {
                             Belum ada detail komponen untuk {item.jenis}.
                           </p>
                         ) : (
-                          fixedDetailRows.map((row, rowIndex) => (
-                            <div
-                              key={row.id}
-                              className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-md border border-rpb-border bg-[#f8fafc] px-2 py-1.5"
-                            >
-                              <p className="min-w-0 text-[10px] leading-tight text-rpb-ink-soft">
-                                <span className="font-semibold text-foreground">
-                                  {rowIndex + 1}. {row.name}
-                                </span>
-                                <br />
-                                Qty {formatQty(row.qty)} {row.unit} x {formatRupiah(row.unitPriceIdr)}
-                              </p>
-                              <p className="text-[10px] font-semibold whitespace-nowrap text-foreground">
-                                {formatRupiah(row.totalIdr)}
-                              </p>
-                            </div>
-                          ))
+                          <>
+                            <p className="text-[10px] font-semibold leading-tight text-rpb-ink-soft">
+                              {buildDetailLabel(item.jenis)}
+                            </p>
+                            {fixedDetailRows.map((row, rowIndex) => (
+                              <div
+                                key={row.id}
+                                className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-md border border-rpb-border bg-[#f8fafc] px-2 py-1.5"
+                              >
+                                <p className="min-w-0 text-[10px] leading-tight text-rpb-ink-soft">
+                                  <span className="font-semibold text-foreground">
+                                    {rowIndex + 1}. {row.name}
+                                  </span>
+                                  <br />
+                                  Qty {formatQty(row.qty)} {row.unit} x {formatRupiah(row.unitPriceIdr)}
+                                </p>
+                                <p className="text-[10px] font-semibold whitespace-nowrap text-foreground">
+                                  {formatRupiah(row.totalIdr)}
+                                </p>
+                              </div>
+                            ))}
+                          </>
                         )}
                       </div>
                     ) : null}
