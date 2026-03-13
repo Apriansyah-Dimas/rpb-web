@@ -6,7 +6,7 @@ export function RpbAppHeader({ className = "" }: { className?: string }) {
     <header
       className={`rpb-fixed-header fixed top-0 right-0 left-0 z-[60] h-[92px] text-white md:h-[106px] ${className}`.trim()}
     >
-      <div className="flex h-[72px] items-center justify-start px-4 md:h-[82px] md:px-6">
+      <div className="flex h-[72px] items-center justify-start px-4 pb-3 md:h-[82px] md:px-6 md:pb-4">
         <Image
           src={logoClimatermHeader}
           alt="Logo header Climaterm"
