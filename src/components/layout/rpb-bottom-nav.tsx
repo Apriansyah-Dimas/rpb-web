@@ -75,7 +75,7 @@ export function RpbBottomNav() {
               <Link
                 key={item.key}
                 href={item.href}
-                className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg bg-transparent px-1 text-[11px] font-semibold transition-all duration-200 ease-out md:min-h-12 md:text-xs active:translate-y-0 focus:bg-transparent hover:-translate-y-0.5 [-webkit-tap-highlight-color:transparent] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(46,49,146,0.25)] ${
+                className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg bg-transparent px-1 text-[11px] font-semibold transition-all duration-200 ease-out md:min-h-12 md:text-xs active:translate-y-0 focus:bg-transparent hover:-translate-y-0.5 [-webkit-tap-highlight-color:transparent] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(55,61,119,0.25)] ${
                   active
                     ? "bg-rpb-primary-soft/70 text-rpb-primary"
                     : "text-rpb-ink-soft hover:bg-rpb-primary-soft/45 hover:text-rpb-primary"

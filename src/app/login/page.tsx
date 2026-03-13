@@ -359,9 +359,9 @@ function LoginPageContent() {
           --login-bg-color: #f5f3ef;
           --login-card-bg: rgba(255, 255, 255, 0.75);
           --login-card-border: rgba(0, 0, 0, 0.07);
-          --login-accent-primary: #2e3192;
-          --login-accent-hover: #2e3192;
-          --login-accent-focus-ring: rgba(46, 49, 146, 0.24);
+          --login-accent-primary: #373d77;
+          --login-accent-hover: #2f3569;
+          --login-accent-focus-ring: rgba(55, 61, 119, 0.24);
           --login-text-main: #1a1a2e;
           --login-text-muted: #6b6b80;
           --login-text-error: #dc2626;
@@ -588,7 +588,7 @@ function LoginPageContent() {
         .login-page button[type="submit"]:hover:not(:disabled) {
           background-color: var(--login-accent-hover);
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(46, 49, 146, 0.3);
+          box-shadow: 0 4px 12px rgba(55, 61, 119, 0.3);
         }
 
         .login-page button[type="submit"]:active:not(:disabled) {

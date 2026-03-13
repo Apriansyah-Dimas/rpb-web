@@ -3,13 +3,13 @@
 :root {
   --background: #f7f9ff;
   --foreground: #1f2340;
-  --rpb-primary: #2e3192;
-  --rpb-primary-dark: #2e3192;
-  --rpb-primary-soft: #e9f4fa;
+  --rpb-primary: #373d77;
+  --rpb-primary-dark: #2f3569;
+  --rpb-primary-soft: #eceef8;
   --rpb-border: #dfe3f3;
   --rpb-surface: #ffffff;
   --rpb-ink-soft: #4e5275;
-  --rpb-focus-ring: rgba(46, 49, 146, 0.2);
+  --rpb-focus-ring: rgba(55, 61, 119, 0.2);
   --rpb-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -123,7 +123,7 @@ body::-webkit-scrollbar {
 .rpb-btn-primary:hover {
   background: var(--rpb-primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(46, 49, 146, 0.2);
+  box-shadow: 0 10px 20px rgba(55, 61, 119, 0.2);
 }
 
 .rpb-btn-primary:focus-visible {
@@ -198,7 +198,7 @@ body::-webkit-scrollbar {
 }
 
 .rpb-price-pill {
-  border: 1px solid rgba(46, 49, 146, 0.24);
+  border: 1px solid rgba(55, 61, 119, 0.24);
   border-radius: 999px;
   background: var(--rpb-primary-soft);
   color: var(--rpb-primary-dark);
@@ -222,19 +222,19 @@ body::-webkit-scrollbar {
   border: 1px solid var(--rpb-border);
   border-radius: 14px;
   background: #fff;
-  box-shadow: 0 10px 24px rgba(46, 49, 146, 0.1);
+  box-shadow: 0 10px 24px rgba(55, 61, 119, 0.1);
 }
 
 .rpb-custom-card {
-  border: 1.5px dashed rgba(46, 49, 146, 0.55) !important;
-  background: #e9f4fa !important;
-  color: #2e3192 !important;
+  border: 1.5px dashed rgba(55, 61, 119, 0.55) !important;
+  background: #eceef8 !important;
+  color: #373d77 !important;
   transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
 
 .rpb-custom-card:hover {
-  border-color: #2e3192 !important;
-  background: #e9f4fa !important;
+  border-color: #373d77 !important;
+  background: #eceef8 !important;
   transform: translateY(-1px);
 }
 
@@ -246,7 +246,7 @@ body::-webkit-scrollbar {
 }
 
 .rpb-table thead th {
-  background: #2e3192;
+  background: #373d77;
   color: #fff;
   font-size: 12px;
   font-weight: 700;
@@ -307,7 +307,7 @@ body::-webkit-scrollbar {
 }
 
 .rpb-editor-content .tiptap th {
-  background: #2e3192;
+  background: #373d77;
   color: #fff;
   font-weight: 700;
   font-size: 11px;

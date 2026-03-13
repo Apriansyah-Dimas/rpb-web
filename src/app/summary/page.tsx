@@ -593,20 +593,20 @@ export default function SummaryPage() {
                 </tbody>
                 <tfoot>
                   {calculationRows.map((row) => (
-                    <tr key={row.key} className={row.highlight ? "bg-[#2e3192]" : ""}>
+                    <tr key={row.key} className={row.highlight ? "bg-[#373d77]" : ""}>
                       <td
                         colSpan={6}
                         className={`${
                           row.highlight
                             ? "border-t-0 text-white"
-                            : "bg-[#e9f4fa]"
+                            : "bg-[#eceef8]"
                         }`}
                       />
                       <td
                         className={`text-right align-top leading-tight whitespace-normal break-words ${
                           row.highlight
                             ? "border-t-0 font-bold text-white"
-                            : "bg-[#e9f4fa] text-rpb-ink-soft"
+                            : "bg-[#eceef8] text-rpb-ink-soft"
                         }`}
                       >
                         {row.label}
@@ -615,7 +615,7 @@ export default function SummaryPage() {
                         className={`text-right whitespace-nowrap ${
                           row.highlight
                             ? "border-t-0 font-bold text-white"
-                            : "bg-[#e9f4fa] font-semibold text-foreground"
+                            : "bg-[#eceef8] font-semibold text-foreground"
                         }`}
                       >
                         {formatRupiah(row.value)}
@@ -735,7 +735,7 @@ export default function SummaryPage() {
                       <div
                         key={row.key}
                         className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-2.5 py-1.5 ${
-                          row.highlight ? "bg-[#2e3192]" : "bg-[#e9f4fa]"
+                          row.highlight ? "bg-[#373d77]" : "bg-[#eceef8]"
                         }`}
                       >
                         <p
