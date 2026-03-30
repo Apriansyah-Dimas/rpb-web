@@ -169,20 +169,31 @@ function FormulaHelpBox() {
       desc: "Sama seperti PCT, alias bahasa Indonesia.",
       usage: "PERSEN(panel, 10)",
     },
+    {
+      name: "IF(syarat, nilaiTrue, nilaiFalse)",
+      desc: "Jika syarat benar (tidak nol), hasilnya nilaiTrue. Jika salah, hasilnya nilaiFalse.",
+      usage: "IF(panel_thickness > 30, 10, 5)",
+    },
   ];
 
   return (
     <div className="mt-4 rounded-xl border border-rpb-border bg-[#eceef8] p-3.5 text-sm text-rpb-ink-soft">
       <p className="font-semibold text-foreground">Fungsi Formula yang didukung</p>
       <p className="mt-1">
-        Operator: <span className="font-mono">+, -, *, /, ^</span>, kurung, dan literal persen
-        seperti <span className="font-mono">10%</span>.
+        Operator: <span className="font-mono">+</span>, <span className="font-mono">-</span>,{" "}
+        <span className="font-mono">*</span>, <span className="font-mono">/</span>,{" "}
+        <span className="font-mono">^</span>, kurung, literal persen seperti{" "}
+        <span className="font-mono">10%</span>, dan operator perbandingan{" "}
+        <span className="font-mono">&gt;</span>, <span className="font-mono">&lt;</span>,{" "}
+        <span className="font-mono">&gt;=</span>, <span className="font-mono">&lt;=</span>,{" "}
+        <span className="font-mono">==</span>, <span className="font-mono">!=</span>.
       </p>
       <p className="mt-1">
         Variabel yang bisa dipakai: <span className="font-mono">width</span>,{" "}
         <span className="font-mono">length</span>, <span className="font-mono">height</span>,{" "}
-        <span className="font-mono">panel_thickness</span>, dan kode item sebelumnya (termasuk
-        kode profile untuk dipakai di formula konstruksi).
+        <span className="font-mono">panel_thickness</span> (bisa disingkat{" "}
+        <span className="font-mono">p</span> atau <span className="font-mono">t</span>), dan
+        kode item sebelumnya (termasuk kode profile untuk dipakai di formula konstruksi).
       </p>
       <div className="mt-2 overflow-x-auto rounded-lg border border-rpb-border bg-white">
         <table className="w-full min-w-[680px] table-fixed text-xs">
@@ -204,7 +215,12 @@ function FormulaHelpBox() {
           </tbody>
         </table>
       </div>
-      <p className="mt-2 font-mono text-xs">Contoh: ROUND(((width * length) / 1000000), 2)</p>
+      <p className="mt-2 font-mono text-xs">
+        Contoh: ROUND(((width * length) / 1000000), 2)
+      </p>
+      <p className="mt-2 font-mono text-xs">
+        Contoh IF: IF(panel_thickness &gt; 30, 10, 5) -&gt; hasilnya 10 jika tebal 45, 5 jika 30
+      </p>
     </div>
   );
 }
