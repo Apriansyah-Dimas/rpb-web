@@ -2,6 +2,7 @@
 
 import { LogoutButton } from "@/components/auth/logout-button";
 import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
+import { ChangePasswordForm } from "@/components/profile/change-password-form";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { IdCard, Mail, Phone, Shield, UserRound } from "lucide-react";
@@ -151,6 +152,8 @@ export default function ProfilePage() {
         <section className="rpb-section p-4">
           <LogoutButton className="rpb-btn-primary px-4 py-2 text-sm font-semibold" />
         </section>
+
+        <ChangePasswordForm />
       </div>
     </RpbPageFrame>
   );
