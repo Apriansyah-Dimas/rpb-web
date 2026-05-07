@@ -8,11 +8,13 @@ import { useState } from "react";
 interface LogoutButtonProps {
   className?: string;
   label?: string;
+  confirmMessage?: string;
 }
 
 export function LogoutButton({
   className = "",
   label = "Logout",
+  confirmMessage,
 }: LogoutButtonProps) {
   const router = useRouter();
   const { signOut } = useAuthSession();
@@ -20,6 +22,10 @@ export function LogoutButton({
 
   const handleLogout = async () => {
     if (busy) {
+      return;
+    }
+
+    if (confirmMessage && !window.confirm(confirmMessage)) {
       return;
     }
 

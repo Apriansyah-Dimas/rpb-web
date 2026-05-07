@@ -186,13 +186,27 @@ export function ChangePasswordForm({ onSuccess }: ChangePasswordFormProps) {
   const currentErrors = validateForm(form);
   const canProceed = canSubmit(currentErrors, form) && !busy;
 
+  const confirmDescribedBy = [
+    errors.confirmPassword ? "confirmPassword-error" : null,
+    !errors.confirmPassword &&
+    form.confirmPassword &&
+    form.newPassword === form.confirmPassword &&
+    form.newPassword.length >= MIN_PASSWORD_LENGTH
+      ? "confirmPassword-success"
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" ") || undefined;
+
   return (
     <section className="rpb-section p-4">
       <button
         type="button"
+        id="change-password-trigger"
         onClick={toggleExpanded}
         className="flex w-full items-center justify-between text-left"
         aria-expanded={expanded}
+        aria-controls="change-password-panel"
       >
         <span className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
           <KeyRound size={16} className="text-rpb-ink-soft" />
@@ -207,152 +221,155 @@ export function ChangePasswordForm({ onSuccess }: ChangePasswordFormProps) {
       </button>
 
       <div
-        className={`overflow-hidden transition-all duration-300 ease-out ${
-          expanded ? "mt-4 max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+        id="change-password-panel"
+        role="region"
+        aria-labelledby="change-password-trigger"
+        className={`grid transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          expanded ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0"
         }`}
       >
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="space-y-3">
-            <div>
-              <label htmlFor="oldPassword" className="mb-1.5 block text-xs font-semibold text-rpb-ink-soft">
-                Password Lama
-              </label>
-              <div className="relative">
-                <input
-                  id="oldPassword"
-                  type={showOld ? "text" : "password"}
-                  value={form.oldPassword}
-                  onChange={handleChange("oldPassword")}
-                  className="rpb-input pr-10"
-                  placeholder="Masukkan password lama"
-                  autoComplete="current-password"
-                  disabled={busy}
-                  aria-describedby={errors.oldPassword ? "oldPassword-error" : undefined}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowOld((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-rpb-ink-soft transition-colors hover:text-foreground"
-                  tabIndex={-1}
-                  aria-label={showOld ? "Sembunyikan password" : "Tampilkan password"}
-                >
-                  {showOld ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+        <div className="overflow-hidden">
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="space-y-3">
+              <div>
+                <label htmlFor="oldPassword" className="mb-1.5 block text-xs font-semibold text-rpb-ink-soft">
+                  Password Lama
+                </label>
+                <div className="relative">
+                  <input
+                    id="oldPassword"
+                    type={showOld ? "text" : "password"}
+                    value={form.oldPassword}
+                    onChange={handleChange("oldPassword")}
+                    className="rpb-input pr-10"
+                    placeholder="Masukkan password lama"
+                    autoComplete="current-password"
+                    disabled={busy}
+                    aria-describedby={errors.oldPassword ? "oldPassword-error" : undefined}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowOld((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-rpb-ink-soft transition-colors hover:text-foreground"
+                    aria-label={showOld ? "Sembunyikan password" : "Tampilkan password"}
+                  >
+                    {showOld ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {errors.oldPassword ? (
+                  <p id="oldPassword-error" className="mt-1 text-xs text-red-600" role="alert">
+                    {errors.oldPassword}
+                  </p>
+                ) : null}
               </div>
-              {errors.oldPassword ? (
-                <p id="oldPassword-error" className="mt-1 text-xs text-red-600" role="alert">
-                  {errors.oldPassword}
-                </p>
-              ) : null}
-            </div>
 
-            <div>
-              <label htmlFor="newPassword" className="mb-1.5 block text-xs font-semibold text-rpb-ink-soft">
-                Password Baru
-              </label>
-              <div className="relative">
-                <input
-                  id="newPassword"
-                  type={showNew ? "text" : "password"}
-                  value={form.newPassword}
-                  onChange={handleChange("newPassword")}
-                  className="rpb-input pr-10"
-                  placeholder="Minimal 6 karakter"
-                  autoComplete="new-password"
-                  disabled={busy}
-                  aria-describedby={errors.newPassword ? "newPassword-error" : undefined}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNew((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-rpb-ink-soft transition-colors hover:text-foreground"
-                  tabIndex={-1}
-                  aria-label={showNew ? "Sembunyikan password" : "Tampilkan password"}
-                >
-                  {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+              <div>
+                <label htmlFor="newPassword" className="mb-1.5 block text-xs font-semibold text-rpb-ink-soft">
+                  Password Baru
+                </label>
+                <div className="relative">
+                  <input
+                    id="newPassword"
+                    type={showNew ? "text" : "password"}
+                    value={form.newPassword}
+                    onChange={handleChange("newPassword")}
+                    className="rpb-input pr-10"
+                    placeholder="Minimal 6 karakter"
+                    autoComplete="new-password"
+                    disabled={busy}
+                    aria-describedby={errors.newPassword ? "newPassword-error" : undefined}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNew((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-rpb-ink-soft transition-colors hover:text-foreground"
+                    aria-label={showNew ? "Sembunyikan password" : "Tampilkan password"}
+                  >
+                    {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {errors.newPassword ? (
+                  <p id="newPassword-error" className="mt-1 text-xs text-red-600" role="alert">
+                    {errors.newPassword}
+                  </p>
+                ) : null}
               </div>
-              {errors.newPassword ? (
-                <p id="newPassword-error" className="mt-1 text-xs text-red-600" role="alert">
-                  {errors.newPassword}
-                </p>
-              ) : null}
-            </div>
 
-            <div>
-              <label htmlFor="confirmPassword" className="mb-1.5 block text-xs font-semibold text-rpb-ink-soft">
-                Konfirmasi Password Baru
-              </label>
-              <div className="relative">
-                <input
-                  id="confirmPassword"
-                  type={showConfirm ? "text" : "password"}
-                  value={form.confirmPassword}
-                  onChange={handleChange("confirmPassword")}
-                  className="rpb-input pr-10"
-                  placeholder="Masukkan ulang password baru"
-                  autoComplete="new-password"
-                  disabled={busy}
-                  aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirm((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-rpb-ink-soft transition-colors hover:text-foreground"
-                  tabIndex={-1}
-                  aria-label={showConfirm ? "Sembunyikan password" : "Tampilkan password"}
-                >
-                  {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+              <div>
+                <label htmlFor="confirmPassword" className="mb-1.5 block text-xs font-semibold text-rpb-ink-soft">
+                  Konfirmasi Password Baru
+                </label>
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    type={showConfirm ? "text" : "password"}
+                    value={form.confirmPassword}
+                    onChange={handleChange("confirmPassword")}
+                    className="rpb-input pr-10"
+                    placeholder="Masukkan ulang password baru"
+                    autoComplete="new-password"
+                    disabled={busy}
+                    aria-describedby={confirmDescribedBy}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-rpb-ink-soft transition-colors hover:text-foreground"
+                    aria-label={showConfirm ? "Sembunyikan password" : "Tampilkan password"}
+                  >
+                    {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {errors.confirmPassword ? (
+                  <p id="confirmPassword-error" className="mt-1 text-xs text-red-600" role="alert">
+                    {errors.confirmPassword}
+                  </p>
+                ) : null}
+                {!errors.confirmPassword &&
+                form.confirmPassword &&
+                form.newPassword === form.confirmPassword &&
+                form.newPassword.length >= MIN_PASSWORD_LENGTH ? (
+                  <p id="confirmPassword-success" className="mt-1 flex items-center gap-1 text-xs text-green-600" role="status">
+                    <CheckCircle size={12} />
+                    Konfirmasi cocok
+                  </p>
+                ) : null}
               </div>
-              {errors.confirmPassword ? (
-                <p id="confirmPassword-error" className="mt-1 text-xs text-red-600" role="alert">
-                  {errors.confirmPassword}
-                </p>
-              ) : null}
-              {form.confirmPassword &&
-              !errors.confirmPassword &&
-              form.newPassword === form.confirmPassword &&
-              form.newPassword.length >= MIN_PASSWORD_LENGTH ? (
-                <p className="mt-1 flex items-center gap-1 text-xs text-green-600" role="status">
-                  <CheckCircle size={12} />
-                  Konfirmasi cocok
-                </p>
-              ) : null}
             </div>
-          </div>
 
-          {notice ? (
-            <div
-              className={`mt-3 rounded-lg p-3 text-sm ${
-                notice.tone === "error"
-                  ? "bg-red-50 text-red-700"
-                  : "bg-green-50 text-green-700"
-              }`}
-              role={notice.tone === "error" ? "alert" : "status"}
-            >
-              {notice.text}
+            {notice ? (
+              <div
+                className={`mt-3 rounded-lg p-3 text-sm ${
+                  notice.tone === "error"
+                    ? "bg-red-50 text-red-700"
+                    : "bg-green-50 text-green-700"
+                }`}
+                role={notice.tone === "error" ? "alert" : "status"}
+                aria-live={notice.tone === "error" ? "assertive" : "polite"}
+              >
+                {notice.text}
+              </div>
+            ) : null}
+
+            <div className="mt-4 flex gap-2">
+              <button
+                type="submit"
+                disabled={!canProceed}
+                className="rpb-btn-primary flex-1 px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed"
+              >
+                {busy ? "Menyimpan..." : "Simpan Password"}
+              </button>
+              <button
+                type="button"
+                onClick={handleCancel}
+                disabled={busy}
+                className="rpb-btn-ghost px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed"
+              >
+                Batal
+              </button>
             </div>
-          ) : null}
-
-          <div className="mt-4 flex gap-2">
-            <button
-              type="submit"
-              disabled={!canProceed}
-              className="rpb-btn-primary flex-1 px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed"
-            >
-              {busy ? "Menyimpan..." : "Simpan Password"}
-            </button>
-            <button
-              type="button"
-              onClick={handleCancel}
-              disabled={busy}
-              className="rpb-btn-ghost px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed"
-            >
-              Batal
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </section>
   );

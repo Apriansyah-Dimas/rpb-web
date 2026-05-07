@@ -3,9 +3,10 @@
 import { LogoutButton } from "@/components/auth/logout-button";
 import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
 import { ChangePasswordForm } from "@/components/profile/change-password-form";
+import { EditableProfileField } from "@/components/profile/editable-profile-field";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { IdCard, Mail, Phone, Shield, UserRound, Pencil, Check, X } from "lucide-react";
+import { CalendarDays, IdCard, Mail, Phone, Shield, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface ProfileInfo {
@@ -152,193 +153,156 @@ export default function ProfilePage() {
   return (
     <RpbPageFrame shellClassName="rpb-compact">
       <div className="space-y-4 py-5 md:py-6">
+        <section className="rpb-section p-5">
+          <div className="flex items-center gap-4">
+            <div
+              className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-rpb-primary text-xl font-bold text-white"
+              aria-hidden="true"
+            >
+              {profileInfo?.fullName
+                ? profileInfo.fullName.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase()
+                : profileInfo?.username?.[0]?.toUpperCase() ?? "?"}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-base font-bold text-foreground">
+                {profileInfo?.fullName || profileInfo?.username || "-"}
+              </p>
+              <p className="truncate text-sm text-rpb-ink-soft">{profileInfo?.email ?? user?.email ?? "-"}</p>
+              <span className="mt-1 inline-block rounded-md bg-rpb-primary-soft px-2 py-0.5 text-xs font-semibold uppercase text-rpb-primary">
+                {profileInfo?.role ?? role ?? "-"}
+              </span>
+            </div>
+          </div>
+        </section>
+
         {loading || busy ? (
-          <div className="rpb-section rpb-delayed-loader p-4 text-sm text-rpb-ink-soft">Memuat profil...</div>
+          <div
+            className="rpb-section rpb-delayed-loader p-4 text-sm text-rpb-ink-soft"
+            role="status"
+            aria-live="polite"
+            aria-label="Memuat profil"
+          >
+            Memuat profil...
+          </div>
         ) : null}
         {error ? (
-          <div className="rpb-alert rpb-alert-error">
+          <div className="rpb-alert rpb-alert-error" role="alert" aria-live="assertive">
             {error}
           </div>
         ) : null}
         {successNotice ? (
-          <div className="rpb-alert rpb-alert-success">
+          <div className="rpb-alert rpb-alert-success" role="status" aria-live="polite">
             {successNotice}
           </div>
         ) : null}
 
         <section className="rpb-section p-5">
           <h2 className="rpb-h-title mb-4 text-lg font-semibold">Informasi Akun</h2>
-          <div className="grid gap-3 md:grid-cols-3">
-            <div className="rounded-xl border border-rpb-border bg-white p-4">
-              <p className="mb-1 inline-flex items-center gap-2 text-xs font-semibold text-rpb-ink-soft">
-                <UserRound size={14} />
-                Nama User
-              </p>
-              <p className="text-sm font-semibold text-foreground">
-                {profileInfo?.username || "-"}
-              </p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="rounded-xl border border-[var(--rpb-border)] bg-white p-4">
+              <dl>
+                <dt className="mb-1 inline-flex items-center gap-2 text-xs font-semibold text-rpb-ink-soft">
+                  <UserRound size={14} aria-hidden="true" />
+                  Nama User
+                </dt>
+                <dd className="text-sm font-semibold text-foreground">
+                  {profileInfo?.username || "-"}
+                </dd>
+              </dl>
             </div>
-            <div className="rounded-xl border border-rpb-border bg-white p-4">
-              <p className="mb-1 inline-flex items-center gap-2 text-xs font-semibold text-rpb-ink-soft">
-                <IdCard size={14} />
-                Nama Lengkap
-              </p>
-              {editingField === "fullName" ? (
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={editValue}
-                    onChange={(e) => {
-                      setEditValue(e.target.value);
-                      if (editError) setEditError(null);
-                    }}
-                    className="rpb-input text-sm"
-                    placeholder="Masukkan nama lengkap"
-                    disabled={editBusy}
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") void saveEdit();
-                      if (e.key === "Escape") cancelEditing();
-                    }}
-                  />
-                  {editError ? (
-                    <p className="text-xs text-red-600" role="alert">{editError}</p>
-                  ) : null}
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => void saveEdit()}
-                      disabled={editBusy}
-                      className="rpb-btn-primary flex items-center gap-1 px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed"
-                    >
-                      <Check size={12} />
-                      {editBusy ? "Menyimpan..." : "Simpan"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={cancelEditing}
-                      disabled={editBusy}
-                      className="rpb-btn-ghost flex items-center gap-1 px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed"
-                    >
-                      <X size={12} />
-                      Batal
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-foreground">
-                    {profileInfo?.fullName || "-"}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => startEditing("fullName")}
-                    className="rounded-md p-1.5 text-rpb-ink-soft transition-colors hover:bg-rpb-primary-soft hover:text-rpb-primary"
-                    aria-label="Edit nama lengkap"
-                  >
-                    <Pencil size={14} />
-                  </button>
-                </div>
-              )}
+
+            <EditableProfileField
+              label="Nama Lengkap"
+              icon={<IdCard size={14} aria-hidden="true" />}
+              value={profileInfo?.fullName}
+              fieldKey="fullName"
+              inputType="text"
+              placeholder="Masukkan nama lengkap"
+              editingField={editingField}
+              editValue={editValue}
+              editError={editError}
+              editBusy={editBusy}
+              onStartEdit={startEditing}
+              onSave={saveEdit}
+              onCancel={cancelEditing}
+              onEditValueChange={(v) => {
+                setEditValue(v);
+                if (editError) setEditError(null);
+              }}
+            />
+
+            <div className="rounded-xl border border-[var(--rpb-border)] bg-white p-4">
+              <dl>
+                <dt className="mb-1 inline-flex items-center gap-2 text-xs font-semibold text-rpb-ink-soft">
+                  <Mail size={14} aria-hidden="true" />
+                  Email
+                </dt>
+                <dd className="text-sm font-semibold text-foreground">
+                  {profileInfo?.email ?? user?.email ?? "-"}
+                </dd>
+              </dl>
             </div>
-            <div className="rounded-xl border border-rpb-border bg-white p-4">
-              <p className="mb-1 inline-flex items-center gap-2 text-xs font-semibold text-rpb-ink-soft">
-                <Mail size={14} />
-                Email
-              </p>
-              <p className="text-sm font-semibold text-foreground">
-                {profileInfo?.email ?? user?.email ?? "-"}
-              </p>
+
+            <EditableProfileField
+              label="Nomor Telepon"
+              icon={<Phone size={14} aria-hidden="true" />}
+              value={profileInfo?.phoneNumber}
+              fieldKey="phoneNumber"
+              inputType="tel"
+              placeholder="Masukkan nomor telepon"
+              editingField={editingField}
+              editValue={editValue}
+              editError={editError}
+              editBusy={editBusy}
+              onStartEdit={startEditing}
+              onSave={saveEdit}
+              onCancel={cancelEditing}
+              onEditValueChange={(v) => {
+                setEditValue(v);
+                if (editError) setEditError(null);
+              }}
+            />
+
+            <div className="rounded-xl border border-[var(--rpb-border)] bg-white p-4">
+              <dl>
+                <dt className="mb-1 inline-flex items-center gap-2 text-xs font-semibold text-rpb-ink-soft">
+                  <Shield size={14} aria-hidden="true" />
+                  Role
+                </dt>
+                <dd className="text-sm font-semibold uppercase text-foreground">
+                  {profileInfo?.role ?? role ?? "-"}
+                </dd>
+              </dl>
             </div>
-            <div className="rounded-xl border border-rpb-border bg-white p-4">
-              <p className="mb-1 inline-flex items-center gap-2 text-xs font-semibold text-rpb-ink-soft">
-                <Phone size={14} />
-                Phone Number
-              </p>
-              {editingField === "phoneNumber" ? (
-                <div className="space-y-2">
-                  <input
-                    type="tel"
-                    value={editValue}
-                    onChange={(e) => {
-                      setEditValue(e.target.value);
-                      if (editError) setEditError(null);
-                    }}
-                    className="rpb-input text-sm"
-                    placeholder="Masukkan nomor telepon"
-                    disabled={editBusy}
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") void saveEdit();
-                      if (e.key === "Escape") cancelEditing();
-                    }}
-                  />
-                  {editError ? (
-                    <p className="text-xs text-red-600" role="alert">{editError}</p>
-                  ) : null}
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => void saveEdit()}
-                      disabled={editBusy}
-                      className="rpb-btn-primary flex items-center gap-1 px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed"
-                    >
-                      <Check size={12} />
-                      {editBusy ? "Menyimpan..." : "Simpan"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={cancelEditing}
-                      disabled={editBusy}
-                      className="rpb-btn-ghost flex items-center gap-1 px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed"
-                    >
-                      <X size={12} />
-                      Batal
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-foreground">
-                    {profileInfo?.phoneNumber || "-"}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => startEditing("phoneNumber")}
-                    className="rounded-md p-1.5 text-rpb-ink-soft transition-colors hover:bg-rpb-primary-soft hover:text-rpb-primary"
-                    aria-label="Edit nomor telepon"
-                  >
-                    <Pencil size={14} />
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className="rounded-xl border border-rpb-border bg-white p-4">
-              <p className="mb-1 inline-flex items-center gap-2 text-xs font-semibold text-rpb-ink-soft">
-                <Shield size={14} />
-                Role
-              </p>
-              <p className="text-sm font-semibold uppercase text-foreground">
-                {profileInfo?.role ?? role ?? "-"}
-              </p>
-            </div>
-            <div className="rounded-xl border border-rpb-border bg-white p-4">
-              <p className="mb-1 inline-flex items-center gap-2 text-xs font-semibold text-rpb-ink-soft">
-                <UserRound size={14} />
-                Terdaftar Sejak
-              </p>
-              <p className="text-sm font-semibold text-foreground">
-                {formatDate(profileInfo?.createdAt ?? null)}
-              </p>
+
+            <div className="rounded-xl border border-[var(--rpb-border)] bg-white p-4">
+              <dl>
+                <dt className="mb-1 inline-flex items-center gap-2 text-xs font-semibold text-rpb-ink-soft">
+                  <CalendarDays size={14} aria-hidden="true" />
+                  Terdaftar Sejak
+                </dt>
+                <dd className="text-sm font-semibold text-foreground">
+                  {formatDate(profileInfo?.createdAt ?? null)}
+                </dd>
+              </dl>
             </div>
           </div>
         </section>
 
-        <section className="rpb-section p-4">
-          <LogoutButton className="rpb-btn-primary px-4 py-2 text-sm font-semibold" />
-        </section>
-
         <ChangePasswordForm />
+
+        <section className="rpb-section p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Keluar dari Akun</p>
+              <p className="text-xs text-rpb-ink-soft">Sesi aktif akan diakhiri</p>
+            </div>
+            <LogoutButton
+              className="rpb-btn-ghost border-red-200 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 hover:border-red-300"
+              confirmMessage="Yakin ingin keluar?"
+            />
+          </div>
+        </section>
       </div>
     </RpbPageFrame>
   );

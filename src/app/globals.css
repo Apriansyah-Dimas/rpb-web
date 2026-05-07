@@ -793,3 +793,35 @@ body::-webkit-scrollbar {
     opacity: 1 !important;
   }
 }
+
+/* Accordion grid trick — smooth height animation tanpa max-h hack */
+.rpb-accordion-panel {
+  display: grid;
+  transition: grid-template-rows 300ms cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.rpb-accordion-panel[data-expanded="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.rpb-accordion-panel[data-expanded="false"] {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+.rpb-accordion-inner {
+  overflow: hidden;
+}
+
+/* Editable field card — active state ring */
+.rpb-field-card {
+  border-radius: 12px;
+  border: 1px solid var(--rpb-border);
+  background: white;
+  padding: 1rem;
+  transition: border-color 180ms var(--rpb-ease-out),
+              box-shadow 180ms var(--rpb-ease-out);
+}
+.rpb-field-card[data-editing="true"] {
+  border-color: var(--rpb-primary);
+  box-shadow: 0 0 0 4px var(--rpb-focus-ring);
+}
