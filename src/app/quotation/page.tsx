@@ -237,13 +237,24 @@ export default function QuotationPage() {
     return baseAfterAdjustIdr + profitIdr;
   }, [adjustments, lineItems]);
 
+  const ppnRate = useMemo(() => {
+    const variables = masterData?.formulaVariables ?? [];
+    const ppnVar = variables.find((v) => v.key === "ppn_rate");
+    if (ppnVar && Number.isFinite(ppnVar.defaultValue) && ppnVar.defaultValue > 0) {
+      return ppnVar.defaultValue / 100;
+    }
+    return 0.11;
+  }, [masterData?.formulaVariables]);
+
+  const ppnPercent = useMemo(() => Math.round(ppnRate * 100), [ppnRate]);
+
   const preview = useMemo(() => {
     const quantity = Math.max(0, toNumber(form.quantity));
     const price = grandTotalRpb;
     const subtotal = quantity * price;
     const discountRate = toDiscount(form.discount);
     const discountAmount = subtotal * discountRate;
-    const ppn = (subtotal - discountAmount) * 0.11;
+    const ppn = (subtotal - discountAmount) * ppnRate;
     const grandTotal = subtotal - discountAmount + ppn;
     return {
       quantity,
@@ -255,7 +266,7 @@ export default function QuotationPage() {
       grandTotal,
       contactPerson: [accountName, accountPhone].filter(Boolean).join(" / "),
     };
-  }, [accountName, accountPhone, form, grandTotalRpb]);
+  }, [accountName, accountPhone, form, grandTotalRpb, ppnRate]);
 
   const quotationDate = useMemo(
     () =>
@@ -342,6 +353,7 @@ export default function QuotationPage() {
           price: grandTotalRpb,
           discount: form.discount,
           additionalInformation: form.additionalInformation,
+          ppnRate,
         }),
       });
 
@@ -478,6 +490,7 @@ export default function QuotationPage() {
                     value={form.discount}
                     onChange={(event) => setField("discount", event.target.value)}
                   />
+                  <span className="text-xs text-rpb-ink-soft">Contoh: 25% atau 0.25. Jangan tulis 25 tanpa %.</span>
                 </label>
               </fieldset>
 
@@ -619,7 +632,7 @@ export default function QuotationPage() {
                       <td className="summary-value">{currencyFormatter.format(preview.discountAmount)}</td>
                     </tr>
                     <tr className="summary-row">
-                      <td className="summary-label" colSpan={2}>PPN 11%</td>
+                      <td className="summary-label" colSpan={2}>PPN {ppnPercent}%</td>
                       <td className="summary-value">{currencyFormatter.format(preview.ppn)}</td>
                     </tr>
                     <tr className="summary-row strong">
@@ -649,7 +662,13 @@ export default function QuotationPage() {
           </section>
         </div>
 
-        <div className="mt-3 flex justify-end no-print">
+        <div className="mt-3 flex justify-end gap-2 no-print">
+          <Link
+            href="/"
+            className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"
+          >
+            Kembali ke Beranda
+          </Link>
           <Link
             href="/summary"
             className="rpb-btn-ghost inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold"

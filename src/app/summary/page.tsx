@@ -11,7 +11,7 @@ import { buildSummaryLineItems } from "@/lib/rpb-line-items";
 import { saveSummaryHistory } from "@/lib/rpb-db";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useRpbStore } from "@/store/rpb-store";
-import { ArrowLeft, Download, FileText, Minus, Plus, Save } from "lucide-react";
+import { ArrowLeft, Download, FileText, Minus, Plus, RotateCcw, Save } from "lucide-react";
 import type { RowInput } from "jspdf-autotable";
 import Link from "next/link";
 import type { FocusEvent, FormEvent } from "react";
@@ -402,14 +402,34 @@ export default function SummaryPage() {
   return (
     <RpbPageFrame shellClassName="rpb-compact">
       <div className="space-y-4 py-5 md:space-y-3 md:py-6">
+          <nav className="flex items-center gap-1.5 text-xs text-rpb-ink-soft">
+            <Link href="/" className="hover:text-rpb-primary transition-colors">Beranda</Link>
+            <span>/</span>
+            <span className="font-semibold text-foreground">Ringkasan</span>
+          </nav>
           {masterLoading ? (
-            <div className="rpb-section rpb-delayed-loader p-4 text-sm text-rpb-ink-soft">
-              Memuat master data dari database...
+            <div className="rpb-section p-4">
+              <div className="space-y-3">
+                <div className="rpb-skeleton rpb-skeleton-line" />
+                <div className="rpb-skeleton rpb-skeleton-line" />
+                <div className="rpb-skeleton rpb-skeleton-line" />
+                <div className="rpb-skeleton rpb-skeleton-line" />
+                <div className="rpb-skeleton rpb-skeleton-line" />
+                <div className="rpb-skeleton rpb-skeleton-line" />
+              </div>
             </div>
           ) : null}
           {masterError ? (
-            <div className="rpb-alert rpb-alert-error">
-              {masterError}
+            <div className="rpb-alert rpb-alert-error flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <span>{masterError}</span>
+              <button
+                type="button"
+                className="rpb-btn-ghost inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold"
+                onClick={() => window.location.reload()}
+              >
+                <RotateCcw size={12} />
+                Coba Lagi
+              </button>
             </div>
           ) : null}
           {saveMessage ? (
@@ -483,7 +503,7 @@ export default function SummaryPage() {
           </section>
 
           <section className="rpb-section p-3 md:p-4">
-            <h3 className="rpb-h-title mb-2 text-base font-semibold">Line Items</h3>
+            <h3 className="rpb-h-title mb-2 text-base font-semibold">Rincian Item</h3>
             <p className="mb-2 text-xs text-rpb-ink-soft">
               Baris abu-abu menunjukkan rincian komponen PROFILE/KONSTRUKSI.
             </p>
@@ -530,22 +550,22 @@ export default function SummaryPage() {
                               <div className="inline-flex items-center gap-1 whitespace-nowrap">
                                 <button
                                   type="button"
-                                  className="rpb-btn-ghost inline-flex h-6 w-6 items-center justify-center"
+                                  className="rpb-btn-ghost inline-flex h-11 w-11 items-center justify-center"
                                   onClick={() => updateQty(item.id, item.qty - 1)}
                                   aria-label={`Kurangi qty ${item.jenisSpec}`}
                                 >
-                                  <Minus size={10} />
+                                  <Minus size={14} />
                                 </button>
                                 <span className="min-w-4 text-center text-xs font-semibold">
                                   {formatQty(item.qty)}
                                 </span>
                                 <button
                                   type="button"
-                                  className="rpb-btn-primary inline-flex h-6 w-6 items-center justify-center"
+                                  className="rpb-btn-primary inline-flex h-11 w-11 items-center justify-center"
                                   onClick={() => updateQty(item.id, item.qty + 1)}
                                   aria-label={`Tambah qty ${item.jenisSpec}`}
                                 >
-                                  <Plus size={10} />
+                                  <Plus size={14} />
                                 </button>
                               </div>
                             ) : (
@@ -659,22 +679,22 @@ export default function SummaryPage() {
                           <div className="inline-flex items-center gap-1">
                             <button
                               type="button"
-                              className="rpb-btn-ghost inline-flex h-6 w-6 items-center justify-center"
+                              className="rpb-btn-ghost inline-flex h-11 w-11 items-center justify-center"
                               onClick={() => updateQty(item.id, item.qty - 1)}
                               aria-label={`Kurangi qty ${item.jenisSpec}`}
                             >
-                              <Minus size={11} />
+                              <Minus size={14} />
                             </button>
                             <span className="min-w-4 text-center text-[11px] font-semibold">
                               {formatQty(item.qty)}
                             </span>
                             <button
                               type="button"
-                              className="rpb-btn-primary inline-flex h-6 w-6 items-center justify-center"
+                              className="rpb-btn-primary inline-flex h-11 w-11 items-center justify-center"
                               onClick={() => updateQty(item.id, item.qty + 1)}
                               aria-label={`Tambah qty ${item.jenisSpec}`}
                             >
-                              <Plus size={11} />
+                              <Plus size={14} />
                             </button>
                           </div>
                         ) : (
@@ -774,7 +794,7 @@ export default function SummaryPage() {
                 className="rpb-btn-ghost inline-flex h-11 items-center justify-center gap-2 px-4 py-2 text-sm font-semibold md:justify-start"
               >
                 <ArrowLeft size={16} />
-                Back
+                Kembali
               </Link>
 
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 md:flex md:flex-wrap md:justify-end">
@@ -785,7 +805,7 @@ export default function SummaryPage() {
                   disabled={saveBusy}
                 >
                   <Save size={15} />
-                  {saveBusy ? "Saving..." : "Save Draft"}
+                  {saveBusy ? "Menyimpan..." : "Simpan Draft"}
                 </button>
                 <button
                   type="button"
@@ -793,14 +813,14 @@ export default function SummaryPage() {
                   onClick={() => void downloadPdf()}
                 >
                   <Download size={15} />
-                  Download PDF
+                  Unduh PDF
                 </button>
                 <Link
                   href="/quotation"
                   className="rpb-btn-primary inline-flex h-11 items-center justify-center gap-2 px-4 py-2 text-sm font-semibold"
                 >
                   <FileText size={15} />
-                  Make Quotation
+                  Buat Penawaran
                 </Link>
               </div>
             </div>
@@ -811,7 +831,7 @@ export default function SummaryPage() {
         <div className="rpb-modal-backdrop fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-[#15172b]/45 p-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] backdrop-blur-[2px] md:items-center md:pb-6">
           <div className="rpb-modal-panel flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-rpb-border bg-white shadow-xl">
             <div className="rpb-topbar px-5 py-4 text-white">
-              <h3 className="rpb-h-title text-lg font-semibold">Save History</h3>
+              <h3 className="rpb-h-title text-lg font-semibold">Simpan Riwayat</h3>
             </div>
             <form className="space-y-4 overflow-y-auto p-5" onSubmit={handleSaveModalSubmit}>
               <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
@@ -832,14 +852,14 @@ export default function SummaryPage() {
                   onClick={closeSaveModal}
                   disabled={saveBusy}
                 >
-                  Cancel
+                  Batal
                 </button>
                 <button
                   type="submit"
                   className="rpb-btn-primary px-4 py-2 text-sm font-semibold"
                   disabled={saveBusy}
                 >
-                  {saveBusy ? "Saving..." : "Save"}
+                  {saveBusy ? "Menyimpan..." : "Simpan"}
                 </button>
               </div>
             </form>

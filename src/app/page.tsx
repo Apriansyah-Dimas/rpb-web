@@ -16,7 +16,7 @@ import { RpbPageFrame } from "@/components/layout/rpb-page-frame";
 import { useRpbMasterData } from "@/hooks/use-rpb-master-data";
 import { useRpbStore } from "@/store/rpb-store";
 import type { DimensionKey, OtherItem, StockCategory } from "@/types/rpb";
-import { ArrowRight, ChevronDown, ChevronUp, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronUp, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import type { FocusEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -151,6 +151,15 @@ export default function HomePage() {
     loadLatestDraft(),
   );
   const [draftBannerDismissed, setDraftBannerDismissed] = useState(false);
+  const [customErrors, setCustomErrors] = useState<{ jenis?: string; keterangan?: string; satuan?: string; jenisSpec?: string; harga?: string; qty?: string }>({});
+  const [onboardVisible, setOnboardVisible] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("rpb-onboard-done") !== "1";
+  });
+  const hideOnboard = () => {
+    localStorage.setItem("rpb-onboard-done", "1");
+    setOnboardVisible(false);
+  };
 
   const otherItems = useMemo(() => masterData?.otherItems ?? [], [masterData?.otherItems]);
   const filterOptions = useMemo<OtherFilter[]>(() => {
@@ -222,6 +231,25 @@ export default function HomePage() {
     selectedOther,
   ]);
 
+  useEffect(() => {
+    const handler = (event: BeforeUnloadEvent) => {
+      const empty =
+        !customerName.trim() &&
+        !projectName.trim() &&
+        !customerAddress.trim() &&
+        dimensions.length === 3550 &&
+        dimensions.width === 1100 &&
+        dimensions.height === 950 &&
+        Object.keys(selectedOther).length === 0 &&
+        customOtherItems.length === 0;
+      if (empty) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [customerAddress, customerName, customOtherItems.length, dimensions, selectedOther, projectName]);
+
   const latestDraftLabel = useMemo(() => {
     if (!latestDraft) {
       return "-";
@@ -283,6 +311,7 @@ export default function HomePage() {
     setCustomJenisSpec("");
     setCustomHargaIdr(0);
     setCustomQty(1);
+    setCustomErrors({});
   };
 
   const closeCustomModal = () => {
@@ -294,16 +323,17 @@ export default function HomePage() {
     const keterangan = customKeterangan.trim();
     const satuan = customSatuan.trim();
     const jenisSpec = customJenisSpec.trim();
+    const errors: typeof customErrors = {};
 
-    if (
-      !jenis ||
-      !keterangan ||
-      !satuan ||
-      !jenisSpec ||
-      customHargaIdr <= 0 ||
-      customQty <= 0
-    ) {
-      window.alert("Lengkapi semua field custom item dengan benar.");
+    if (!jenis) errors.jenis = "Jenis wajib diisi.";
+    if (!keterangan) errors.keterangan = "Keterangan wajib diisi.";
+    if (!satuan) errors.satuan = "Satuan wajib diisi.";
+    if (!jenisSpec) errors.jenisSpec = "Jenis Spec wajib diisi.";
+    if (customHargaIdr <= 0) errors.harga = "Harga minimal Rp 1.";
+    if (customQty <= 0) errors.qty = "Jumlah minimal 1.";
+
+    if (Object.keys(errors).length > 0) {
+      setCustomErrors(errors);
       return;
     }
 
@@ -326,13 +356,54 @@ export default function HomePage() {
     <RpbPageFrame shellClassName="rpb-compact">
       <div className="space-y-4 py-4 md:space-y-3 md:py-5">
           {masterLoading ? (
-            <div className="rpb-section rpb-delayed-loader p-4 text-sm text-rpb-ink-soft">
-              Memuat master data dari database...
+            <div className="rpb-section p-4">
+              <div className="space-y-3">
+                <div className="rpb-skeleton rpb-skeleton-line" />
+                <div className="rpb-skeleton rpb-skeleton-line" />
+                <div className="rpb-skeleton rpb-skeleton-line" />
+                <div className="rpb-skeleton rpb-skeleton-line" />
+                <div className="rpb-skeleton rpb-skeleton-line" />
+                <div className="rpb-skeleton rpb-skeleton-line" />
+              </div>
             </div>
           ) : null}
           {masterError ? (
-            <div className="rpb-alert rpb-alert-error">
-              {masterError}
+            <div className="rpb-alert rpb-alert-error flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <span>{masterError}</span>
+              <button
+                type="button"
+                className="rpb-btn-ghost inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold"
+                onClick={() => window.location.reload()}
+              >
+                <RotateCcw size={12} />
+                Coba Lagi
+              </button>
+            </div>
+          ) : null}
+          {onboardVisible ? (
+            <div className="rpb-onboarding-banner rounded-xl border border-rpb-border bg-white px-4 py-3 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rpb-primary text-sm text-white font-bold">?</span>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Selamat datang di RPB Kalkulator!</p>
+                    <p className="mt-1 text-xs text-rpb-ink-soft">
+                      Cukup <strong>3 langkah</strong>:
+                      (1) Isi data customer (boleh dikosongkan),
+                      (2) Masukkan ukuran ruangan,
+                      (3) Klik tombol <strong>&quot;Lanjut&quot;</strong> di bawah.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="shrink-0 text-rpb-ink-soft hover:text-foreground"
+                  onClick={hideOnboard}
+                  aria-label="Tutup panduan"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
           ) : null}
           {latestDraft && !draftBannerDismissed ? (
@@ -351,7 +422,7 @@ export default function HomePage() {
                     onClick={handleContinueLatestDraft}
                   >
                     <RotateCcw size={14} />
-                    Continue latest draft
+                    Lanjutkan draft
                   </button>
                   <button
                     type="button"
@@ -366,8 +437,8 @@ export default function HomePage() {
             </section>
           ) : null}
           <div className="grid gap-3 md:grid-cols-2">
-            <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
-              Customer Name
+             <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
+              Nama Customer <span className="font-normal text-xs">(opsional)</span>
               <input
                 className="rpb-input"
                 placeholder="Masukkan nama customer"
@@ -376,16 +447,16 @@ export default function HomePage() {
               />
             </label>
             <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
-              Project Name
+              Nama Proyek <span className="font-normal text-xs">(opsional)</span>
               <input
                 className="rpb-input"
-                placeholder="Masukkan nama project"
+                placeholder="Masukkan nama proyek"
                 value={projectName}
                 onChange={(event) => setProjectName(event.target.value)}
               />
             </label>
             <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft md:col-span-2">
-              Customer Address
+              Alamat Customer <span className="font-normal text-xs">(opsional)</span>
               <input
                 className="rpb-input"
                 placeholder="Masukkan alamat customer"
@@ -396,7 +467,7 @@ export default function HomePage() {
           </div>
 
           <div>
-            <h2 className="rpb-h-title mb-2 text-base font-semibold md:text-lg">Dimension</h2>
+            <h2 className="rpb-h-title mb-2 text-base font-semibold md:text-lg">Ukuran Ruangan</h2>
             <div className="grid gap-3 md:grid-cols-3">
               <DimensionInput
                 label="Panjang (mm)"
@@ -421,13 +492,13 @@ export default function HomePage() {
               <h2 className="rpb-h-title text-base font-semibold md:text-lg">Profile</h2>
               <button
                 type="button"
-                className="rpb-btn-ghost inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold"
+                className="rpb-btn-ghost inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold"
                 onClick={() => setProfileBreakdownOpen((current) => !current)}
                 aria-expanded={profileBreakdownOpen}
                 aria-controls="profile-breakdown"
               >
-                <span>Detail</span>
-                {profileBreakdownOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                <span>Lihat Rincian</span>
+                {profileBreakdownOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </button>
             </div>
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -453,7 +524,7 @@ export default function HomePage() {
               <div id="profile-breakdown">
                 <FixedBreakdownPanel
                   items={profileBreakdown}
-                  emptyText="Belum ada item profile yang terhitung."
+                  emptyText="Belum ada item Profile yang terhitung. Isi dimensi (Panjang/Lebar/Tinggi) di atas, maka rincian otomatis muncul."
                   totalLabel="Total Profile"
                   totalValue={profileIdr}
                 />
@@ -466,13 +537,13 @@ export default function HomePage() {
               <h2 className="rpb-h-title text-base font-semibold md:text-lg">Konstruksi</h2>
               <button
                 type="button"
-                className="rpb-btn-ghost inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold"
+                className="rpb-btn-ghost inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold"
                 onClick={() => setKonstruksiBreakdownOpen((current) => !current)}
                 aria-expanded={konstruksiBreakdownOpen}
                 aria-controls="konstruksi-breakdown"
               >
-                <span>Detail</span>
-                {konstruksiBreakdownOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                <span>Lihat Rincian</span>
+                {konstruksiBreakdownOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </button>
             </div>
             <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -485,7 +556,7 @@ export default function HomePage() {
               <div id="konstruksi-breakdown">
                 <FixedBreakdownPanel
                   items={konstruksiBreakdown}
-                  emptyText="Belum ada item konstruksi yang terhitung."
+                  emptyText="Belum ada item Konstruksi yang terhitung. Isi dimensi dan pilih Tebal Panel untuk melihat rincian."
                   totalLabel="Total Konstruksi"
                   totalValue={konstruksiIdr}
                 />
@@ -495,7 +566,7 @@ export default function HomePage() {
 
           <section className="rpb-section p-4 md:p-4">
             <div className="mb-2 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <h2 className="rpb-h-title text-base font-semibold md:text-lg">Other</h2>
+              <h2 className="rpb-h-title text-base font-semibold md:text-lg">Lainnya</h2>
               <div className="rpb-price-pill inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold">
                 <span>Terpilih</span>
                 <span>{selectedOtherCount} unit</span>
@@ -509,7 +580,7 @@ export default function HomePage() {
                 />
                 <input
                   className="rpb-input rpb-input-with-icon"
-                  placeholder="Search item or model"
+                  placeholder="Cari item atau model"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                 />
@@ -584,12 +655,12 @@ export default function HomePage() {
             </div>
           </section>
 
-          <div className="flex justify-end">
+          <div className="rpb-sticky-bottom flex justify-end">
             <Link
               href="/summary"
-              className="rpb-btn-primary inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold"
+              className="rpb-btn-primary inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold shadow-lg"
             >
-              Next
+              Lanjut
               <ArrowRight size={16} />
             </Link>
           </div>
@@ -603,7 +674,7 @@ export default function HomePage() {
             </div>
             <div className="space-y-5 overflow-y-auto p-5">
               <div className="rpb-section p-4">
-                <p className="mb-1 text-sm text-rpb-ink-soft">Price</p>
+                <p className="mb-1 text-sm text-rpb-ink-soft">Harga</p>
                 <p className="text-2xl font-semibold">
                   {formatRupiah(modalItem.priceIdr)}
                 </p>
@@ -611,7 +682,7 @@ export default function HomePage() {
 
               <div>
                 <p className="mb-2 text-sm font-semibold text-rpb-ink-soft">
-                  Quantity (unit)
+                  Jumlah (unit)
                 </p>
                 <div className="flex items-center gap-3">
                   <button
@@ -643,7 +714,7 @@ export default function HomePage() {
               </div>
 
               <div className="rpb-section p-4">
-                <p className="text-sm text-rpb-ink-soft">Total price</p>
+                <p className="text-sm text-rpb-ink-soft">Total Harga</p>
                 <p className="text-xl font-semibold">
                   {formatRupiah(modalQty * modalItem.priceIdr)}
                 </p>
@@ -655,14 +726,14 @@ export default function HomePage() {
                   className="rpb-btn-ghost px-4 py-2 text-sm font-semibold"
                   onClick={closeAddModal}
                 >
-                  Cancel
+                  Batal
                 </button>
                 <button
                   type="button"
                   className="rpb-btn-primary px-4 py-2 text-sm font-semibold"
                   onClick={handleAddOther}
                 >
-                  Add
+                  Tambah
                 </button>
               </div>
             </div>
@@ -681,18 +752,20 @@ export default function HomePage() {
                 <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
                   Jenis
                   <input
-                    className="rpb-input"
+                    className={`rpb-input ${customErrors.jenis ? "border-red-400" : ""}`}
                     value={customJenis}
-                    onChange={(event) => setCustomJenis(event.target.value)}
+                    onChange={(event) => { setCustomJenis(event.target.value); setCustomErrors((e) => ({ ...e, jenis: undefined })); }}
                   />
+                  {customErrors.jenis ? <p className="text-xs text-red-600">{customErrors.jenis}</p> : null}
                 </label>
                 <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
                   Keterangan
                   <input
-                    className="rpb-input"
+                    className={`rpb-input ${customErrors.keterangan ? "border-red-400" : ""}`}
                     value={customKeterangan}
-                    onChange={(event) => setCustomKeterangan(event.target.value)}
+                    onChange={(event) => { setCustomKeterangan(event.target.value); setCustomErrors((e) => ({ ...e, keterangan: undefined })); }}
                   />
+                  {customErrors.keterangan ? <p className="text-xs text-red-600">{customErrors.keterangan}</p> : null}
                 </label>
               </div>
 
@@ -700,33 +773,36 @@ export default function HomePage() {
                 <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
                   Satuan
                   <input
-                    className="rpb-input"
+                    className={`rpb-input ${customErrors.satuan ? "border-red-400" : ""}`}
                     value={customSatuan}
-                    onChange={(event) => setCustomSatuan(event.target.value)}
+                    onChange={(event) => { setCustomSatuan(event.target.value); setCustomErrors((e) => ({ ...e, satuan: undefined })); }}
                   />
+                  {customErrors.satuan ? <p className="text-xs text-red-600">{customErrors.satuan}</p> : null}
                 </label>
                 <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
                   Jenis Spec
                   <input
-                    className="rpb-input"
+                    className={`rpb-input ${customErrors.jenisSpec ? "border-red-400" : ""}`}
                     value={customJenisSpec}
-                    onChange={(event) => setCustomJenisSpec(event.target.value)}
+                    onChange={(event) => { setCustomJenisSpec(event.target.value); setCustomErrors((e) => ({ ...e, jenisSpec: undefined })); }}
                   />
+                  {customErrors.jenisSpec ? <p className="text-xs text-red-600">{customErrors.jenisSpec}</p> : null}
                 </label>
                 <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
                   Harga (Rupiah)
                   <input
-                    className="rpb-input"
+                    className={`rpb-input ${customErrors.harga ? "border-red-400" : ""}`}
                     type="number"
                     min={0}
                     step="any"
                     value={customHargaIdr}
                     onFocus={selectInputOnFocus}
-                    onChange={(event) => setCustomHargaIdr(parseNumberInput(event.target.value))}
+                    onChange={(event) => { setCustomHargaIdr(parseNumberInput(event.target.value)); setCustomErrors((e) => ({ ...e, harga: undefined })); }}
                   />
+                  {customErrors.harga ? <p className="text-xs text-red-600">{customErrors.harga}</p> : null}
                 </label>
                 <label className="flex flex-col gap-2 text-sm font-semibold text-rpb-ink-soft">
-                  Quantity
+                  Jumlah
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
@@ -737,14 +813,12 @@ export default function HomePage() {
                       -
                     </button>
                     <input
-                      className="rpb-input h-11 w-24 text-center"
+                      className={`rpb-input h-11 w-24 text-center ${customErrors.qty ? "border-red-400" : ""}`}
                       type="text"
                       inputMode="numeric"
                       value={customQty}
                       onFocus={selectInputOnFocus}
-                      onChange={(event) =>
-                        setCustomQty(Math.max(1, Math.floor(parseNumberInput(event.target.value))))
-                      }
+                      onChange={(event) => { setCustomQty(Math.max(1, Math.floor(parseNumberInput(event.target.value)))); setCustomErrors((e) => ({ ...e, qty: undefined })); }}
                     />
                     <button
                       type="button"
@@ -755,6 +829,7 @@ export default function HomePage() {
                       +
                     </button>
                   </div>
+                  {customErrors.qty ? <p className="text-xs text-red-600">{customErrors.qty}</p> : null}
                 </label>
               </div>
 
@@ -763,7 +838,7 @@ export default function HomePage() {
                   Quantity custom item bisa diatur sesuai kebutuhan.
                 </div>
                 <div className="border-t border-rpb-border px-4 py-2">
-                  <p className="text-xs text-rpb-ink-soft">Total price</p>
+                  <p className="text-xs text-rpb-ink-soft">Total Harga</p>
                   <p className="text-lg font-semibold">
                     {formatRupiah(customHargaIdr * customQty)}
                   </p>
@@ -776,14 +851,14 @@ export default function HomePage() {
                   className="rpb-btn-ghost px-4 py-2 text-sm font-semibold"
                   onClick={closeCustomModal}
                 >
-                  Cancel
+                  Batal
                 </button>
                 <button
                   type="button"
                   className="rpb-btn-primary px-4 py-2 text-sm font-semibold"
                   onClick={handleAddCustomOther}
                 >
-                  Add
+                  Tambah
                 </button>
               </div>
             </div>

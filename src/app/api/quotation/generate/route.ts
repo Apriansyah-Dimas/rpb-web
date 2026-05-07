@@ -33,6 +33,7 @@ type Payload = {
   itemDiscount?: number | string;
   item1Discount?: number | string;
   additionalInformation?: string;
+  ppnRate?: number;
 };
 
 const TEMPLATE_FILE = path.join(process.cwd(), "templates", "Quotation_PT_Jaya_Nurimba.xlsx");
@@ -139,6 +140,8 @@ async function createWorkbookBuffer(payload: Payload): Promise<Buffer> {
   const parsedAdditional = parseAdditionalInformationSections(text(payload.additionalInformation));
   const termsConditionLines = parsedAdditional.conditionLines.map((line) => stripBoldMarkers(line));
   const termsPaymentLines = parsedAdditional.paymentLines.map((line) => stripBoldMarkers(line));
+  const ppnRate = Number.isFinite(payload.ppnRate) && (payload.ppnRate as number) > 0 ? (payload.ppnRate as number) : 0.11;
+  const ppnPercent = Math.round(ppnRate * 100);
 
   ["A26:A36", "B26:D36", "E26:E36", "F26:F36", "G26:G36", "H26:H36"].forEach((range) => {
     sheet.range(range).merged(false);
@@ -195,8 +198,8 @@ async function createWorkbookBuffer(payload: Payload): Promise<Buffer> {
   sheet.cell("G34").formula('IF(G15="","",G15)');
   sheet.cell("E35").value(`Discount (${(discount * 100).toFixed(2)}%)`);
   sheet.cell("G35").formula(`IF(G34="","",G34*${discountRateLiteral})`);
-  sheet.cell("E36").value("PPN 11%");
-  sheet.cell("G36").formula('IF(G34="","",(G34-G35)*11%)');
+  sheet.cell("E36").value(`PPN ${ppnPercent}%`);
+  sheet.cell("G36").formula(`IF(G34="","",(G34-G35)*${ppnRate})`);
   sheet.cell("E37").value("Grand Total");
   sheet.cell("G37").formula('IF(G34="","",G34-G35+G36)');
 

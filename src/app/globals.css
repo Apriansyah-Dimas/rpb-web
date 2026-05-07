@@ -825,3 +825,60 @@ body::-webkit-scrollbar {
   border-color: var(--rpb-primary);
   box-shadow: 0 0 0 4px var(--rpb-focus-ring);
 }
+
+/* ========== Focus ring for all interactive custom elements ========== */
+.rpb-grid-card:focus-visible,
+.rpb-key-card:focus-visible,
+.rpb-price-pill:focus-visible,
+button:focus-visible:not(.rpb-btn-primary):not(.rpb-btn-ghost) {
+  outline: 2px solid var(--rpb-primary);
+  outline-offset: 2px;
+}
+
+/* ========== Skeleton loader ========== */
+@keyframes rpb-skeleton-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.rpb-skeleton {
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--rpb-primary-soft) 50%, transparent) 0%,
+    color-mix(in oklab, var(--rpb-primary-soft) 90%, white) 40%,
+    color-mix(in oklab, var(--rpb-primary-soft) 50%, transparent) 80%
+  );
+  background-size: 400px 100%;
+  animation: rpb-skeleton-shimmer 1.6s var(--rpb-ease-out) infinite;
+}
+
+.rpb-skeleton-line {
+  height: 14px;
+  margin-bottom: 8px;
+}
+
+.rpb-skeleton-line:last-child {
+  width: 65%;
+  margin-bottom: 0;
+}
+
+/* ========== Sticky bottom action bar ========== */
+.rpb-sticky-bottom {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  background: linear-gradient(180deg, transparent 0%, var(--rpb-surface) 30%);
+  padding: 12px 0 calc(1rem + env(safe-area-inset-bottom)) 0;
+  margin-top: 8px;
+}
+
+/* ========== Onboarding banner ========== */
+@keyframes rpb-onboard-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.rpb-onboarding-banner {
+  animation: rpb-onboard-in 320ms var(--rpb-ease-out) both;
+}
