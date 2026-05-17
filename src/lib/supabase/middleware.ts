@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import type { User } from "@supabase/supabase-js";
 import { supabaseAnonKey, supabaseUrl } from "@/lib/supabase/env";
 import { isInvalidAuthSessionError } from "@/lib/supabase/auth-errors";
 
@@ -16,7 +17,9 @@ const clearSupabaseAuthCookies = (request: NextRequest, response: NextResponse):
     });
 };
 
-export const updateSupabaseSession = async (request: NextRequest) => {
+export const updateSupabaseSession = async (
+  request: NextRequest,
+): Promise<{ response: NextResponse; user: User | null }> => {
   let response = NextResponse.next({
     request,
   });
@@ -52,11 +55,11 @@ export const updateSupabaseSession = async (request: NextRequest) => {
     },
   });
 
-  const { error } = await supabase.auth.getUser();
+  const { data, error } = await supabase.auth.getUser();
 
   if (isInvalidAuthSessionError(error)) {
     clearSupabaseAuthCookies(request, response);
   }
 
-  return response;
+  return { response, user: data.user ?? null };
 };

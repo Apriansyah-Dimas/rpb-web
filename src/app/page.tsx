@@ -152,10 +152,15 @@ export default function HomePage() {
   );
   const [draftBannerDismissed, setDraftBannerDismissed] = useState(false);
   const [customErrors, setCustomErrors] = useState<{ jenis?: string; keterangan?: string; satuan?: string; jenisSpec?: string; harga?: string; qty?: string }>({});
-  const [onboardVisible, setOnboardVisible] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("rpb-onboard-done") !== "1";
-  });
+  const [onboardVisible, setOnboardVisible] = useState(false);
+  const [onboardLoaded, setOnboardLoaded] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOnboardVisible(localStorage.getItem("rpb-onboard-done") !== "1");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOnboardLoaded(true);
+  }, []);
   const hideOnboard = () => {
     localStorage.setItem("rpb-onboard-done", "1");
     setOnboardVisible(false);
@@ -380,7 +385,7 @@ export default function HomePage() {
               </button>
             </div>
           ) : null}
-          {onboardVisible ? (
+          {onboardLoaded && onboardVisible ? (
             <div className="rpb-onboarding-banner rounded-xl border border-rpb-border bg-white px-4 py-3 shadow-sm">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3">

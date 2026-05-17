@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { updateSupabaseSession } from "@/lib/supabase/middleware";
 
 const PUBLIC_PATHS = new Set([
   "/login",
@@ -11,12 +12,7 @@ const PUBLIC_PREFIXES = ["/_next", "/favicon.ico"];
 const isPublicPath = (pathname: string): boolean =>
   PUBLIC_PATHS.has(pathname) || PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
-const hasSupabaseAuthCookie = (request: NextRequest): boolean =>
-  request.cookies
-    .getAll()
-    .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"));
-
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (isPublicPath(pathname)) {
@@ -27,20 +23,19 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const isAdminPath = pathname === "/admin" || pathname.startsWith("/admin/");
-  const hasAuthCookie = hasSupabaseAuthCookie(request);
+  const { response, user } = await updateSupabaseSession(request);
 
-  if (!hasAuthCookie) {
+  if (!user) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
+    const redirectResponse = NextResponse.redirect(loginUrl);
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+    });
+    return redirectResponse;
   }
 
-  if (isAdminPath) {
-    return NextResponse.next();
-  }
-
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
